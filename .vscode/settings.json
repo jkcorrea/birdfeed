@@ -6,4 +6,18 @@
     ".cache/": true,
     "public/build/": true
   },
+  "jupyter.kernels.filter": [
+    {
+      "path": "/opt/homebrew/bin/python3.11",
+      "type": "pythonEnvironment"
+    },
+    {
+      "path": "/Users/jkcorrea/.asdf/shims/python3.11",
+      "type": "pythonEnvironment"
+    },
+    {
+      "path": "/usr/bin/python3",
+      "type": "pythonEnvironment"
+    }
+  ],
 }

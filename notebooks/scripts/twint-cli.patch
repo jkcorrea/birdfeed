@@ -1,0 +1,34 @@
+--- twint/cli.py	2023-02-26 16:50:11
++++ twint/cli.patched.py	2023-02-26 17:01:29
+@@ -6,7 +6,7 @@
+ https://github.com/twintproject/twint/wiki
+
+ Licensed under MIT License
+-Copyright (c) 2018 The Twint Project
++Copyright (c) 2018 The Twint Project
+ '''
+ import sys
+ import os
+@@ -228,7 +228,7 @@
+     ap.add_argument("--backoff-exponent", help="Specify a exponent for the polynomial backoff in case of errors.", type=float, default=3.0)
+     ap.add_argument("--min-wait-time", type=float, default=15, help="specifiy a minimum wait time in case of scraping limit error. This value will be adjusted by twint if the value provided does not satisfy the limits constraints")
+     args = ap.parse_args()
+-
++
+     return args
+
+ def main():
+@@ -297,9 +297,9 @@
+         run.Search(c)
+
+ def run_as_command():
+-    version = ".".join(str(v) for v in sys.version_info[:2])
+-    if float(version) < 3.6:
+-        print("[-] TWINT requires Python version 3.6+.")
+-        sys.exit(0)
++    # version = ".".join(str(v) for v in sys.version_info[:2])
++    # if float(version) < 3.6:
++    #     print("[-] TWINT requires Python version 3.6+.")
++    #     sys.exit(0)
+
+     main()
