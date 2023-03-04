@@ -2,7 +2,7 @@ import { z } from 'zod'
 
 import { Currency } from '@prisma/client'
 
-import { AppError, isBrowser } from './utils'
+import { AppError } from './utils'
 
 declare global {
   interface Window {
@@ -31,6 +31,8 @@ declare global {
   }
 }
 
+const isBrowser = typeof document !== 'undefined'
+
 type EnvOptions = {
   isSecret?: boolean
   isRequired?: boolean
@@ -38,7 +40,7 @@ type EnvOptions = {
 function getEnv(name: string, { isRequired, isSecret }: EnvOptions = { isSecret: true, isRequired: true }) {
   if (isBrowser && isSecret) return ''
 
-  const source = (isBrowser ? window.env : process.env) ?? {}
+  const source = (isBrowser ? window?.env : typeof process !== 'undefined' ? process.env : {}) ?? {}
 
   const value = source[name as keyof typeof source] || ''
 
@@ -54,7 +56,6 @@ function getEnv(name: string, { isRequired, isSecret }: EnvOptions = { isSecret:
 /**
  * Server env
  */
-export const SERVER_URL = getEnv('SERVER_URL')
 export const SUPABASE_SERVICE_ROLE = getEnv('SUPABASE_SERVICE_ROLE')
 export const SESSION_SECRET = getEnv('SESSION_SECRET')
 export const STRIPE_SECRET_KEY = getEnv('STRIPE_SECRET_KEY')
@@ -68,6 +69,7 @@ export const NODE_ENV = getEnv('NODE_ENV', {
   isSecret: false,
   isRequired: false,
 })
+export const SERVER_URL = getEnv('SERVER_URL', { isSecret: false })
 export const SUPABASE_URL = getEnv('SUPABASE_URL', { isSecret: false })
 export const SUPABASE_ANON_PUBLIC = getEnv('SUPABASE_ANON_PUBLIC', {
   isSecret: false,
@@ -76,6 +78,8 @@ export const DEFAULT_CURRENCY = z.nativeEnum(Currency).parse(getEnv('DEFAULT_CUR
 
 export function getBrowserEnv() {
   return {
+    NODE_ENV,
+    SERVER_URL,
     SUPABASE_URL,
     SUPABASE_ANON_PUBLIC,
     DEFAULT_CURRENCY,

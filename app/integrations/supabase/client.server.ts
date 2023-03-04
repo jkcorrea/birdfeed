@@ -2,7 +2,8 @@ import { createClient } from '@supabase/supabase-js'
 
 import { SUPABASE_ANON_PUBLIC, SUPABASE_SERVICE_ROLE, SUPABASE_URL } from '~/lib/env'
 import { AppError } from '~/lib/utils'
-import { isBrowser } from '~/lib/utils'
+
+const isBrowser = typeof document !== 'undefined'
 
 function getSupabaseClient(supabaseKey: string, accessToken?: string) {
   const global = accessToken
