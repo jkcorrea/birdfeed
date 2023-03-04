@@ -1,4 +1,4 @@
-app = "birdfeed-09f3"
+app = "birdfeed"
 kill_signal = "SIGINT"
 kill_timeout = 5
 processes = [ ]
