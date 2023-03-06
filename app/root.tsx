@@ -81,7 +81,7 @@ export default function App() {
         <Meta />
         <Links />
       </head>
-      <body className="h-full">
+      <body className="relative flex h-full flex-col">
         <script
           dangerouslySetInnerHTML={{
             __html: `window.env = ${JSON.stringify(env)}`,
@@ -89,15 +89,11 @@ export default function App() {
         />
 
         <NotifyError />
-        <div className="px-6 pt-6 lg:px-8">
-          <Navbar key={key} />
-        </div>
-        <main>
-          <div className="relative px-6 lg:px-8">
-            <div className="mx-auto max-w-screen-lg pt-10">
-              <Outlet />
-            </div>
-          </div>
+
+        <Navbar key={key} />
+
+        <main className="mx-auto min-h-[500px] w-full max-w-screen-xl grow py-4 px-8 overflow-y-hidden md:px-0 lg:my-10">
+          <Outlet />
         </main>
 
         <ScrollRestoration />

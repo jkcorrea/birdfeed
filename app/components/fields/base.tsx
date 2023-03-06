@@ -34,25 +34,23 @@ export const makeBaseField = <E extends HTMLElement = HTMLInputElement, P extend
 
     return (
       <div className={tw('form-control w-full', wrapperClassName)}>
-        {label ||
-          (altLabel1 && (
-            <label htmlFor={id} className="label">
-              {label && (
-                <span className={tw('label-text uppercase', error && 'text-error', labelClassName)}>{label}</span>
-              )}
-              {altLabel1 && <span className={tw('label-text-alt ml-auto')}>{altLabel1}</span>}
-            </label>
-          ))}
+        {!label && !altLabel1 ? null : (
+          <label htmlFor={id} className="label">
+            {label && (
+              <span className={tw('label-text uppercase', error && 'text-error', labelClassName)}>{label}</span>
+            )}
+            {altLabel1 && <span className={tw('label-text-alt ml-auto')}>{altLabel1}</span>}
+          </label>
+        )}
 
         <Comp {...inputProps} id={id} ref={forwardedRef} />
 
-        {error ||
-          (altLabel2 && (
-            <label htmlFor={id} className="label pt-1.5">
-              {error && <span className={tw('label-text-alt text-error', errorClassName)}>{error}</span>}
-              {altLabel2 && <span className={tw('label-text-alt ml-auto')}>{altLabel2}</span>}
-            </label>
-          ))}
+        {!error && !altLabel2 ? null : (
+          <label htmlFor={id} className="label pt-1.5">
+            {error && <span className={tw('label-text-alt text-error', errorClassName)}>{error}</span>}
+            {altLabel2 && <span className={tw('label-text-alt ml-auto')}>{altLabel2}</span>}
+          </label>
+        )}
       </div>
     )
   })

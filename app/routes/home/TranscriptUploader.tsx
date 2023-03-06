@@ -1,152 +1,128 @@
-import { useCallback, useReducer } from 'react'
-import type { FileRejection } from 'react-dropzone'
-import { useDropzone } from 'react-dropzone'
+import { useCallback, useEffect, useRef, useState } from 'react'
+import { CloudArrowUpIcon } from '@heroicons/react/24/outline'
+import { AnimatePresence, motion } from 'framer-motion'
 import type { Zorm } from 'react-zorm'
 
-import { CLEANUP_WORDS, MIN_CONTENT_LENGTH } from '~/lib/constants'
-import { AppError, Logger, tw } from '~/lib/utils'
+import { CheckboxField } from '~/components/fields'
+import { CLEANUP_WORDS } from '~/lib/constants'
+import { NODE_ENV } from '~/lib/env'
+import { AppError } from '~/lib/utils'
 
-import type { IGenerateTweetsFormSchema } from './GenerateTweetsForm'
-
-type ContentState = { value: string; dirty: string | null }
-type ContentAction =
-  | {
-      type: 'set'
-      payload: string
-    }
-  | {
-      type: 'clean'
-    }
-  | { type: 'revert' }
-function contentReducer(state: ContentState, action: ContentAction): ContentState {
-  switch (action.type) {
-    case 'set':
-      return {
-        value: action.payload,
-        dirty: null,
-      }
-    case 'clean':
-      return {
-        value: state.value && CLEANUP_WORDS.reduce((acc, word) => acc.replace(new RegExp(word, 'gi'), ''), state.value),
-        dirty: state.value,
-      }
-    case 'revert':
-      return {
-        value: state.dirty ?? '',
-        dirty: null,
-      }
-    default:
-      throw new Error(`Unhandled action: ${action satisfies never}`)
-  }
-}
+import type { IUploadFormSchema } from './upload-form-schema'
 
 interface TranscriptUploaderProps {
-  zorm: Zorm<IGenerateTweetsFormSchema>
-  disabled?: boolean
+  zorm: Zorm<IUploadFormSchema>
 }
 
-export function TranscriptUploader({ zorm, disabled }: TranscriptUploaderProps) {
-  const [content, dispatch] = useReducer(contentReducer, { value: '', dirty: null })
+export function TranscriptUploader({ zorm }: TranscriptUploaderProps) {
+  const [value, setValue] = useState('')
+  const fileInputRef = useRef<HTMLInputElement>(null)
 
-  const onDropRejected = useCallback((files: FileRejection[]) => {
-    const errors = files.map((file) => file.errors)
-    const message = errors[0].map((error) => error.message).join('. ')
-    Logger.error(message)
-  }, [])
-
-  const onDrop = useCallback((acceptedFiles: File[]) => {
-    // dropping of multiple files is already handled by onDropRejected()
-
-    if (acceptedFiles.length === 0) {
-      // note this callback is run even when no files are accepted / all rejected
-      // do nothing in such case
-      return
-    }
-
-    const file = acceptedFiles[0]
+  const handleFileUpload = useCallback((file: File) => {
     const reader = new FileReader()
-
-    reader.onerror = () => {
-      Logger.error('FileReader error')
-      reader.abort()
-    }
-
-    // read file as text file
-    reader.onloadend = async () => {
-      const { result } = reader
-
+    reader.onload = ({ target }) => {
       // check if file contents appear to be binary
       // TODO check if binary
       // if (await isBinaryFile(resultAsText as string)) {
-      if (typeof result !== 'string') throw new AppError({ message: 'Binary files not supported' })
-
-      dispatch({ type: 'set', payload: result.trim() })
+      if (typeof target?.result !== 'string') throw new AppError({ message: 'FileReader result is not a string' })
+      const cleaned = CLEANUP_WORDS.reduce((acc, word) => acc.replace(new RegExp(word, 'gi'), ' '), target.result)
+      setValue(cleaned)
     }
-
     reader.readAsText(file)
   }, [])
 
-  function handleCleanup(e: React.MouseEvent) {
-    // Prevent so the dropzone doesn't trigger
+  const [isDragging, setIsDragging] = useState(false)
+  const dragCounter = useRef(0)
+  const onDrag = useCallback((e: DragEvent) => {
     e.preventDefault()
-    dispatch({ type: 'clean' })
-    return false
-  }
-
-  const { getRootProps, getInputProps, isDragReject, isDragAccept } = useDropzone({
-    onDrop,
-    onDropRejected,
-    noKeyboard: true,
-    multiple: false,
-    // noClick: true,
-    accept: {
-      'text/plain': ['.txt'],
+    e.stopPropagation()
+  }, [])
+  const onDragEnter = useCallback((e: DragEvent) => {
+    e.preventDefault()
+    e.stopPropagation()
+    dragCounter.current += 1
+    const { items } = e.dataTransfer ?? {}
+    if (items && items.length > 0) setIsDragging(true)
+  }, [])
+  const onDragLeave = useCallback((e: DragEvent) => {
+    e.preventDefault()
+    e.stopPropagation()
+    dragCounter.current -= 1
+    if (dragCounter.current <= 0) setIsDragging(false)
+  }, [])
+  const onDrop = useCallback(
+    (e: DragEvent) => {
+      e.preventDefault()
+      e.stopPropagation()
+      setIsDragging(false)
+      if (e.dataTransfer?.files && e.dataTransfer.files.length > 0) {
+        dragCounter.current = 0
+        handleFileUpload(e.dataTransfer.files[0])
+      }
     },
-  })
+    [handleFileUpload]
+  )
+
+  useEffect(() => {
+    window.addEventListener('dragenter', onDragEnter)
+    window.addEventListener('dragleave', onDragLeave)
+    window.addEventListener('dragover', onDrag)
+    window.addEventListener('drop', onDrop)
+    return () => {
+      window.removeEventListener('dragenter', onDragEnter)
+      window.removeEventListener('dragleave', onDragLeave)
+      window.removeEventListener('dragover', onDrag)
+      window.removeEventListener('drop', onDrop)
+    }
+  }, [onDrag, onDragEnter, onDragLeave, onDrop])
 
   return (
-    <div {...getRootProps({ className: tw('form-control mt-5') })}>
-      <input {...getInputProps()} />
+    <div className="mt-4">
+      <input
+        ref={fileInputRef}
+        type="file"
+        className="hidden"
+        onChange={({ currentTarget: { files } }) => files?.[0] && handleFileUpload(files[0])}
+        accept="text/plain"
+      />
+      <input name={zorm.fields.content()} type="hidden" value={value} />
 
-      <div className="relative">
-        <textarea
-          value={content.value}
-          onChange={(e) => dispatch({ type: 'set', payload: e.currentTarget.value })}
-          name={zorm.fields.content()}
-          disabled={disabled}
-          minLength={1}
-          rows={10}
-          placeholder="Drop or paste your transcript here"
-          className={tw(
-            'textarea-bordered textarea h-80 w-full rounded border-2 border-dashed text-xl transition',
-            content.value.length > 0 && 'text-sm',
-            isDragAccept && 'border-green-600',
-            isDragReject && 'border-red-600'
-          )}
-        />
-        <div className="absolute bottom-4 right-2">
-          <button
-            type="button"
-            className="btn-accent btn-sm btn"
-            disabled={content.value.length === 0}
-            onClick={handleCleanup}
-          >
-            {content.dirty ? '🔙 Un-clean up' : '🧹 Clean up'}
-          </button>
-        </div>
-      </div>
-      <div
-        className={tw(
-          'mt-1 ml-auto',
-          content.value.length >= MIN_CONTENT_LENGTH
-            ? 'text-success'
-            : content.value.length >= MIN_CONTENT_LENGTH * 0.8
-            ? 'text-warning'
-            : 'text-error'
-        )}
+      <button
+        className="h-20 w-full rounded-lg border-2 border-dashed border-primary-focus/25 transition hover:border-primary-focus/100"
+        onClick={() => {
+          fileInputRef.current?.click()
+        }}
       >
-        {content.value.length} / {MIN_CONTENT_LENGTH}
-      </div>
+        Click or drag here to upload
+      </button>
+
+      {NODE_ENV === 'development' && (
+        <CheckboxField
+          name={zorm.fields.__skip_openai()}
+          defaultChecked={true}
+          label="Skip OpenAI?"
+          className="checkbox-xs"
+          wrapperClassName="flex-row mt-2 justify-center items-center gap-2"
+        />
+      )}
+
+      <AnimatePresence>
+        {isDragging && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="pointer-events-none fixed inset-0 z-[999] bg-gray-800/25 transition"
+          >
+            <div className="absolute inset-0 flex items-center justify-center">
+              <div className="rounded-lg bg-white/50 p-8 shadow-lg">
+                <CloudArrowUpIcon className="h-32 w-32 text-black/25" />
+                <div className="text-center text-black/50">Drop to upload</div>
+              </div>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   )
 }

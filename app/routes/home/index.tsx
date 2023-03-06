@@ -1,17 +1,19 @@
 import { ArrowUturnLeftIcon, ArrowUturnRightIcon } from '@heroicons/react/24/outline'
 import type { ActionArgs, LoaderArgs } from '@remix-run/node'
-import { Form, useActionData } from '@remix-run/react'
-import { AnimatePresence, motion } from 'framer-motion'
-import { parseFormAny } from 'react-zorm'
+import { Form } from '@remix-run/react'
+import { parseFormAny, useZorm } from 'react-zorm'
 
 import type { Tweet } from '@prisma/client'
 import { TextField } from '~/components/fields'
 import { generateTweetsFromTranscript } from '~/integrations/openai'
 import { response } from '~/lib/http.server'
-import { assertPost, parseData } from '~/lib/utils'
+import { assertPost, parseData, tw } from '~/lib/utils'
 import { requireAuthSession } from '~/modules/auth'
 
-import GenerateTweetsForm, { GenerateTweetsFormSchema } from './GenerateTweetsForm'
+import { GenerateTweetsFormSchema } from './GenerateTweetsForm'
+import TranscriptHistory from './TranscriptHistory'
+import { TranscriptUploader } from './TranscriptUploader'
+import { UploadFormSchema } from './upload-form-schema'
 
 export async function loader({ request }: LoaderArgs) {
   const authSession = await requireAuthSession(request)
@@ -37,31 +39,40 @@ export async function action({ request }: ActionArgs) {
 }
 
 export default function App() {
-  const actionData = useActionData<typeof action>()
+  const zo = useZorm('upload', UploadFormSchema)
 
   return (
-    <div className="flex flex-col gap-y-10">
-      <div className="min-w-0 flex-1">
-        <GenerateTweetsForm />
+    <div className="flex h-full gap-10 lg:gap-12">
+      <Column title="Transcripts">
+        <TranscriptUploader zorm={zo} />
+        <TranscriptHistory />
+      </Column>
 
-        <AnimatePresence>
-          {actionData && (
-            <motion.div
-              ref={(el) => el && el.scrollIntoView({ behavior: 'smooth' })}
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-            >
-              <h2 className="mt-10 text-2xl font-bold">For review...</h2>
-              <div className="my-5 flex flex-col gap-y-4">
-                {!actionData.error && actionData.tweets.map((tweet) => <TweetItem key={tweet.id} tweet={tweet} />)}
-              </div>
-            </motion.div>
-          )}
-        </AnimatePresence>
-      </div>
+      <Column title="On Deck" className="grow-[2]">
+        <ul className="mt-4 space-y-4 overflow-y-scroll">
+          {Array.from({ length: 20 }).map((_, i) => (
+            <li key={i} className="h-14 rounded-lg bg-base-300 p-2"></li>
+          ))}
+        </ul>
+      </Column>
+
+      <Column title="Posted">
+        <ul className="mt-4 space-y-4 overflow-y-scroll">
+          {Array.from({ length: 20 }).map((_, i) => (
+            <li key={i} className="h-14 rounded-lg bg-base-300 p-2"></li>
+          ))}
+        </ul>
+      </Column>
     </div>
   )
 }
+
+const Column = ({ title, className, children }: { title: string; className?: string; children: React.ReactNode }) => (
+  <div className={tw('flex grow flex-col', className)}>
+    <h1 className="text-2xl font-bold">{title}</h1>
+    {children}
+  </div>
+)
 
 interface TweetItemProps {
   tweet: Partial<Tweet> & Pick<Tweet, 'drafts'>
