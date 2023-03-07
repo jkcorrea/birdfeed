@@ -5,10 +5,11 @@ import { AnimatePresence, motion } from 'framer-motion'
 import { useZorm } from 'react-zorm'
 
 import { TextField } from '~/components/fields'
+import IntentField from '~/components/fields/IntentField'
 import FormErrorCatchall from '~/components/FormErrorCatchall'
 import { AppError, tw } from '~/lib/utils'
 
-import type { IUploadTranscript } from './schemas'
+import type { IHomeAction, IUploadTranscript } from './schemas'
 import { UploadTranscriptSchema } from './schemas'
 
 type UploadData = Pick<IUploadTranscript, 'content' | 'name'>
@@ -73,7 +74,7 @@ function TranscriptUploader() {
         >
           {upload ? (
             <Form method="post" ref={zo.ref} className="flex flex-col items-center justify-center gap-3 p-6">
-              <input name={zo.fields.intent()} type="hidden" value="upload" />
+              <IntentField<IHomeAction> value="upload-transcript" />
               <input name={zo.fields.content()} type="hidden" value={upload.content} />
               <TextField
                 label="Transcript Name"

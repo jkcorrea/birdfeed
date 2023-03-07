@@ -43,7 +43,17 @@ export default function Home() {
       </Column>
 
       <Column title="On Deck" className="flex-[4]">
-        <TweetQueue tweets={recentTweets} />
+        {recentTweets.length > 0 ? (
+          <TweetQueue tweets={recentTweets} />
+        ) : (
+          <div className="flex h-20 items-center justify-center rounded-lg bg-base-300 p-2 px-6 text-center shadow-inner">
+            <h2 className="text-lg">
+              No tweets in queue.
+              <br />
+              Upload a transcript to get started!
+            </h2>
+          </div>
+        )}
       </Column>
 
       <Column title="Posted">

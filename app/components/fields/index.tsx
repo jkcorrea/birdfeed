@@ -25,3 +25,5 @@ export const NumberField = makeBaseField('NumberField', (props) => (
 export const CheckboxField = makeBaseField('CheckboxField', (props) => (
   <input {...props} type="checkbox" className={tw('checkbox', props.error && 'checkbox-error', props.className)} />
 ))
+
+export * from './IntentField'

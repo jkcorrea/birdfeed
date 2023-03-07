@@ -92,6 +92,6 @@
   },
   "prisma": {
     "schema": "app/database/schema.prisma",
-    "seed": "ts-node --require tsconfig-paths/register scripts/_seed.ts"
+    "seed": "tsx scripts/seed.ts"
   }
 }

@@ -9,11 +9,13 @@ import { useZorm } from 'react-zorm'
 
 import type { Transcript } from '@prisma/client'
 import { TextAreaField } from '~/components/fields'
+import IntentField from '~/components/fields/IntentField'
 import FormErrorCatchall from '~/components/FormErrorCatchall'
 import { useKeypress } from '~/hooks'
 import { NODE_ENV } from '~/lib/env'
 import { tw } from '~/lib/utils'
 
+import type { IHomeAction } from './schemas'
 import { DeleteTranscriptSchema, GenerateTweetSchema } from './schemas'
 
 import transcripts from '../../../test/fixtures/transcripts.json'
@@ -99,13 +101,14 @@ const TranscriptItem = ({ transcript, isOpen, onClick }: TranscriptItemProps) =>
   const skipOAI = useKeypress('Shift') && NODE_ENV === 'development'
 
   return (
-    <motion.li layout className="group relative cursor-pointer rounded-lg bg-base-100 p-4 shadow" onClick={onClick}>
-      <div
-        className={tw(
-          'pointer-events-none absolute inset-0 rounded-lg bg-primary opacity-0 transition',
-          isOpen ? 'opacity-10' : 'group-hover:opacity-10'
-        )}
-      />
+    <motion.li
+      layout
+      className={tw(
+        'group relative cursor-pointer rounded-lg bg-base-100 p-4 shadow transition hover:bg-primary/10',
+        isOpen && 'bg-primary/10'
+      )}
+      onClick={onClick}
+    >
       {/* Header */}
       <motion.div
         layout
@@ -145,12 +148,12 @@ const TranscriptItem = ({ transcript, isOpen, onClick }: TranscriptItemProps) =>
 
         <div className="mt-3 flex justify-end gap-1">
           <Form method="post" ref={zoDelete.ref}>
-            <input name={zoDelete.fields.intent()} type="hidden" value="delete" />
+            <IntentField<IHomeAction> value="delete-transcript" />
             <input name={zoDelete.fields.transcriptId()} type="hidden" value={transcript.id} />
             <button className="btn-outline btn-primary btn-error btn-xs btn">Delete</button>
           </Form>
           <Form method="post" ref={zoGenerate.ref}>
-            <input name={zoGenerate.fields.intent()} type="hidden" value="generate" />
+            <IntentField<IHomeAction> value="generate-tweets" />
             <input name={zoGenerate.fields.transcriptId()} type="hidden" value={transcript.id} />
             {skipOAI && <input name={zoGenerate.fields.__skip_openai()} type="hidden" checked readOnly />}
             <button className="btn-primary btn-xs btn flex items-center justify-center gap-1">
