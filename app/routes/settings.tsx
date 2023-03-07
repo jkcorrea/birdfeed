@@ -1,8 +1,7 @@
-import { InformationCircleIcon } from '@heroicons/react/24/outline'
 import type { ActionArgs, LoaderArgs } from '@remix-run/node'
 import { Form, useFetcher, useLoaderData, useTransition } from '@remix-run/react'
 
-import { Button, Time } from '~/components'
+import { Time } from '~/components'
 import { getDefaultCurrency, response } from '~/lib/http.server'
 import { isFormProcessing, tw } from '~/lib/utils'
 import { destroyAuthSession, requireAuthSession } from '~/modules/auth'
@@ -60,9 +59,10 @@ export default function Subscription() {
     <div className="flex flex-col gap-y-10">
       <div className="flex flex-col items-center justify-center gap-y-2">
         <customerPortalFetcher.Form method="post" action="/api/customer-portal">
-          <Button
+          <button
+            type="button"
             disabled={isProcessing}
-            className={tw(cancelAtPeriodEnd && 'border-red-600 bg-red-600 hover:bg-red-700')}
+            className={tw('btn', cancelAtPeriodEnd ? 'btn-warning' : 'btn-accent')}
           >
             {isProcessing
               ? 'Redirecting to Customer Portal...'
@@ -71,7 +71,7 @@ export default function Subscription() {
                 ? 'Renew my subscription'
                 : 'Upgrade or cancel my subscription'
               : 'Go to Customer Portal'}
-          </Button>
+          </button>
         </customerPortalFetcher.Form>
         {currentPeriodEnd ? (
           <span>
@@ -85,32 +85,7 @@ export default function Subscription() {
         ) : null}
       </div>
       <PricingTable pricingPlan={pricingPlan} userTierId={userTier.id} defaultDisplayAnnual={interval === 'year'} />
-      <div className="rounded-md bg-yellow-50 p-4">
-        <div className="flex">
-          <div className="shrink-0">
-            <InformationCircleIcon className="h-5 w-5 text-yellow-400" aria-hidden="true" />
-          </div>
-          <div className="ml-3">
-            <h3 className="text-sm font-medium text-yellow-800">Do not use a real credit card for testing 😅</h3>
-            <div className="mt-2 text-sm text-yellow-700">
-              <p>
-                You can use
-                <span className="mx-2 inline-flex rounded-md border border-gray-200 bg-gray-100 p-1 text-gray-800">
-                  4242424242424242
-                </span>
-                Expire date
-                <span className="mx-2 inline-flex rounded-md border border-gray-200 bg-gray-100 p-1 text-gray-800">
-                  12/34
-                </span>
-                CVC
-                <span className="mx-2 inline-flex rounded-md border border-gray-200 bg-gray-100 p-1 text-gray-800">
-                  123
-                </span>
-              </p>
-            </div>
-          </div>
-        </div>
-      </div>
+
       <div className="flex justify-center">
         <DeleteTestAccount />
       </div>
@@ -119,7 +94,7 @@ export default function Subscription() {
 }
 
 function Highlight({ children, important }: { children: React.ReactNode; important?: boolean | null }) {
-  return <span className={tw('font-bold', important && 'text-red-600')}>{children}</span>
+  return <span className={tw('font-bold', important && 'text-warning')}>{children}</span>
 }
 
 function DeleteTestAccount() {
@@ -128,9 +103,9 @@ function DeleteTestAccount() {
 
   return (
     <Form method="post">
-      <Button disabled={isProcessing} className="border-red-600 bg-red-600 hover:bg-red-700">
-        {isProcessing ? 'Deleting...' : 'Delete my test account'}
-      </Button>
+      <button disabled={isProcessing} className="btn-outline btn-error btn">
+        {isProcessing ? 'Deleting...' : 'Delete my account'}
+      </button>
     </Form>
   )
 }

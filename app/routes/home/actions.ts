@@ -7,7 +7,15 @@ import { response } from '~/lib/http.server'
 import { assertPost, parseData } from '~/lib/utils'
 import { requireAuthSession } from '~/modules/auth'
 
-import type { IDeleteTranscript, IGenerateTweet, IRegenerateTweet, IRestoreDraft, IUploadTranscript } from './schemas'
+import type {
+  IDeleteTranscript,
+  IDeleteTweets,
+  IGenerateTweet,
+  IRegenerateTweet,
+  IRestoreDraft,
+  IUpdateTweet,
+  IUploadTranscript,
+} from './schemas'
 import { HomeActionSchema } from './schemas'
 
 export async function action({ request }: ActionArgs) {
@@ -35,6 +43,9 @@ export async function action({ request }: ActionArgs) {
         break
       case 'delete-tweets':
         await deleteTweets(data)
+        break
+      case 'update-tweet':
+        await updateTweet(data)
         break
       default:
         throw new Error(`Unknown action: ${data satisfies never}`)
@@ -117,8 +128,20 @@ async function restoreDraft({ draftIndex, tweetId }: IRestoreDraft) {
   })
 }
 
-async function deleteTweets({ tweetIds }: { tweetIds: string[] }) {
+async function deleteTweets({ tweetIds }: IDeleteTweets) {
   await db.tweet.deleteMany({
     where: { id: { in: tweetIds } },
+  })
+}
+
+async function updateTweet({ tweetId, draft }: IUpdateTweet) {
+  const { drafts } = await db.tweet.findUniqueOrThrow({
+    where: { id: tweetId },
+    select: { drafts: true },
+  })
+
+  await db.tweet.update({
+    where: { id: tweetId },
+    data: { drafts: { set: [draft, ...drafts.slice(1)] } },
   })
 }

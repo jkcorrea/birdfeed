@@ -3,7 +3,7 @@ import { Form, Link, useActionData, useSearchParams, useTransition } from '@remi
 import { parseFormAny, useZorm } from 'react-zorm'
 import { z } from 'zod'
 
-import { Button } from '~/components'
+import { TextField } from '~/components/fields'
 import { response } from '~/lib/http.server'
 import { isFormProcessing, parseData } from '~/lib/utils'
 import { createAuthSession, isAnonymousSession, signInWithEmail } from '~/modules/auth'
@@ -65,61 +65,40 @@ export default function LoginPage() {
     <div className="flex min-h-full flex-col justify-center">
       <div className="mx-auto w-full max-w-md px-8">
         <Form ref={zo.ref} method="post" className="space-y-6" replace>
-          <h1 className="text-2xl">Login in</h1>
-          <div>
-            <label htmlFor={zo.fields.email()} className="block text-sm font-medium text-gray-700">
-              Email
-            </label>
+          <h1 className="text-2xl font-bold">Login in</h1>
 
-            <div className="mt-1">
-              <input
-                data-test-id="email"
-                required
-                autoFocus={true}
-                name={zo.fields.email()}
-                type="email"
-                autoComplete="email"
-                className="w-full rounded border border-gray-500 px-2 py-1 text-lg"
-                disabled={isProcessing}
-              />
-              {zo.errors.email()?.message && (
-                <div className="pt-1 text-red-700" id="email-error">
-                  {zo.errors.email()?.message}
-                </div>
-              )}
-            </div>
-          </div>
+          <TextField
+            data-test-id="email"
+            label="Email"
+            error={zo.errors.email()?.message}
+            name={zo.fields.email()}
+            type="email"
+            autoComplete="email"
+            autoFocus={true}
+            disabled={isProcessing}
+          />
 
-          <div>
-            <label htmlFor={zo.fields.password()} className="block text-sm font-medium text-gray-700">
-              Password
-            </label>
-            <div className="mt-1">
-              <input
-                data-test-id="password"
-                name={zo.fields.password()}
-                type="password"
-                autoComplete="new-password"
-                className="w-full rounded border border-gray-500 px-2 py-1 text-lg"
-                disabled={isProcessing}
-              />
-              {zo.errors.password()?.message && (
-                <div className="pt-1 text-red-700" id="password-error">
-                  {zo.errors.password()?.message}
-                </div>
-              )}
-            </div>
-          </div>
+          <TextField
+            data-test-id="password"
+            label="Password"
+            error={zo.errors.password()?.message}
+            name={zo.fields.password()}
+            type="password"
+            autoComplete="password"
+            disabled={isProcessing}
+          />
 
           <input type="hidden" name={zo.fields.redirectTo()} value={redirectTo} />
-          <Button className="w-full" disabled={isProcessing}>
+
+          <button className="btn-primary btn w-full" disabled={isProcessing}>
             {isProcessing ? '...' : 'Log in'}
-          </Button>
+          </button>
+
           <div className="flex items-center justify-center">
             <div className="text-center text-sm text-gray-500">
               Don't have an account?{' '}
               <Link
-                className="text-indigo-500 underline"
+                className="link-info link"
                 to={{
                   pathname: '/join',
                   search: searchParams.toString(),
@@ -130,7 +109,7 @@ export default function LoginPage() {
             </div>
           </div>
           {actionResponse?.error ? (
-            <div className="pt-1 text-red-700" id="name-error">
+            <div className="pt-1 text-error" id="name-error">
               {actionResponse.error.message}
             </div>
           ) : null}

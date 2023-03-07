@@ -38,7 +38,7 @@ export function Navbar() {
                 key={title}
                 to={href}
                 className={({ isActive }) =>
-                  tw('font-semibold text-gray-900 hover:text-gray-900', isActive && 'text-indigo-600')
+                  tw('font-bold text-gray-900 transition hover:text-primary', isActive && 'text-primary')
                 }
               >
                 {title}
@@ -47,7 +47,7 @@ export function Navbar() {
           </div>
         ) : null}
 
-        <div className="hidden lg:flex lg:min-w-0 lg:flex-1 lg:items-center lg:justify-end lg:space-x-2">
+        <div className="hidden lg:flex lg:min-w-0 lg:flex-1 lg:items-center lg:justify-end lg:space-x-4">
           {email ? (
             <>
               <span className="text-base">
@@ -55,20 +55,13 @@ export function Navbar() {
               </span>
 
               <Form action={APP_ROUTES.LOGOUT.href} method="post">
-                <button
-                  data-test-id="logout"
-                  type="submit"
-                  className="inline-block rounded-lg px-3 py-1.5 text-sm font-semibold leading-6 text-gray-900 shadow-sm ring-1 ring-gray-900/10 hover:ring-gray-900/20"
-                >
-                  {APP_ROUTES.LOGIN.title}
+                <button data-test-id="logout" type="submit" className="btn-outline btn-error btn-sm btn">
+                  {APP_ROUTES.LOGOUT.title}
                 </button>
               </Form>
             </>
           ) : (
-            <Link
-              to={APP_ROUTES.LOGIN.href}
-              className="inline-block rounded-lg px-3 py-1.5 text-sm font-semibold leading-6 text-gray-900 shadow-sm ring-1 ring-gray-900/10 hover:ring-gray-900/20"
-            >
+            <Link to={APP_ROUTES.LOGIN.href} className="btn-outline btn-sm btn">
               {APP_ROUTES.LOGIN.title}
             </Link>
           )}
@@ -104,7 +97,7 @@ export function Navbar() {
                       className={({ isActive }) =>
                         tw(
                           '-mx-3 block rounded-lg py-2 px-3 text-base font-semibold leading-7 text-gray-900 hover:bg-gray-400/10',
-                          isActive && 'text-indigo-600'
+                          isActive && 'text-primary'
                         )
                       }
                     >
@@ -113,16 +106,16 @@ export function Navbar() {
                   ))}
                 </div>
               ) : null}
-              <div className="font- py-6">
+              <div className="py-6">
                 {email ? (
                   <>
-                    <span className="text-base">{email}</span>
+                    <span className="text-base font-light">{email}</span>
 
                     <Form action="/logout" method="post">
                       <button
                         data-test-id="logout"
                         type="submit"
-                        className="-mx-3 block rounded-lg py-2.5 px-3 text-base font-semibold leading-6 text-gray-900 hover:bg-gray-400/10"
+                        className="-mx-3 block rounded-lg py-2.5 px-3 text-base font-semibold leading-6 text-error"
                       >
                         Log out
                       </button>

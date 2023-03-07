@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { Switch } from '@headlessui/react'
-import { CheckBadgeIcon, CheckIcon } from '@heroicons/react/24/outline'
+import { CheckBadgeIcon } from '@heroicons/react/24/outline'
 import { useFetcher } from '@remix-run/react'
 
 import { useLocales } from '~/lib/locale-provider'
@@ -33,7 +33,7 @@ export function PricingTable({
             checked={displayAnnual}
             onChange={setDisplayAnnual}
             className={tw(
-              displayAnnual ? 'bg-gray-900' : 'bg-gray-400',
+              displayAnnual ? 'bg-neutral' : 'bg-gray-400',
               'relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none'
             )}
           >
@@ -62,16 +62,16 @@ export function PricingTable({
               <div
                 key={id}
                 className={tw(
-                  'divide-y divide-gray-200 overflow-hidden rounded-lg border border-gray-200',
-                  isCurrentTier && 'border-2 border-purple-500',
+                  'overflow-hidden rounded-lg border border-gray-200',
+                  isCurrentTier && 'border-2 border-accent',
                   !active && 'opacity-50'
                 )}
               >
                 <div className="p-6">
-                  <h2 className={tw('inline-flex items-center gap-x-1 text-lg font-medium leading-6 text-gray-900')}>
+                  <h2 className={tw('inline-flex items-center gap-x-1 text-lg')}>
                     {name}
-                    <CheckBadgeIcon className={tw('h-6 w-6 stroke-2 text-purple-500', !isCurrentTier && 'hidden')} />
-                    {!active ? <span className="text-red-500">Not available</span> : null}
+                    <CheckBadgeIcon className={tw('h-6 w-6 stroke-2 text-accent', !isCurrentTier && 'hidden')} />
+                    {!active ? <span className="text-error">Not available</span> : null}
                   </h2>
                   <p className="mt-4 text-sm text-gray-700">{description}</p>
                   <p className="mt-8">
@@ -88,10 +88,7 @@ export function PricingTable({
                       <input type="hidden" name="priceId" value={priceId} />
                       <button
                         disabled={isProcessing || !active}
-                        className={tw(
-                          'mt-8 block w-full rounded-md border border-white bg-gray-800 py-2 text-center text-sm font-semibold text-white hover:bg-gray-900',
-                          isProcessing && 'opacity-50'
-                        )}
+                        className={tw('btn mt-8 block w-full', isProcessing && 'opacity-50')}
                       >
                         {id === processingTierId ? `Upgrading to ${name}...` : `Upgrade to ${name}`}
                       </button>
@@ -102,9 +99,8 @@ export function PricingTable({
                   <h3 className="text-sm font-medium text-gray-900">What's included</h3>
                   <ul className="mt-6 space-y-4">
                     {featuresList.map((feature) => (
-                      <li key={feature} className="flex space-x-3">
-                        <CheckIcon className="h-5 w-5 shrink-0 text-green-500" aria-hidden="true" />
-                        <span className="text-sm text-gray-700">{feature}</span>
+                      <li key={feature} className="flex space-x-3 text-sm text-gray-700">
+                        {/^no\s+/i.test(feature) ? '❌' : /^limited/i.test(feature) ? '❗️' : '✅'}&nbsp;&nbsp;{feature}
                       </li>
                     ))}
                   </ul>

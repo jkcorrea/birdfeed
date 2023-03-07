@@ -36,7 +36,7 @@ export default function Home() {
   const { recentTranscripts, recentTweets } = useLoaderData<typeof loader>()
 
   return (
-    <div className="flex h-full gap-10 lg:gap-12">
+    <div className="flex h-full min-w-[1024px] gap-10 overflow-x-auto md:overflow-hidden lg:gap-12">
       <Column title="Transcripts">
         <TranscriptUploader />
         <TranscriptHistory transcripts={recentTranscripts} />

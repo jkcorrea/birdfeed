@@ -157,7 +157,8 @@ const TranscriptItem = ({ transcript, isOpen, onClick }: TranscriptItemProps) =>
             <input name={zoGenerate.fields.transcriptId()} type="hidden" value={transcript.id} />
             {skipOAI && <input name={zoGenerate.fields.__skip_openai()} type="hidden" checked readOnly />}
             <button className="btn-primary btn-xs btn flex items-center justify-center gap-1">
-              {transcript.neverGenerated ? '👉 G' : '🔄 Re-g'}enerate{skipOAI ? ' (skip)' : ''}
+              {transcript.neverGenerated ? 'Generate' : 'Re-generate'}
+              {skipOAI ? ' (skip)' : ''}
             </button>
           </Form>
         </div>

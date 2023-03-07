@@ -7,7 +7,7 @@ import type { SerializeFrom } from '@remix-run/server-runtime'
 import dayjs from 'dayjs'
 import relativeTime from 'dayjs/plugin/relativeTime'
 import { motion } from 'framer-motion'
-import { useZorm } from 'react-zorm'
+import { useZorm, Value } from 'react-zorm'
 
 import type { Tweet } from '@prisma/client'
 import { CheckboxField, TextAreaField } from '~/components/fields'
@@ -16,7 +16,7 @@ import FormErrorCatchall from '~/components/FormErrorCatchall'
 import { tw } from '~/lib/utils'
 
 import type { IHomeAction } from './schemas'
-import { DeleteTweetsSchema, RegenerateTweetSchema, RestoreDraftSchema } from './schemas'
+import { DeleteTweetsSchema, RegenerateTweetSchema, RestoreDraftSchema, UpdateTweetSchema } from './schemas'
 
 dayjs.extend(relativeTime)
 
@@ -54,17 +54,11 @@ const TweetQueue = ({ tweets }: Props) => {
           {checked.map((id, i) => (
             <input key={id} type="hidden" name={zoDelTweets.fields.tweetIds(i)()} value={id} />
           ))}
-          <button
-            className={tw('btn-error btn-sm btn gap-1', checked.length > 0 ? 'btn-outline' : 'btn-ghost')}
-            disabled={!checked.length}
-          >
+          <button className="btn-error btn-sm btn gap-1 disabled:border-none" disabled={!checked.length}>
             <TrashIcon className="h-4 w-4" /> Trash it{checked.length > 0 && ` (${checked.length})`}
           </button>
         </Form>
-        <button
-          className={tw('btn-primary btn-sm btn gap-1', !checked.length && 'btn-ghost')}
-          disabled={!checked.length}
-        >
+        <button className="btn-primary btn-sm btn gap-1 disabled:border-none" disabled={!checked.length}>
           <CheckBadgeIcon className="h-4 w-4" /> Tweet it{checked.length > 0 && ` (${checked.length})`}
         </button>
       </div>
@@ -88,6 +82,7 @@ const TweetItem = ({ tweet, isChecked, onClick }: TweetItemProps) => {
   const [showHistory, setShowHistory] = useState(false)
   const zoRegen = useZorm('regenerate', RegenerateTweetSchema)
   const zoRestore = useZorm('restore', RestoreDraftSchema)
+  const zoUpdate = useZorm('update-tweet', UpdateTweetSchema)
 
   return (
     <>
@@ -102,19 +97,43 @@ const TweetItem = ({ tweet, isChecked, onClick }: TweetItemProps) => {
           <CheckboxField readOnly checked={Boolean(isChecked)} className="checkbox-primary h-3 w-3 rounded-none" />
         </div>
 
-        <div className="w-full cursor-auto space-y-2" onClick={(e) => e.stopPropagation()}>
+        <Form
+          method="post"
+          ref={zoUpdate.ref}
+          className="w-full cursor-auto space-y-2"
+          onClick={(e) => e.stopPropagation()}
+        >
           <TextAreaField
             // NOTE: re-render defaultValue when a new draft is added
             key={tweet.drafts[0]}
+            name={zoUpdate.fields.draft()}
             tabIndex={0}
             className="w-full resize-none rounded leading-tight"
             rows={3}
             defaultValue={tweet.drafts[0]}
           />
-          <p className="select-none text-sm font-light italic text-gray-600">{dayjs('2023-03-08').fromNow()}</p>
 
+          <div className="mt-1 flex items-center justify-between">
+            <IntentField<IHomeAction> value="update-tweet" />
+            <input name={zoUpdate.fields.tweetId()} type="hidden" value={tweet.id} />
+
+            <p className="select-none text-sm font-light italic text-gray-600">{dayjs('2023-03-08').fromNow()}</p>
+            <Value zorm={zoUpdate} name={zoUpdate.fields.draft()}>
+              {(draft) => (
+                <button
+                  type="submit"
+                  className="btn-outline btn-primary btn-xs btn disabled:border-none"
+                  disabled={draft.length === 0 || draft === tweet.drafts[0]}
+                >
+                  Save Draft
+                </button>
+              )}
+            </Value>
+          </div>
+
+          <FormErrorCatchall zorm={zoUpdate} schema={UpdateTweetSchema} />
           <FormErrorCatchall zorm={zoRegen} schema={RegenerateTweetSchema} />
-        </div>
+        </Form>
 
         <div className="flex shrink-0 cursor-auto flex-col gap-2 self-start" onClick={(e) => e.stopPropagation()}>
           <Form replace method="post" ref={zoRegen.ref}>
@@ -128,10 +147,11 @@ const TweetItem = ({ tweet, isChecked, onClick }: TweetItemProps) => {
           <button
             type="button"
             className="tooltip tooltip-left"
-            data-tip="Show History"
+            data-tip={tweet.drafts.length >= 2 ? 'Show history' : undefined}
+            disabled={tweet.drafts.length < 2}
             onClick={() => setShowHistory(true)}
           >
-            <ArrowUturnLeftIcon className="h-5 w-5" />
+            <ArrowUturnLeftIcon className={tw('h-5 w-5', tweet.drafts.length < 2 && 'opacity-50')} />
             <span className="sr-only">History</span>
           </button>
         </div>
