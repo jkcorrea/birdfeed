@@ -8,31 +8,32 @@ import { requireAuthSession } from '~/modules/auth'
 
 import TranscriptHistory from './TranscriptHistory'
 import TranscriptUploader from './TranscriptUploader'
+import TweetQueue from './TweetQueue'
 
 export async function loader({ request }: LoaderArgs) {
   const authSession = await requireAuthSession(request)
+  const { userId } = authSession
 
-  const recentTranscripts = await db.transcript
-    .findMany({
-      where: { userId: authSession.userId },
+  const [recentTranscripts, recentTweets] = await db.$transaction([
+    db.transcript.findMany({
+      where: { userId },
       orderBy: { createdAt: 'desc' },
       include: { tweets: { select: { id: true } } },
       take: 10,
-    })
-    .then((scripts) =>
-      scripts.map(({ tweets, ...rest }) => ({
-        ...rest,
-        tweetIds: tweets.map((t) => t.id),
-      }))
-    )
+    }),
+    db.tweet.findMany({
+      where: { transcript: { userId } },
+      orderBy: [{ sendAt: 'asc' }, { createdAt: 'desc' }],
+    }),
+  ])
 
-  return response.ok({ recentTranscripts }, { authSession })
+  return response.ok({ recentTranscripts, recentTweets }, { authSession })
 }
 
 export { action } from './actions'
 
 export default function Home() {
-  const { recentTranscripts } = useLoaderData<typeof loader>()
+  const { recentTranscripts, recentTweets } = useLoaderData<typeof loader>()
 
   return (
     <div className="flex h-full gap-10 lg:gap-12">
@@ -42,19 +43,13 @@ export default function Home() {
       </Column>
 
       <Column title="On Deck" className="flex-[4]">
-        <ul className="mt-4 space-y-4 overflow-y-scroll">
-          {Array.from({ length: 20 }).map((_, i) => (
-            <li key={i} className="h-14 rounded-lg bg-base-300 p-2"></li>
-          ))}
-        </ul>
+        <TweetQueue tweets={recentTweets} />
       </Column>
 
       <Column title="Posted">
-        <ul className="mt-4 space-y-4 overflow-y-scroll">
-          {Array.from({ length: 20 }).map((_, i) => (
-            <li key={i} className="h-14 rounded-lg bg-base-300 p-2"></li>
-          ))}
-        </ul>
+        <div className="flex h-20 items-center justify-center rounded-lg bg-base-300 p-2 shadow-inner">
+          <h2 className="text-lg">Coming soon</h2>
+        </div>
       </Column>
     </div>
   )
@@ -62,7 +57,7 @@ export default function Home() {
 
 const Column = ({ title, className, children }: { title: string; className?: string; children: React.ReactNode }) => (
   <div className={tw('flex flex-[3] flex-col', className)}>
-    <h1 className="text-2xl font-bold">{title}</h1>
+    <h1 className="mb-7 text-2xl font-bold">{title}</h1>
     {children}
   </div>
 )

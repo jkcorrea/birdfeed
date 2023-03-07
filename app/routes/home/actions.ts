@@ -2,7 +2,7 @@ import type { ActionArgs } from '@remix-run/server-runtime'
 import { parseFormAny } from 'react-zorm'
 
 import { db } from '~/database'
-import { generateTweetsFromTranscript } from '~/integrations/openai'
+import { generateTweetsFromContent } from '~/integrations/openai'
 import { response } from '~/lib/http.server'
 import { assertPost, parseData } from '~/lib/utils'
 import { requireAuthSession } from '~/modules/auth'
@@ -37,14 +37,20 @@ async function generateTweets({ transcriptId, __skip_openai }: IGenerateTweet) {
     where: { id: transcriptId },
   })
 
-  const tweets = await generateTweetsFromTranscript({ content, __skip_openai })
+  const tweets = await generateTweetsFromContent(content, { __skip_openai })
 
-  await db.tweet.createMany({
-    data: tweets.map((t) => ({
-      ...t,
-      transcriptId,
-    })),
-  })
+  await db.$transaction([
+    db.tweet.createMany({
+      data: tweets.map((t) => ({
+        ...t,
+        transcriptId,
+      })),
+    }),
+    db.transcript.update({
+      where: { id: transcriptId },
+      data: { neverGenerated: false },
+    }),
+  ])
 
   return { tweets }
 }

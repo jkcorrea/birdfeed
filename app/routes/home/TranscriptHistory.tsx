@@ -110,7 +110,7 @@ const TranscriptItem = ({ transcript, isOpen, onClick }: TranscriptItemProps) =>
       <motion.div
         layout
         className="flex cursor-pointer items-center justify-between text-left focus:outline-none"
-        aria-controls={transcript.name}
+        aria-controls={`transcript-${transcript.id}`}
         aria-expanded={isOpen}
       >
         <div>
@@ -118,6 +118,7 @@ const TranscriptItem = ({ transcript, isOpen, onClick }: TranscriptItemProps) =>
             <h3 className="text-lg">
               {transcript.name}
               {transcript.neverGenerated && (
+                // eslint-disable-next-line tailwindcss/classnames-order
                 <span className="badge badge-secondary badge-sm ml-2 justify-end">NEW</span>
               )}
             </h3>
@@ -128,6 +129,7 @@ const TranscriptItem = ({ transcript, isOpen, onClick }: TranscriptItemProps) =>
 
       {/* Body */}
       <motion.div
+        id={`transcript-${transcript.id}`}
         key="content"
         className="mt-4 cursor-auto"
         onClick={(e) => e.stopPropagation()}
@@ -152,7 +154,7 @@ const TranscriptItem = ({ transcript, isOpen, onClick }: TranscriptItemProps) =>
             <input name={zoGenerate.fields.transcriptId()} type="hidden" value={transcript.id} />
             {skipOAI && <input name={zoGenerate.fields.__skip_openai()} type="hidden" checked readOnly />}
             <button className="btn-primary btn-xs btn flex items-center justify-center gap-1">
-              👉 Generate{skipOAI ? ' (skip)' : ''}
+              {transcript.neverGenerated ? '👉 G' : '🔄 Re-g'}enerate{skipOAI ? ' (skip)' : ''}
             </button>
           </Form>
         </div>

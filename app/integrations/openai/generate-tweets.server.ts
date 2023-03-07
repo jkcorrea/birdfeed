@@ -4,8 +4,9 @@ import { RecursiveCharacterTextSplitter } from 'langchain/text_splitter'
 
 import type { Tweet } from '@prisma/client'
 import { Logger } from '~/lib/utils'
-import type { IGenerateTweetsForm } from '~/routes/home/GenerateTweetsForm'
 
+import type { PromptSettings } from './prompt-settings'
+import { defaultSettings } from './prompt-settings'
 import { getPromptTemplate } from './prompts'
 
 import FIXTURES from '../../../test/fixtures/sample_generated_tweets.json'
@@ -18,13 +19,8 @@ export type GeneratedTweet = Pick<Tweet, 'id' | 'drafts'>
 
 const clamp = (num: number, min: number, max: number) => Math.min(Math.max(num, min), max)
 
-export async function generateTweetsFromTranscript({
-  content,
-  __skip_openai,
-  maxTweets,
-  tone,
-  topics,
-}: IGenerateTweetsForm): Promise<GeneratedTweet[]> {
+export async function generateTweetsFromContent(content: string, settings?: PromptSettings): Promise<GeneratedTweet[]> {
+  const { maxTweets = 5, tone = '', topics = [], __skip_openai = false } = { ...defaultSettings, ...settings }
   const splitter = new RecursiveCharacterTextSplitter({
     // Each chunk should be 4096 - max output
     chunkSize: 2500, // 15min * 150wpm => 2250

@@ -48,7 +48,12 @@ function TranscriptUploader() {
   }
 
   return (
-    <div className="mt-4">
+    <motion.div
+      className={tw(
+        'min-h-[5rem] rounded-lg bg-base-300 shadow-inner transition',
+        !isUploading && 'hover:bg-[rgb(226,221,218)]'
+      )}
+    >
       <input
         ref={fileInputRef}
         type="file"
@@ -64,10 +69,7 @@ function TranscriptUploader() {
           animate={{ y: 0, opacity: 1 }}
           exit={{ y: 10, opacity: 0 }}
           transition={{ duration: 0.2 }}
-          className={tw(
-            'relative min-h-[5rem] w-full rounded-lg border-2 border-dashed border-primary-focus/25 transition',
-            !upload && 'hover:border-primary-focus/100'
-          )}
+          className="flex h-full w-full items-center justify-center"
         >
           {upload ? (
             <Form method="post" ref={zo.ref} className="flex flex-col items-center justify-center gap-3 p-6">
@@ -93,13 +95,7 @@ function TranscriptUploader() {
               <FormErrorCatchall schema={UploadTranscriptSchema} zorm={zo} />
             </Form>
           ) : (
-            <button
-              disabled={isUploading}
-              onClick={() => {
-                fileInputRef.current?.click()
-              }}
-              className="absolute inset-0 flex items-center justify-center align-middle"
-            >
+            <button disabled={isUploading} onClick={() => fileInputRef.current?.click()} className="h-full w-full">
               {isUploading ? 'Uploading...' : 'Click here or drag to upload'}
             </button>
           )}
@@ -107,7 +103,7 @@ function TranscriptUploader() {
       </AnimatePresence>
 
       <Dropzone onFile={handleFile} />
-    </div>
+    </motion.div>
   )
 }
 
