@@ -35,6 +35,7 @@ export function Navbar() {
           <div className="hidden lg:flex lg:min-w-0 lg:flex-1 lg:justify-center lg:gap-x-12">
             {NAV_ROUTES.map(({ title, href }) => (
               <NavLink
+                prefetch="intent"
                 key={title}
                 to={href}
                 className={({ isActive }) =>

@@ -1,16 +1,10 @@
 -- Enable RLS
-alter table "_prisma_migrations" ENABLE row level security;
-
-alter table "notes" ENABLE row level security;
-
-alter table "prices" ENABLE row level security;
-
-alter table "prices_currencies" ENABLE row level security;
-
-alter table "subscriptions" ENABLE row level security;
-
-alter table "users" ENABLE row level security;
-
-alter table "tiers" ENABLE row level security;
-
-alter table "tiers_limit" ENABLE row level security;
+alter table if exists "_prisma_migrations" ENABLE row level security;
+alter table if exists "users" ENABLE row level security;
+alter table if exists "tweet" ENABLE row level security;
+alter table if exists "transcript" ENABLE row level security;
+alter table if exists "prices" ENABLE row level security;
+alter table if exists "prices_currencies" ENABLE row level security;
+alter table if exists "subscriptions" ENABLE row level security;
+alter table if exists "tiers" ENABLE row level security;
+alter table if exists "tiers_limit" ENABLE row level security;
