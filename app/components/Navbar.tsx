@@ -16,7 +16,7 @@ export function Navbar() {
       <nav className="flex h-9 items-center justify-between p-10" aria-label="Global">
         <div className="flex items-center space-x-2 lg:min-w-0 lg:flex-1" aria-label="Global">
           <Link to="/" className="-m-1.5 p-1.5 text-2xl font-black text-gray-900 hover:text-gray-900">
-            🐣 Birdfeed AI
+            🐣 Birdfeed
           </Link>
         </div>
 

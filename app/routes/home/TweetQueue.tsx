@@ -16,7 +16,13 @@ import FormErrorCatchall from '~/components/FormErrorCatchall'
 import { tw } from '~/lib/utils'
 
 import type { IHomeAction } from './schemas'
-import { DeleteTweetsSchema, RegenerateTweetSchema, RestoreDraftSchema, UpdateTweetSchema } from './schemas'
+import {
+  DeleteTweetsSchema,
+  RegenerateTweetSchema,
+  RestoreDraftSchema,
+  UpdateTweetSchema,
+  useIsSubmitting,
+} from './schemas'
 
 dayjs.extend(relativeTime)
 
@@ -58,7 +64,11 @@ const TweetQueue = ({ tweets }: Props) => {
             <TrashIcon className="h-4 w-4" /> Trash it{checked.length > 0 && ` (${checked.length})`}
           </button>
         </Form>
-        <button className="btn-primary btn-sm btn gap-1 disabled:border-none" disabled={!checked.length}>
+        <button
+          disabled
+          className="btn-primary tooltip tooltip-left btn-sm btn !pointer-events-auto flex cursor-not-allowed gap-1 disabled:border-none"
+          data-tip="Coming soon"
+        >
           <CheckBadgeIcon className="h-4 w-4" /> Tweet it{checked.length > 0 && ` (${checked.length})`}
         </button>
       </div>
@@ -83,6 +93,9 @@ const TweetItem = ({ tweet, isChecked, onClick }: TweetItemProps) => {
   const zoRegen = useZorm('regenerate', RegenerateTweetSchema)
   const zoRestore = useZorm('restore', RestoreDraftSchema)
   const zoUpdate = useZorm('update-tweet', UpdateTweetSchema)
+
+  const isRegenerating = useIsSubmitting('regenerate-tweet', (f) => f.get('tweetId') === tweet.id)
+  const isSaving = useIsSubmitting('update-tweet', (f) => f.get('tweetId') === tweet.id)
 
   return (
     <>
@@ -122,8 +135,8 @@ const TweetItem = ({ tweet, isChecked, onClick }: TweetItemProps) => {
               {(draft) => (
                 <button
                   type="submit"
-                  className="btn-outline btn-primary btn-xs btn disabled:border-none"
-                  disabled={draft.length === 0 || draft === tweet.drafts[0]}
+                  className={tw('btn-outline btn-primary btn-xs btn disabled:border-none', isSaving && 'loading')}
+                  disabled={isSaving || draft.length === 0 || draft === tweet.drafts[0]}
                 >
                   Save Draft
                 </button>
@@ -139,8 +152,8 @@ const TweetItem = ({ tweet, isChecked, onClick }: TweetItemProps) => {
           <Form replace method="post" ref={zoRegen.ref}>
             <IntentField<IHomeAction> value="regenerate-tweet" />
             <input name={zoRegen.fields.tweetId()} type="hidden" value={tweet.id} />
-            <button className="tooltip tooltip-left" data-tip="Re-generate">
-              <ArrowPathIcon className="h-5 w-5" />
+            <button className="tooltip tooltip-left" data-tip="Re-generate" disabled={isRegenerating}>
+              <ArrowPathIcon className={tw('h-5 w-5', isRegenerating && 'animate-spin')} />
               <span className="sr-only">Re-generate</span>
             </button>
           </Form>

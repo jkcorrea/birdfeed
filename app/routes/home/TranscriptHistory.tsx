@@ -16,7 +16,7 @@ import { NODE_ENV } from '~/lib/env'
 import { tw } from '~/lib/utils'
 
 import type { IHomeAction } from './schemas'
-import { DeleteTranscriptSchema, GenerateTweetSchema } from './schemas'
+import { DeleteTranscriptSchema, GenerateTweetSchema, useIsSubmitting } from './schemas'
 
 import transcripts from '../../../test/fixtures/transcripts.json'
 
@@ -98,6 +98,8 @@ const TranscriptItem = ({ transcript, isOpen, onClick }: TranscriptItemProps) =>
   const zoGenerate = useZorm('generate', GenerateTweetSchema)
   const zoDelete = useZorm('delete', DeleteTranscriptSchema)
 
+  const isGenerating = useIsSubmitting('generate-tweets', (f) => f.get('transcriptId') === transcript.id)
+
   const skipOAI = useKeypress('Shift') && NODE_ENV === 'development'
 
   return (
@@ -147,16 +149,26 @@ const TranscriptItem = ({ transcript, isOpen, onClick }: TranscriptItemProps) =>
         <TextAreaField readOnly rows={2} className="resize-none rounded text-xs" value={transcripts[0]} />
 
         <div className="mt-3 flex justify-end gap-1">
+          {/* Delete Form */}
           <Form method="post" ref={zoDelete.ref}>
             <IntentField<IHomeAction> value="delete-transcript" />
             <input name={zoDelete.fields.transcriptId()} type="hidden" value={transcript.id} />
-            <button className="btn-outline btn-primary btn-error btn-xs btn">Delete</button>
+
+            <button className="btn-outline btn-primary btn-error btn-xs btn" disabled={isGenerating}>
+              Delete
+            </button>
           </Form>
+
+          {/* Submit Form */}
           <Form method="post" ref={zoGenerate.ref}>
             <IntentField<IHomeAction> value="generate-tweets" />
             <input name={zoGenerate.fields.transcriptId()} type="hidden" value={transcript.id} />
             {skipOAI && <input name={zoGenerate.fields.__skip_openai()} type="hidden" checked readOnly />}
-            <button className="btn-primary btn-xs btn flex items-center justify-center gap-1">
+
+            <button
+              className={tw('btn-primary btn-xs btn flex items-center justify-center gap-1', isGenerating && 'loading')}
+              disabled={isGenerating}
+            >
               {transcript.neverGenerated ? 'Generate' : 'Re-generate'}
               {skipOAI ? ' (skip)' : ''}
             </button>

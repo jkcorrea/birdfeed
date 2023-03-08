@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { CloudArrowUpIcon } from '@heroicons/react/24/outline'
-import { Form, useTransition } from '@remix-run/react'
+import { Form } from '@remix-run/react'
 import { AnimatePresence, motion } from 'framer-motion'
 import { useZorm } from 'react-zorm'
 
@@ -10,13 +10,13 @@ import FormErrorCatchall from '~/components/FormErrorCatchall'
 import { AppError, tw } from '~/lib/utils'
 
 import type { IHomeAction, IUploadTranscript } from './schemas'
-import { UploadTranscriptSchema } from './schemas'
+import { UploadTranscriptSchema, useIsSubmitting } from './schemas'
 
 type UploadData = Pick<IUploadTranscript, 'content' | 'name'>
 
 function TranscriptUploader() {
   const [upload, setUpload] = useState<UploadData | null>(null)
-  const isUploading = useTransition().submission?.formData.get('intent') === 'upload'
+  const isUploading = useIsSubmitting('upload-transcript')
 
   // 2nd step: Upload form where user can change the name before uploading
   const zo = useZorm('upload', UploadTranscriptSchema, {
@@ -72,7 +72,12 @@ function TranscriptUploader() {
           transition={{ duration: 0.2 }}
           className="flex h-full w-full items-center justify-center"
         >
-          {upload ? (
+          {isUploading ? (
+            <div className="flex flex-col items-center py-2 text-center font-bold uppercase opacity-30">
+              <CloudArrowUpIcon className="h-14 w-14 animate-pulse" />
+              Uploading
+            </div>
+          ) : upload ? (
             <Form method="post" ref={zo.ref} className="flex flex-col items-center justify-center gap-3 p-6">
               <IntentField<IHomeAction> value="upload-transcript" />
               <input name={zo.fields.content()} type="hidden" value={upload.content} />
