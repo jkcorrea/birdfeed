@@ -7,6 +7,7 @@ import { useZorm } from 'react-zorm'
 import { TextField } from '~/components/fields'
 import IntentField from '~/components/fields/IntentField'
 import FormErrorCatchall from '~/components/FormErrorCatchall'
+import { useAnalytics } from '~/lib/analytics/use-analytics'
 import { AppError, tw } from '~/lib/utils'
 
 import type { IHomeAction, IUploadTranscript } from './schemas'
@@ -25,23 +26,30 @@ function TranscriptUploader() {
     },
   })
 
+  const { capture } = useAnalytics()
+
   const fileInputRef = useRef<HTMLInputElement>(null)
 
-  const handleFile = useCallback((file: File) => {
-    const reader = new FileReader()
-    reader.onload = ({ target }) => {
-      // check if file contents appear to be binary
-      // TODO check if binary
-      // if (await isBinaryFile(resultAsText as string)) {
-      if (typeof target?.result !== 'string') throw new AppError({ message: 'FileReader result is not a string' })
+  const handleFile = useCallback(
+    (file: File) => {
+      const reader = new FileReader()
+      reader.onload = ({ target }) => {
+        // check if file contents appear to be binary
+        // TODO check if binary
+        // if (await isBinaryFile(resultAsText as string)) {
+        if (typeof target?.result !== 'string') throw new AppError({ message: 'FileReader result is not a string' })
 
-      setUpload({
-        content: target.result,
-        name: file.name,
-      })
-    }
-    reader.readAsText(file)
-  }, [])
+        capture('transcript_upload', { file_name: file.name })
+
+        setUpload({
+          content: target.result,
+          name: file.name,
+        })
+      }
+      reader.readAsText(file)
+    },
+    [capture]
+  )
 
   const clearUpload = () => {
     setUpload(null)

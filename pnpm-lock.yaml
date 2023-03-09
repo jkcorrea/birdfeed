@@ -45,6 +45,7 @@ specifiers:
   pino: ^8.9.0
   pino-pretty: ^9.1.1
   postcss: ^8.4.21
+  posthog-js: ^1.50.4
   prettier: 2.8.3
   prettier-plugin-tailwindcss: ^0.2.2
   prisma: ^4.9.0
@@ -88,6 +89,7 @@ dependencies:
   openai: 3.2.1
   pino: 8.9.0
   postcss: 8.4.21
+  posthog-js: 1.50.4
   react: 18.2.0
   react-dom: 18.2.0_react@18.2.0
   react-dropzone: 14.2.3_react@18.2.0
@@ -4778,6 +4780,10 @@ packages:
       web-streams-polyfill: 3.2.1
     dev: false
 
+  /fflate/0.4.8:
+    resolution: {integrity: sha512-FJqqoDBR00Mdj9ppamLa/Y7vxm+PRmNWA67N846RvsoYVMKB4q3y/de5PA7gUmRMYK/8CMz2GDZQmCRN1wBcWA==}
+    dev: false
+
   /figures/3.2.0:
     resolution: {integrity: sha512-yaduQFRKLXYOGgEn6AZau90j3ggSOyiqXU0F9JZfeXYhNa+Jk4X+s45A2zg5jns87GAFa34BBm2kXw4XpNcbdg==}
     engines: {node: '>=8'}
@@ -7419,6 +7425,13 @@ packages:
       picocolors: 1.0.0
       source-map-js: 1.0.2
 
+  /posthog-js/1.50.4:
+    resolution: {integrity: sha512-9OaixWLw6BFJ2sCgR+iKI5qSxCqA5OSdxMvAYeIJnPjbzfjtupPmOad9g/BM9TXp8U56f/rrdKbPEO518/d3qQ==}
+    dependencies:
+      fflate: 0.4.8
+      rrweb-snapshot: 1.1.14
+    dev: false
+
   /prelude-ls/1.1.2:
     resolution: {integrity: sha512-ESF23V4SKG6lVSGZgYNpbsiaAkdab6ZgOxe52p7+Kid3W3u3bxR4Vfd/o21dmN7jSt0IwgZ4v5MUd26FEtXE9w==}
     engines: {node: '>= 0.8.0'}
@@ -8014,6 +8027,10 @@ packages:
     dependencies:
       estree-walker: 0.6.1
     dev: true
+
+  /rrweb-snapshot/1.1.14:
+    resolution: {integrity: sha512-eP5pirNjP5+GewQfcOQY4uBiDnpqxNRc65yKPW0eSoU1XamDfc4M8oqpXGMyUyvLyxFDB0q0+DChuxxiU2FXBQ==}
+    dev: false
 
   /run-async/2.4.1:
     resolution: {integrity: sha512-tvVnVv01b8c1RrA6Ep7JkStj85Guv/YrMcwqYQnwjsAS2cTmmPGBBjAjpCW7RrSodNSoE2/qg9O4bceNvUuDgQ==}

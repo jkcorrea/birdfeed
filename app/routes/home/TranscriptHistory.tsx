@@ -12,6 +12,7 @@ import { TextAreaField } from '~/components/fields'
 import IntentField from '~/components/fields/IntentField'
 import FormErrorCatchall from '~/components/FormErrorCatchall'
 import { useKeypress } from '~/hooks'
+import { useAnalytics } from '~/lib/analytics/use-analytics'
 import { NODE_ENV } from '~/lib/env'
 import { tw } from '~/lib/utils'
 
@@ -102,6 +103,8 @@ const TranscriptItem = ({ transcript, isOpen, onClick }: TranscriptItemProps) =>
 
   const skipOAI = useKeypress('Shift') && NODE_ENV === 'development'
 
+  const { capture } = useAnalytics()
+
   return (
     <motion.li
       layout
@@ -168,6 +171,7 @@ const TranscriptItem = ({ transcript, isOpen, onClick }: TranscriptItemProps) =>
             <button
               className={tw('btn-primary btn-xs btn flex items-center justify-center gap-1', isGenerating && 'loading')}
               disabled={isGenerating}
+              onClick={() => capture('tweets_generate')}
             >
               {transcript.neverGenerated ? 'Generate' : 'Re-generate'}
               {skipOAI ? ' (skip)' : ''}

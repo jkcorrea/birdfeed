@@ -2,6 +2,7 @@ import { Fragment, useState } from 'react'
 import { Dialog } from '@headlessui/react'
 import { Bars3Icon, XMarkIcon } from '@heroicons/react/24/outline'
 import { Form, Link, NavLink, useLoaderData } from '@remix-run/react'
+import posthog from 'posthog-js'
 
 import { APP_ROUTES, NAV_ROUTES } from '~/lib/constants'
 import { tw } from '~/lib/utils'
@@ -56,7 +57,12 @@ export function Navbar() {
               </span>
 
               <Form action={APP_ROUTES.LOGOUT.href} method="post">
-                <button data-test-id="logout" type="submit" className="btn-outline btn-error btn-sm btn">
+                <button
+                  onClick={() => posthog.reset()}
+                  data-test-id="logout"
+                  type="submit"
+                  className="btn-outline btn-error btn-sm btn"
+                >
                   {APP_ROUTES.LOGOUT.title}
                 </button>
               </Form>
@@ -114,6 +120,7 @@ export function Navbar() {
 
                     <Form action="/logout" method="post">
                       <button
+                        onClick={() => posthog.reset()}
                         data-test-id="logout"
                         type="submit"
                         className="-mx-3 block rounded-lg py-2.5 px-3 text-base font-semibold leading-6 text-error"

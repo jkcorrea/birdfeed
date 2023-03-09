@@ -26,7 +26,7 @@ export default function Home() {
   const { pricingPlan } = useLoaderData<typeof loader>()
 
   return (
-    <div className="flex flex-col gap-y-10">
+    <section className="flex flex-col gap-y-10">
       <h1 className="text-4xl font-bold tracking-tight sm:text-center sm:text-6xl">Turn your podcasts into tweets.</h1>
       <p className="text-lg leading-8 text-gray-600 sm:text-center">
         Birdfeed listens to your content and crafts tweets in your words. Upload hours of audio and get tweets in
@@ -41,6 +41,6 @@ export default function Home() {
         </ButtonLink>
       </div>
       <PricingTable pricingPlan={pricingPlan} />
-    </div>
+    </section>
   )
 }
