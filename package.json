@@ -45,6 +45,7 @@
     "openai": "^3.2.1",
     "pino": "^8.9.0",
     "postcss": "^8.4.21",
+    "posthog-js": "^1.50.4",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
     "react-dropzone": "^14.2.3",

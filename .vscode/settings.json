@@ -2,6 +2,12 @@
   "tailwindCSS.experimental.classRegex": [
     ["tw\\(([^)]*)\\)", "[\"'`]([^\"'`]*).*?[\"'`]"]
   ],
+  "editor.defaultFormatter": "dbaeumer.vscode-eslint",
+  "editor.formatOnSave": true,
+  "editor.codeActionsOnSave": {
+    "source.fixAll.eslint": true
+  },
+  "jest.autoRun": "off",
   "files.exclude": {
     ".cache/": true,
     "public/build/": true

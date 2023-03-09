@@ -1,3 +1,4 @@
+import { useEffect } from 'react'
 import type { LinksFunction, LoaderArgs, MetaFunction } from '@remix-run/node'
 import {
   Links,
@@ -12,6 +13,8 @@ import {
 
 import { Navbar } from './components/Navbar'
 import { NotifyError } from './components/NotifyError'
+import { initAnalytics } from './lib/analytics'
+import { useAnalytics } from './lib/analytics/use-analytics'
 import { APP_THEME } from './lib/constants'
 import { getBrowserEnv } from './lib/env'
 import { response } from './lib/http.server'
@@ -73,6 +76,29 @@ export async function loader({ request }: LoaderArgs) {
 
 export default function App() {
   const { key } = useLocation()
+
+  const { email } = useLoaderData<RootLoaderData>()
+
+  useEffect(
+    () =>
+      initAnalytics((posthog) => {
+        if (email) posthog.identify(email)
+      }),
+    [email]
+  )
+
+  const { capture, identify } = useAnalytics()
+
+  useEffect(() => {
+    capture('$pageview')
+  }, [key])
+
+  useEffect(() => {
+    if (email) {
+      identify(email)
+    }
+  }, [email])
+
   const { env } = useLoaderData<typeof loader>()
 
   return (
