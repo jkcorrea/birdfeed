@@ -1,7 +1,10 @@
 import type { ActionArgs, LoaderArgs } from '@remix-run/node'
+import { redirect } from '@remix-run/node'
 import { Form, useFetcher, useLoaderData, useTransition } from '@remix-run/react'
+import { parseFormAny } from 'react-zorm'
 
 import { Time } from '~/components'
+import { getTwitterOAuthRedirectURL } from '~/integrations/twitter'
 import { getDefaultCurrency, response } from '~/lib/http.server'
 import { isFormProcessing, tw } from '~/lib/utils'
 import { destroyAuthSession, requireAuthSession } from '~/modules/auth'
@@ -40,9 +43,17 @@ export async function action({ request }: ActionArgs) {
   const { userId } = authSession
 
   try {
-    await deleteUser(userId)
+    const { action } = parseFormAny(await request.formData())
+    switch (action) {
+      case 'deleteAccount':
+        await deleteUser(userId)
 
-    return destroyAuthSession(request)
+        return destroyAuthSession(request)
+      case 'addTwitter':
+        const redirectUrl = await getTwitterOAuthRedirectURL()
+
+        return redirect(redirectUrl)
+    }
   } catch (cause) {
     return response.error(cause, { authSession })
   }
@@ -58,6 +69,12 @@ export default function Subscription() {
   return (
     <div className="flex flex-col gap-y-10">
       <div className="flex flex-col items-center justify-center gap-y-2">
+        <Form method="post">
+          <input type="hidden" name="action" value="addTwitter" />
+          <button type="submit" className="btn-accent btn">
+            Add Twitter
+          </button>
+        </Form>
         <customerPortalFetcher.Form method="post" action="/api/customer-portal">
           <button
             type="button"
@@ -103,6 +120,7 @@ function DeleteTestAccount() {
 
   return (
     <Form method="post">
+      <input type="hidden" name="action" value="deleteAccount" />
       <button disabled={isProcessing} className="btn-outline btn-error btn">
         {isProcessing ? 'Deleting...' : 'Delete my account'}
       </button>

@@ -1,6 +1,5 @@
 import { supabaseAdmin } from '~/integrations/supabase'
-import { AppError } from '~/lib/utils'
-import { Logger } from '~/lib/utils'
+import { AppError, Logger } from '~/lib/utils'
 
 import { mapAuthSession } from './mappers'
 import type { AuthSession } from './types'
