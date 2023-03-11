@@ -100,8 +100,8 @@ export const getTwitterKeys = async (callbackUrl: URL) => {
   )
 
   return {
-    twitterOauthToken: userOauthToken,
-    twitterOauthTokenSecret: userOauthTokenSecret,
+    twitterOAuthToken: userOauthToken,
+    twitterOAuthTokenSecret: userOauthTokenSecret,
     twitterProfileData,
   }
 }

@@ -24,8 +24,8 @@ model User {
   email        String        @unique
   customerId   String        @unique // Created by Stripe
 
-  twitterOauthToken   String?
-  twitterOauthTokenSecret   String?
+  twitterOAuthToken   String?
+  twitterOAuthTokenSecret   String?
 
   currency     Currency?
   tierId       TierId

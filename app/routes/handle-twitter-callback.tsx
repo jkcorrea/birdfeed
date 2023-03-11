@@ -2,7 +2,7 @@ import type { LoaderArgs } from '@remix-run/server-runtime'
 
 import { getTwitterKeys } from '~/integrations/twitter'
 import { response } from '~/lib/http.server'
-import { requireAuthSession } from '~/modules/auth'
+import { createAuthSession, requireAuthSession } from '~/modules/auth'
 import { addTwitterCredentials } from '~/modules/user'
 
 export async function loader({ request }: LoaderArgs) {
@@ -11,11 +11,19 @@ export async function loader({ request }: LoaderArgs) {
   const { userId } = authSession
 
   try {
-    const { twitterOauthToken, twitterOauthTokenSecret } = await getTwitterKeys(new URL(request.url))
+    const { twitterOAuthToken, twitterOAuthTokenSecret } = await getTwitterKeys(new URL(request.url))
 
-    await addTwitterCredentials(userId, { twitterOauthToken, twitterOauthTokenSecret })
+    await addTwitterCredentials(userId, { twitterOAuthToken, twitterOAuthTokenSecret })
 
-    return response.redirect('/home', { authSession })
+    return createAuthSession({
+      request,
+      authSession: {
+        ...authSession,
+        twitterOAuthToken,
+        twitterOAuthTokenSecret,
+      },
+      redirectTo: '/home',
+    })
   } catch (cause) {
     throw response.error(cause, { authSession })
   }

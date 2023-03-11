@@ -129,7 +129,7 @@ export async function getUserTier(id: User['id']) {
 
 export async function addTwitterCredentials(
   id: User['id'],
-  credentials: { twitterOauthToken: string; twitterOauthTokenSecret: string }
+  credentials: { twitterOAuthToken: string; twitterOAuthTokenSecret: string }
 ) {
   try {
     return db.user.update({
