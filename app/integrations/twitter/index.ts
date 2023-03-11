@@ -60,6 +60,10 @@ export const getTwitterOAuthRedirectURL = async () => {
 }
 
 export const getTwitterKeys = async (callbackUrl: URL) => {
+  const denied = callbackUrl.searchParams.get('denied')
+
+  if (denied) throw new Error('User denied access.')
+
   const temp_oauth_token = callbackUrl.searchParams.get('oauth_token')
   const oauth_verifier = callbackUrl.searchParams.get('oauth_verifier')
 
@@ -96,8 +100,8 @@ export const getTwitterKeys = async (callbackUrl: URL) => {
   )
 
   return {
-    userOauthToken,
-    userOauthTokenSecret,
+    twitterOauthToken: userOauthToken,
+    twitterOauthTokenSecret: userOauthTokenSecret,
     twitterProfileData,
   }
 }

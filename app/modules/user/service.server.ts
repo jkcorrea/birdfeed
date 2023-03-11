@@ -127,6 +127,25 @@ export async function getUserTier(id: User['id']) {
   }
 }
 
+export async function addTwitterCredentials(
+  id: User['id'],
+  credentials: { twitterOauthToken: string; twitterOauthTokenSecret: string }
+) {
+  try {
+    return db.user.update({
+      where: { id },
+      data: credentials,
+    })
+  } catch (cause) {
+    throw new AppError({
+      cause,
+      message: 'Oops, unable to add Twitter credentials',
+      metadata: { id },
+      tag,
+    })
+  }
+}
+
 export async function getBillingInfo(id: User['id']) {
   try {
     const { customerId, currency } = await db.user.findUniqueOrThrow({
@@ -161,7 +180,7 @@ export async function deleteUser(id: User['id']) {
   } catch (cause) {
     throw new AppError({
       cause,
-      message: 'Oups, unable to delete your test account',
+      message: 'Oops, unable to delete your test account',
       metadata: { id },
       tag,
     })

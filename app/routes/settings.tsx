@@ -1,5 +1,4 @@
 import type { ActionArgs, LoaderArgs } from '@remix-run/node'
-import { redirect } from '@remix-run/node'
 import { Form, useFetcher, useLoaderData, useTransition } from '@remix-run/react'
 import { parseFormAny } from 'react-zorm'
 
@@ -52,7 +51,7 @@ export async function action({ request }: ActionArgs) {
       case 'addTwitter':
         const redirectUrl = await getTwitterOAuthRedirectURL()
 
-        return redirect(redirectUrl)
+        return response.redirect(redirectUrl, { authSession })
     }
   } catch (cause) {
     return response.error(cause, { authSession })
