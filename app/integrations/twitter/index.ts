@@ -77,10 +77,6 @@ export const getTwitterKeys = async (callbackUrl: URL) => {
     },
     (res) => {
       const params = new URLSearchParams(res.data)
-      // TODO: figure out why this is also returned
-      // we will never actually todo this, but if something isn't working, it's might be this
-      // const oauthTokenSecret = responseData.get('oauth_token_secret')
-
       const userOauthTokenSecret = params.get('oauth_token_secret')
       const userOauthToken = params.get('oauth_token')
 
