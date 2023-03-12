@@ -11,7 +11,6 @@ import {
   useLocation,
 } from '@remix-run/react'
 
-import { Navbar } from './components/Navbar'
 import { NotifyError } from './components/NotifyError'
 import { initAnalytics } from './lib/analytics'
 import { useAnalytics } from './lib/analytics/use-analytics'
@@ -116,11 +115,7 @@ export default function App() {
 
         <NotifyError />
 
-        <Navbar key={key} />
-
-        <main className="mx-auto min-h-[500px] w-full max-w-screen-xl grow py-4 px-8 overflow-y-hidden md:px-0 lg:mt-5">
-          <Outlet />
-        </main>
+        <Outlet />
 
         <ScrollRestoration />
 
