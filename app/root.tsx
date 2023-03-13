@@ -1,7 +1,18 @@
+import { useEffect } from 'react'
 import type { LinksFunction, LoaderArgs, MetaFunction } from '@remix-run/node'
-import { Links, LiveReload, Meta, Outlet, Scripts, ScrollRestoration, useLoaderData } from '@remix-run/react'
+import {
+  Links,
+  LiveReload,
+  Meta,
+  Outlet,
+  Scripts,
+  ScrollRestoration,
+  useLoaderData,
+  useLocation,
+} from '@remix-run/react'
 
 import { NotifyError } from './components/NotifyError'
+import { initAnalytics, useAnalytics } from './lib/analytics'
 import { APP_THEME } from './lib/constants'
 import { getBrowserEnv } from './lib/env'
 import { response } from './lib/http.server'
@@ -50,6 +61,13 @@ export async function loader({ request }: LoaderArgs) {
 
 export default function App() {
   const { env } = useLoaderData<typeof loader>()
+
+  const { key } = useLocation()
+  const { capture } = useAnalytics()
+  useEffect(initAnalytics, [])
+  useEffect(() => {
+    capture('$pageview')
+  }, [key, capture])
 
   return (
     <html data-theme={APP_THEME} className="h-full bg-base-200">
