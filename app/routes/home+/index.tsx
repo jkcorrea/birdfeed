@@ -32,7 +32,7 @@ export async function loader({ request }: LoaderArgs) {
 
 export { action } from './actions'
 
-export default function Home() {
+export default function HomePage() {
   const { recentTranscripts, recentTweets } = useLoaderData<typeof loader>()
 
   return (

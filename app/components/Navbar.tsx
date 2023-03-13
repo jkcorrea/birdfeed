@@ -6,10 +6,9 @@ import posthog from 'posthog-js'
 
 import { APP_ROUTES, NAV_ROUTES } from '~/lib/constants'
 import { tw } from '~/lib/utils'
-import type { RootLoaderData } from '~/root'
 
 export function Navbar() {
-  const { email, userTier } = useLoaderData<RootLoaderData>()
+  const { email, userTier } = useLoaderData()
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
 
   return (

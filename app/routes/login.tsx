@@ -4,6 +4,7 @@ import { parseFormAny, useZorm } from 'react-zorm'
 import { z } from 'zod'
 
 import { TextField } from '~/components/fields'
+import { APP_ROUTES } from '~/lib/constants'
 import { response } from '~/lib/http.server'
 import { isFormProcessing, parseData } from '~/lib/utils'
 import { createAuthSession, isAnonymousSession, signInWithEmail } from '~/modules/auth'
@@ -46,7 +47,7 @@ export async function action({ request }: ActionArgs) {
     return createAuthSession({
       request,
       authSession,
-      redirectTo: redirectTo || '/home',
+      redirectTo: redirectTo || APP_ROUTES.HOME.href,
     })
   } catch (cause) {
     return response.error(cause, { authSession: null })
