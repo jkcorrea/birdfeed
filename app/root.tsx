@@ -1,5 +1,5 @@
 import { useEffect } from 'react'
-import type { LinksFunction, LoaderArgs, MetaFunction } from '@remix-run/node'
+import type { LinksFunction, LoaderArgs, MetaFunction, SerializeFrom } from '@remix-run/node'
 import {
   Links,
   LiveReload,
@@ -37,7 +37,7 @@ export const meta: MetaFunction = () => ({
   viewport: 'width=device-width,initial-scale=1',
 })
 
-export type RootLoaderData = typeof loader
+export type RootLoaderData = SerializeFrom<typeof loader>
 
 export async function loader({ request }: LoaderArgs) {
   const isAnonymous = await isAnonymousSession(request)

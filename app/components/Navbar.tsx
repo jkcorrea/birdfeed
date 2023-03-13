@@ -6,9 +6,10 @@ import posthog from 'posthog-js'
 
 import { APP_ROUTES, NAV_ROUTES } from '~/lib/constants'
 import { tw } from '~/lib/utils'
+import type { RootLoaderData } from '~/root'
 
 export function Navbar() {
-  const { email, userTier } = useLoaderData()
+  const { email } = useLoaderData<RootLoaderData>()
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
 
   return (
@@ -51,9 +52,7 @@ export function Navbar() {
         <div className="hidden lg:flex lg:min-w-0 lg:flex-1 lg:items-center lg:justify-end lg:space-x-4">
           {email ? (
             <>
-              <span className="text-base">
-                {email} ({userTier?.name})
-              </span>
+              <span className="text-base">{email}</span>
 
               <Form action={APP_ROUTES.LOGOUT.href} method="post">
                 <button
