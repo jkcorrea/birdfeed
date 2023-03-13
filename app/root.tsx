@@ -1,19 +1,7 @@
-import { useEffect } from 'react'
-import type { LinksFunction, LoaderArgs, MetaFunction, SerializeFrom } from '@remix-run/node'
-import {
-  Links,
-  LiveReload,
-  Meta,
-  Outlet,
-  Scripts,
-  ScrollRestoration,
-  useLoaderData,
-  useLocation,
-} from '@remix-run/react'
+import type { LinksFunction, LoaderArgs, MetaFunction } from '@remix-run/node'
+import { Links, LiveReload, Meta, Outlet, Scripts, ScrollRestoration, useLoaderData } from '@remix-run/react'
 
 import { NotifyError } from './components/NotifyError'
-import { initAnalytics } from './lib/analytics'
-import { useAnalytics } from './lib/analytics/use-analytics'
 import { APP_THEME } from './lib/constants'
 import { getBrowserEnv } from './lib/env'
 import { response } from './lib/http.server'
@@ -37,29 +25,21 @@ export const meta: MetaFunction = () => ({
   viewport: 'width=device-width,initial-scale=1',
 })
 
-export type RootLoaderData = SerializeFrom<typeof loader>
-
 export async function loader({ request }: LoaderArgs) {
   const isAnonymous = await isAnonymousSession(request)
 
   if (isAnonymous) {
-    return response.ok(
-      {
-        env: getBrowserEnv(),
-        email: null,
-      },
-      { authSession: null }
-    )
+    return response.ok({ env: getBrowserEnv(), isLoggedIn: false }, { authSession: null })
   }
 
   const authSession = await requireAuthSession(request)
-  const { email } = authSession
 
   try {
     return response.ok(
       {
         env: getBrowserEnv(),
-        email,
+        // TODO - UX improvement: we can use this to change the topbar to say e.g. "Go to app ->"
+        isLoggedIn: true,
       },
       { authSession }
     )
@@ -69,30 +49,6 @@ export async function loader({ request }: LoaderArgs) {
 }
 
 export default function App() {
-  const { key } = useLocation()
-
-  const { email } = useLoaderData<RootLoaderData>()
-
-  useEffect(
-    () =>
-      initAnalytics((posthog) => {
-        if (email) posthog.identify(email)
-      }),
-    [email]
-  )
-
-  const { capture, identify } = useAnalytics()
-
-  useEffect(() => {
-    capture('$pageview')
-  }, [key])
-
-  useEffect(() => {
-    if (email) {
-      identify(email)
-    }
-  }, [email])
-
   const { env } = useLoaderData<typeof loader>()
 
   return (

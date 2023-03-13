@@ -1,10 +1,12 @@
 import { Outlet, useLocation } from '@remix-run/react'
-import type { LoaderArgs } from '@remix-run/server-runtime'
+import type { LoaderArgs, SerializeFrom } from '@remix-run/server-runtime'
 
 import { Navbar } from '~/components/Navbar'
 import { response } from '~/lib/http.server'
 import { isAnonymousSession, requireAuthSession } from '~/modules/auth'
 import { getUserTier } from '~/modules/user'
+
+export type HomeLayoutLoaderData = SerializeFrom<typeof loader>
 
 export async function loader({ request }: LoaderArgs) {
   try {
