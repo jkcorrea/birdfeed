@@ -25,3 +25,5 @@ export const CLEANUP_WORDS = [
   /\s+mm*(\.|,|\s+)/,
   /\s+mm-hmm*(\.|,|\s+)/,
 ]
+
+export const TWEET_CHAR_LIMIT = 280

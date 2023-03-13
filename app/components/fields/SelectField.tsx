@@ -17,30 +17,33 @@ export interface SelectFieldProps extends FieldProps<HTMLInputElement> {
   options: SelectOption[]
 }
 
-const SelectInput = makeBaseField<HTMLInputElement, SelectFieldProps>('SelectField', ({ options, ...props }) => {
-  const [value, setValue] = useState(props.value ?? props.defaultValue)
+const SelectInput = makeBaseField<HTMLInputElement, SelectFieldProps>(
+  'SelectField',
+  ({ options, forwardedRef, ...props }) => {
+    const [value, setValue] = useState(props.value ?? props.defaultValue)
 
-  const handleSelectionChange = (o: SelectOption) => {
-    setValue(o.value)
+    const handleSelectionChange = (o: SelectOption) => {
+      setValue(o.value)
+    }
+
+    const opt = options.find((o) => o.value === value)
+    const optLabel = opt?.label ?? ''
+
+    return (
+      <>
+        <input {...props} ref={forwardedRef} type="hidden" />
+
+        <SelectList
+          options={options}
+          value={opt}
+          label={optLabel}
+          disabled={props.disabled}
+          onChange={handleSelectionChange}
+        />
+      </>
+    )
   }
-
-  const opt = options.find((o) => o.value === value)
-  const optLabel = opt?.label ?? ''
-
-  return (
-    <>
-      <input {...props} type="hidden" />
-
-      <SelectList
-        options={options}
-        value={opt}
-        label={optLabel}
-        disabled={props.disabled}
-        onChange={handleSelectionChange}
-      />
-    </>
-  )
-})
+)
 
 export default SelectInput
 

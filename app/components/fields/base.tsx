@@ -20,13 +20,14 @@ export interface FieldProps<E extends HTMLElement> extends BaseFieldProps, React
 
 type FieldPropsWithoutBase<E extends HTMLElement, P extends FieldProps<E>> = Omit<P, keyof BaseFieldProps> & {
   error?: string
+  forwardedRef?: React.Ref<E>
 }
 
 export const makeBaseField = <E extends HTMLElement = HTMLInputElement, P extends FieldProps<E> = FieldProps<E>>(
   name: string,
   Comp: React.FunctionComponent<FieldPropsWithoutBase<E, P>>
 ) => {
-  const Field = React.forwardRef((props: P, forwardedRef) => {
+  const Field = React.forwardRef((props: P, forwardedRef: React.ForwardedRef<E>) => {
     const _id = useId()
     const id = props.id || _id
     const { label, error, wrapperClassName, labelClassName, errorClassName, altLabel1, altLabel2, ...inputProps } =
@@ -43,7 +44,7 @@ export const makeBaseField = <E extends HTMLElement = HTMLInputElement, P extend
           </label>
         )}
 
-        <Comp {...inputProps} id={id} ref={forwardedRef} />
+        <Comp {...inputProps} id={id} forwardedRef={forwardedRef} />
 
         {!error && !altLabel2 ? null : (
           <label htmlFor={id} className="label pt-1.5">
