@@ -18,7 +18,6 @@ import { APP_THEME } from './lib/constants'
 import { getBrowserEnv } from './lib/env'
 import { response } from './lib/http.server'
 import { isAnonymousSession, requireAuthSession } from './modules/auth'
-import { getUserTier } from './modules/user'
 
 import tailwindStylesheetUrl from './assets/tailwind.css'
 
@@ -48,23 +47,19 @@ export async function loader({ request }: LoaderArgs) {
       {
         env: getBrowserEnv(),
         email: null,
-        userTier: null,
       },
       { authSession: null }
     )
   }
 
   const authSession = await requireAuthSession(request)
-  const { userId, email } = authSession
+  const { email } = authSession
 
   try {
-    const userTier = await getUserTier(userId)
-
     return response.ok(
       {
         env: getBrowserEnv(),
         email,
-        userTier,
       },
       { authSession }
     )

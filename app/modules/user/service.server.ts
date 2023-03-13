@@ -127,19 +127,19 @@ export async function getUserTier(id: User['id']) {
   }
 }
 
-export async function addTwitterCredentials(
+export async function updateUser(
   id: User['id'],
-  credentials: { twitterOAuthToken: string; twitterOAuthTokenSecret: string }
+  data: Partial<Omit<User, 'id' | 'customerId' | 'createdAt' | 'updatedAt'>>
 ) {
   try {
     return db.user.update({
       where: { id },
-      data: credentials,
+      data,
     })
   } catch (cause) {
     throw new AppError({
       cause,
-      message: 'Oops, unable to add Twitter credentials',
+      message: 'Oops, unable to update user',
       metadata: { id },
       tag,
     })

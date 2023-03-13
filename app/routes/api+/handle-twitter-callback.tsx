@@ -4,7 +4,7 @@ import { getTwitterKeys } from '~/integrations/twitter'
 import { APP_ROUTES } from '~/lib/constants'
 import { response } from '~/lib/http.server'
 import { createAuthSession, requireAuthSession } from '~/modules/auth'
-import { addTwitterCredentials } from '~/modules/user'
+import { updateUser } from '~/modules/user'
 
 export async function loader({ request }: LoaderArgs) {
   const authSession = await requireAuthSession(request)
@@ -14,7 +14,7 @@ export async function loader({ request }: LoaderArgs) {
   try {
     const { twitterOAuthToken, twitterOAuthTokenSecret } = await getTwitterKeys(new URL(request.url))
 
-    await addTwitterCredentials(userId, { twitterOAuthToken, twitterOAuthTokenSecret })
+    await updateUser(userId, { twitterOAuthToken, twitterOAuthTokenSecret })
 
     return createAuthSession({
       request,

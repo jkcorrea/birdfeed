@@ -1,11 +1,10 @@
 import type { LoaderArgs } from '@remix-run/node'
-import { useLoaderData } from '@remix-run/react'
+import { Link } from '@remix-run/react'
 
 import { ButtonLink } from '~/components'
 import { APP_ROUTES } from '~/lib/constants'
-import { getDefaultCurrency, response } from '~/lib/http.server'
+import { response } from '~/lib/http.server'
 import { isAnonymousSession } from '~/modules/auth'
-import { getPricingPlan, PricingTable } from '~/modules/price'
 
 export async function loader({ request }: LoaderArgs) {
   const isAnonymous = await isAnonymousSession(request)
@@ -15,22 +14,30 @@ export async function loader({ request }: LoaderArgs) {
   }
 
   try {
-    const pricingPlan = await getPricingPlan(getDefaultCurrency(request))
+    // const pricingPlan = await getPricingPlan(getDefaultCurrency(request))
 
-    return response.ok({ pricingPlan }, { authSession: null })
+    return response.ok({}, { authSession: null })
   } catch (cause) {
     throw response.error(cause, { authSession: null })
   }
 }
 
 export default function Home() {
-  const { pricingPlan } = useLoaderData<typeof loader>()
-
   return (
-    <>
+    <div className="mx-auto max-w-xl space-y-20 py-8">
+      <nav className="flex items-center justify-between" aria-label="Global">
+        <div className="flex items-center space-x-2 lg:min-w-0 lg:flex-1" aria-label="Global">
+          <Link to="/" className="-m-1.5 p-1.5 text-2xl font-black text-gray-900 hover:text-gray-900">
+            🐣 Birdfeed
+          </Link>
+        </div>
+        <ButtonLink to="/join" className="px-4 py-1.5 text-base font-semibold leading-7">
+          Log In
+        </ButtonLink>
+      </nav>
       <div>
         <main className="flex flex-col gap-y-10">
-          <h1 className="text-4xl font-bold tracking-tight sm:text-center sm:text-6xl">
+          <h1 className="text-4xl font-black tracking-tight sm:text-center sm:text-6xl">
             Turn your podcasts into tweets.
           </h1>
           <p className="text-lg leading-8 text-gray-600 sm:text-center">
@@ -45,9 +52,8 @@ export default function Home() {
               </span>
             </ButtonLink>
           </div>
-          <PricingTable pricingPlan={pricingPlan} />
         </main>
       </div>
-    </>
+    </div>
   )
 }
