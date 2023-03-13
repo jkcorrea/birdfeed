@@ -127,6 +127,25 @@ export async function getUserTier(id: User['id']) {
   }
 }
 
+export async function updateUser(
+  id: User['id'],
+  data: Partial<Omit<User, 'id' | 'customerId' | 'createdAt' | 'updatedAt'>>
+) {
+  try {
+    return db.user.update({
+      where: { id },
+      data,
+    })
+  } catch (cause) {
+    throw new AppError({
+      cause,
+      message: 'Oops, unable to update user',
+      metadata: { id },
+      tag,
+    })
+  }
+}
+
 export async function getBillingInfo(id: User['id']) {
   try {
     const { customerId, currency } = await db.user.findUniqueOrThrow({
@@ -161,7 +180,7 @@ export async function deleteUser(id: User['id']) {
   } catch (cause) {
     throw new AppError({
       cause,
-      message: 'Oups, unable to delete your test account',
+      message: 'Oops, unable to delete your test account',
       metadata: { id },
       tag,
     })

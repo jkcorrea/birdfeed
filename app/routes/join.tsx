@@ -5,6 +5,7 @@ import { parseFormAny, useZorm } from 'react-zorm'
 import { z } from 'zod'
 
 import { TextField } from '~/components/fields'
+import { APP_ROUTES } from '~/lib/constants'
 import { response } from '~/lib/http.server'
 import { AppError, isFormProcessing, parseData } from '~/lib/utils'
 import { createAuthSession, isAnonymousSession } from '~/modules/auth'
@@ -15,7 +16,7 @@ export async function loader({ request }: LoaderArgs) {
     const isAnonymous = await isAnonymousSession(request)
 
     if (!isAnonymous) {
-      return response.redirect('/home', { authSession: null })
+      return response.redirect(APP_ROUTES.HOME.href, { authSession: null })
     }
 
     return response.ok({}, { authSession: null })
@@ -60,7 +61,7 @@ export async function action({ request }: ActionArgs) {
     return createAuthSession({
       request,
       authSession,
-      redirectTo: redirectTo || '/home',
+      redirectTo: redirectTo || APP_ROUTES.HOME.href,
     })
   } catch (cause) {
     return response.error(cause, { authSession: null })

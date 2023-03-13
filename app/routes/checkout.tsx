@@ -3,6 +3,7 @@ import type { LoaderArgs } from '@remix-run/node'
 import { Link, useLoaderData, useSubmit } from '@remix-run/react'
 
 import { useInterval } from '~/hooks'
+import { APP_ROUTES } from '~/lib/constants'
 import { response } from '~/lib/http.server'
 import { requireAuthSession } from '~/modules/auth'
 import { getSubscription } from '~/modules/subscription'
@@ -62,7 +63,7 @@ export default function Checkout() {
 
           <h3 className="text-3xl font-bold">You are now subscribed! 🥳</h3>
 
-          <Link to="/home" prefetch="none">
+          <Link to={APP_ROUTES.HOME.href} prefetch="none">
             <button className="rounded-lg border-white bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500 p-3 text-lg font-bold text-white">
               <span>Start writing</span>
             </button>

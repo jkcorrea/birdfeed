@@ -1,7 +1,10 @@
 import type { ActionArgs, LoaderArgs } from '@remix-run/node'
 import { Form, useFetcher, useLoaderData, useTransition } from '@remix-run/react'
+import { parseFormAny } from 'react-zorm'
 
 import { Time } from '~/components'
+import IntentField from '~/components/fields/IntentField'
+import { getTwitterOAuthRedirectURL } from '~/integrations/twitter'
 import { getDefaultCurrency, response } from '~/lib/http.server'
 import { isFormProcessing, tw } from '~/lib/utils'
 import { destroyAuthSession, requireAuthSession } from '~/modules/auth'
@@ -35,14 +38,26 @@ export async function loader({ request }: LoaderArgs) {
   }
 }
 
+type SettingsReducer = {
+  intent: 'delete-account' | 'add-twitter'
+}
+
 export async function action({ request }: ActionArgs) {
   const authSession = await requireAuthSession(request)
   const { userId } = authSession
 
   try {
-    await deleteUser(userId)
+    const { intent } = parseFormAny(await request.formData())
+    switch (intent) {
+      case 'delete-account':
+        await deleteUser(userId)
 
-    return destroyAuthSession(request)
+        return destroyAuthSession(request)
+      case 'add-twitter':
+        const redirectUrl = await getTwitterOAuthRedirectURL()
+
+        return response.redirect(redirectUrl, { authSession })
+    }
   } catch (cause) {
     return response.error(cause, { authSession })
   }
@@ -58,6 +73,12 @@ export default function Subscription() {
   return (
     <div className="flex flex-col gap-y-10">
       <div className="flex flex-col items-center justify-center gap-y-2">
+        <Form method="post">
+          <IntentField<SettingsReducer> value={'add-twitter'} />
+          <button type="submit" className="btn-accent btn">
+            Add Twitter
+          </button>
+        </Form>
         <customerPortalFetcher.Form method="post" action="/api/customer-portal">
           <button
             type="button"
@@ -103,6 +124,7 @@ function DeleteTestAccount() {
 
   return (
     <Form method="post">
+      <IntentField<SettingsReducer> value={'delete-account'} />
       <button disabled={isProcessing} className="btn-outline btn-error btn">
         {isProcessing ? 'Deleting...' : 'Delete my account'}
       </button>

@@ -61,6 +61,9 @@ export const SESSION_SECRET = getEnv('SESSION_SECRET')
 export const STRIPE_SECRET_KEY = getEnv('STRIPE_SECRET_KEY')
 export const STRIPE_ENDPOINT_SECRET = getEnv('STRIPE_ENDPOINT_SECRET')
 export const OPENAI_API_KEY = getEnv('OPENAI_API_KEY')
+export const TWITTER_CONSUMER_KEY = getEnv('TWITTER_CONSUMER_KEY')
+export const TWITTER_CONSUMER_SECRET = getEnv('TWITTER_CONSUMER_SECRET')
+export const TWITTER_CALLBACK_URL = getEnv('TWITTER_CALLBACK_URL')
 
 /**
  * Shared envs

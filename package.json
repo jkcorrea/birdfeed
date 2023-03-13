@@ -19,7 +19,8 @@
     "start": "remix-serve build",
     "start:ci": "dotenv -- remix-serve build",
     "typecheck": "tsc -b",
-    "validate": "run-p lint typecheck"
+    "validate": "run-p lint typecheck",
+    "invoke": "dotenv -- node -r esbuild-runner/register --"
   },
   "dependencies": {
     "@headlessui/react": "^1.7.8",
@@ -42,6 +43,8 @@
     "isbot": "^3.6.5",
     "langchain": "^0.0.19",
     "lodash-es": "^4.17.21",
+    "oauth": "^0.10.0",
+    "oauth-1.0a": "^2.2.6",
     "openai": "^3.2.1",
     "pino": "^8.9.0",
     "postcss": "^8.4.21",
@@ -69,6 +72,8 @@
     "@typescript-eslint/parser": "^5.46.0",
     "cross-env": "^7.0.3",
     "dotenv-cli": "^7.0.0",
+    "esbuild": "^0.17.11",
+    "esbuild-runner": "^2.2.2",
     "eslint": "^8.33.0",
     "eslint-config-prettier": "^8.6.0",
     "eslint-plugin-import": "^2.26.0",

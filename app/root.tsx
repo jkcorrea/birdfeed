@@ -1,25 +1,11 @@
-import { useEffect } from 'react'
 import type { LinksFunction, LoaderArgs, MetaFunction } from '@remix-run/node'
-import {
-  Links,
-  LiveReload,
-  Meta,
-  Outlet,
-  Scripts,
-  ScrollRestoration,
-  useLoaderData,
-  useLocation,
-} from '@remix-run/react'
+import { Links, LiveReload, Meta, Outlet, Scripts, ScrollRestoration, useLoaderData } from '@remix-run/react'
 
-import { Navbar } from './components/Navbar'
 import { NotifyError } from './components/NotifyError'
-import { initAnalytics } from './lib/analytics'
-import { useAnalytics } from './lib/analytics/use-analytics'
 import { APP_THEME } from './lib/constants'
 import { getBrowserEnv } from './lib/env'
 import { response } from './lib/http.server'
 import { isAnonymousSession, requireAuthSession } from './modules/auth'
-import { getUserTier } from './modules/user'
 
 import tailwindStylesheetUrl from './assets/tailwind.css'
 
@@ -39,33 +25,21 @@ export const meta: MetaFunction = () => ({
   viewport: 'width=device-width,initial-scale=1',
 })
 
-export type RootLoaderData = typeof loader
-
 export async function loader({ request }: LoaderArgs) {
   const isAnonymous = await isAnonymousSession(request)
 
   if (isAnonymous) {
-    return response.ok(
-      {
-        env: getBrowserEnv(),
-        email: null,
-        userTier: null,
-      },
-      { authSession: null }
-    )
+    return response.ok({ env: getBrowserEnv(), isLoggedIn: false }, { authSession: null })
   }
 
   const authSession = await requireAuthSession(request)
-  const { userId, email } = authSession
 
   try {
-    const userTier = await getUserTier(userId)
-
     return response.ok(
       {
         env: getBrowserEnv(),
-        email,
-        userTier,
+        // TODO - UX improvement: we can use this to change the topbar to say e.g. "Go to app ->"
+        isLoggedIn: true,
       },
       { authSession }
     )
@@ -75,30 +49,6 @@ export async function loader({ request }: LoaderArgs) {
 }
 
 export default function App() {
-  const { key } = useLocation()
-
-  const { email } = useLoaderData<RootLoaderData>()
-
-  useEffect(
-    () =>
-      initAnalytics((posthog) => {
-        if (email) posthog.identify(email)
-      }),
-    [email]
-  )
-
-  const { capture, identify } = useAnalytics()
-
-  useEffect(() => {
-    capture('$pageview')
-  }, [key])
-
-  useEffect(() => {
-    if (email) {
-      identify(email)
-    }
-  }, [email])
-
   const { env } = useLoaderData<typeof loader>()
 
   return (
@@ -116,11 +66,7 @@ export default function App() {
 
         <NotifyError />
 
-        <Navbar key={key} />
-
-        <main className="mx-auto min-h-[500px] w-full max-w-screen-xl grow py-4 px-8 overflow-y-hidden md:px-0 lg:mt-5">
-          <Outlet />
-        </main>
+        <Outlet />
 
         <ScrollRestoration />
 

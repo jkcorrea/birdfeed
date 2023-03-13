@@ -23,6 +23,10 @@ model User {
 
   email        String        @unique
   customerId   String        @unique // Created by Stripe
+
+  twitterOAuthToken   String?
+  twitterOAuthTokenSecret   String?
+
   currency     Currency?
   tierId       TierId
   tier         Tier          @relation(fields: [tierId], references: [id])
