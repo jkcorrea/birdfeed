@@ -9,7 +9,7 @@ import { requireAuthSession } from '~/modules/auth'
 
 import type {
   IDeleteTranscript,
-  IDeleteTweets,
+  IDeleteTweet,
   IGenerateTweet,
   IRegenerateTweet,
   IRestoreDraft,
@@ -41,8 +41,8 @@ export async function action({ request }: ActionArgs) {
       case 'restore-tweet':
         await restoreDraft(data)
         break
-      case 'delete-tweets':
-        await deleteTweets(data)
+      case 'delete-tweet':
+        await deleteTweet(data)
         break
       case 'update-tweet':
         await updateTweet(data)
@@ -76,6 +76,10 @@ async function generateTweets({ transcriptId, __skip_openai }: IGenerateTweet) {
       data: { neverGenerated: false },
     }),
   ])
+}
+
+async function deleteTweet({ tweetId }: IDeleteTweet) {
+  await db.tweet.deleteMany({ where: { id: tweetId } })
 }
 
 async function uploadTranscript({ name, content }: IUploadTranscript, userId: string) {
@@ -125,12 +129,6 @@ async function restoreDraft({ draftIndex, tweetId }: IRestoreDraft) {
   await db.tweet.update({
     where: { id: tweetId },
     data: { drafts: { set: drafts } },
-  })
-}
-
-async function deleteTweets({ tweetIds }: IDeleteTweets) {
-  await db.tweet.deleteMany({
-    where: { id: { in: tweetIds } },
   })
 }
 

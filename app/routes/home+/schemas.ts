@@ -45,11 +45,11 @@ export const RestoreDraftSchema = z.object({
 })
 export type IRestoreDraft = z.infer<typeof RestoreDraftSchema>
 
-export const DeleteTweetsSchema = z.object({
-  intent: z.literal('delete-tweets'),
-  tweetIds: z.array(z.string()),
+export const DeleteTweetSchema = z.object({
+  intent: z.literal('delete-tweet'),
+  tweetId: z.string(),
 })
-export type IDeleteTweets = z.infer<typeof DeleteTweetsSchema>
+export type IDeleteTweet = z.infer<typeof DeleteTweetSchema>
 
 export const UpdateTweetSchema = z.object({
   intent: z.literal('update-tweet'),
@@ -65,7 +65,7 @@ export const HomeActionSchema = z.discriminatedUnion('intent', [
   DeleteTranscriptSchema,
   RegenerateTweetSchema,
   RestoreDraftSchema,
-  DeleteTweetsSchema,
+  DeleteTweetSchema,
   UpdateTweetSchema,
 ])
 export type IHomeAction = z.infer<typeof HomeActionSchema>
