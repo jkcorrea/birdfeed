@@ -2,14 +2,12 @@ import crypto from 'crypto'
 
 import OAuth from 'oauth-1.0a'
 
+import { TWITTER_CALLBACK_URL, TWITTER_CONSUMER_KEY, TWITTER_CONSUMER_SECRET } from '~/lib/env'
+
 export const oauth = new OAuth({
-  // These are the keys from the Twitter developer portal.
-  // Not going in Env Vars because they are public.
   consumer: {
-    //API key
-    key: process.env.TWITTER_CONSUMER_KEY!,
-    //API secret key
-    secret: process.env.TWITTER_CONSUMER_SECRET!,
+    key: TWITTER_CONSUMER_KEY,
+    secret: TWITTER_CONSUMER_SECRET,
   },
   signature_method: 'HMAC-SHA1',
   hash_function: (baseString: string, key: string) =>
@@ -47,7 +45,7 @@ export const getTwitterOAuthRedirectURL = async () => {
     })
 
   return `https://api.twitter.com/oauth/authenticate?oauth_token=${tempOAuthToken}&oauth_callback=${encodeURIComponent(
-    process.env.TWITTER_CALLBACK_URL!
+    TWITTER_CALLBACK_URL
   )}`
 }
 
