@@ -1,13 +1,17 @@
+import { useCallback } from 'react'
 import type { LoaderArgs } from '@remix-run/node'
 import { useLoaderData } from '@remix-run/react'
+import type { Dispatch } from 'react'
 
+import type { UploadData } from '~/components/TranscriptUploader'
+import TranscriptUploader from '~/components/TranscriptUploader'
 import { db } from '~/database'
+import { useAnalytics } from '~/lib/analytics'
 import { response } from '~/lib/http.server'
-import { tw } from '~/lib/utils'
+import { AppError, tw } from '~/lib/utils'
 import { requireAuthSession } from '~/modules/auth'
 
 import TranscriptHistory from './TranscriptHistory'
-import TranscriptUploader from './TranscriptUploader'
 import TweetQueue from './TweetQueue'
 
 export async function loader({ request }: LoaderArgs) {
@@ -35,10 +39,33 @@ export { action } from './actions'
 export default function HomePage() {
   const { recentTranscripts, recentTweets } = useLoaderData<typeof loader>()
 
+  const { capture } = useAnalytics()
+
+  const handleFile = useCallback(
+    (file: File, setUpload: Dispatch<React.SetStateAction<UploadData | null>>) => {
+      const reader = new FileReader()
+      reader.onload = ({ target }) => {
+        // check if file contents appear to be binary
+        // TODO check if binary
+        // if (await isBinaryFile(resultAsText as string)) {
+        if (typeof target?.result !== 'string') throw new AppError({ message: 'FileReader result is not a string' })
+
+        capture('transcript_upload', { file_name: file.name })
+
+        setUpload({
+          content: target.result,
+          name: file.name,
+        })
+      }
+      reader.readAsText(file)
+    },
+    [capture]
+  )
+
   return (
     <div className="flex h-full min-w-[1024px] gap-10 overflow-x-auto md:overflow-hidden lg:gap-12">
       <Column title="Transcripts">
-        <TranscriptUploader />
+        <TranscriptUploader handleFile={handleFile} />
         <TranscriptHistory transcripts={recentTranscripts} />
       </Column>
 

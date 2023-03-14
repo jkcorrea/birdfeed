@@ -2,20 +2,23 @@ import { useCallback, useEffect, useRef, useState } from 'react'
 import { CloudArrowUpIcon } from '@heroicons/react/24/outline'
 import { Form } from '@remix-run/react'
 import { AnimatePresence, motion } from 'framer-motion'
+import type { Dispatch } from 'react'
 import { useZorm } from 'react-zorm'
 
 import { TextField } from '~/components/fields'
 import IntentField from '~/components/fields/IntentField'
 import FormErrorCatchall from '~/components/FormErrorCatchall'
-import { useAnalytics } from '~/lib/analytics/use-analytics'
-import { AppError, tw } from '~/lib/utils'
+import { tw } from '~/lib/utils'
+import type { IHomeAction, IUploadTranscript } from '~/routes/_app+/home/schemas'
+import { UploadTranscriptSchema, useIsSubmitting } from '~/routes/_app+/home/schemas'
 
-import type { IHomeAction, IUploadTranscript } from './schemas'
-import { UploadTranscriptSchema, useIsSubmitting } from './schemas'
+export type UploadData = Pick<IUploadTranscript, 'content' | 'name'>
 
-type UploadData = Pick<IUploadTranscript, 'content' | 'name'>
-
-function TranscriptUploader() {
+function TranscriptUploader({
+  handleFile,
+}: {
+  handleFile: (file: File, setUpload: Dispatch<React.SetStateAction<UploadData | null>>) => void
+}) {
   const [upload, setUpload] = useState<UploadData | null>(null)
   const isUploading = useIsSubmitting('upload-transcript')
 
@@ -26,30 +29,7 @@ function TranscriptUploader() {
     },
   })
 
-  const { capture } = useAnalytics()
-
   const fileInputRef = useRef<HTMLInputElement>(null)
-
-  const handleFile = useCallback(
-    (file: File) => {
-      const reader = new FileReader()
-      reader.onload = ({ target }) => {
-        // check if file contents appear to be binary
-        // TODO check if binary
-        // if (await isBinaryFile(resultAsText as string)) {
-        if (typeof target?.result !== 'string') throw new AppError({ message: 'FileReader result is not a string' })
-
-        capture('transcript_upload', { file_name: file.name })
-
-        setUpload({
-          content: target.result,
-          name: file.name,
-        })
-      }
-      reader.readAsText(file)
-    },
-    [capture]
-  )
 
   const clearUpload = () => {
     setUpload(null)
@@ -67,7 +47,7 @@ function TranscriptUploader() {
         ref={fileInputRef}
         type="file"
         className="hidden"
-        onChange={({ currentTarget: { files } }) => files?.[0] && handleFile(files[0])}
+        onChange={({ currentTarget: { files } }) => files?.[0] && handleFile(files[0], setUpload)}
         accept="text/plain"
       />
 
@@ -116,14 +96,20 @@ function TranscriptUploader() {
         </motion.div>
       </AnimatePresence>
 
-      <Dropzone onFile={handleFile} />
+      <Dropzone handleFile={handleFile} setUpload={setUpload} />
     </motion.div>
   )
 }
 
 export default TranscriptUploader
 
-function Dropzone({ onFile }: { onFile: (file: File) => void }) {
+function Dropzone({
+  handleFile,
+  setUpload,
+}: {
+  handleFile: (file: File, setUpload: Dispatch<React.SetStateAction<UploadData | null>>) => void
+  setUpload: Dispatch<React.SetStateAction<UploadData | null>>
+}) {
   const [isDragging, setIsDragging] = useState(false)
   const dragCounter = useRef(0)
   const onDrag = useCallback((e: DragEvent) => {
@@ -150,10 +136,10 @@ function Dropzone({ onFile }: { onFile: (file: File) => void }) {
       setIsDragging(false)
       if (e.dataTransfer?.files && e.dataTransfer.files.length > 0) {
         dragCounter.current = 0
-        onFile(e.dataTransfer.files[0])
+        handleFile(e.dataTransfer.files[0], setUpload)
       }
     },
-    [onFile]
+    [handleFile, setUpload]
   )
 
   useEffect(() => {

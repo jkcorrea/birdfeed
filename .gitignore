@@ -1,5 +1,7 @@
 node_modules
 
+.venv-notebook/
+
 /build
 /public/build
 .cache
