@@ -52,7 +52,7 @@ export function Navbar() {
         <div className="hidden lg:flex lg:min-w-0 lg:flex-1 lg:items-center lg:justify-end lg:space-x-4">
           {email ? (
             <>
-              <span className="text-base">{email + userTier ? `(${userTier.name})` : ''}</span>
+              <span className="text-base">{userTier ? `${email} (${userTier.name})` : email}</span>
 
               <Form action={APP_ROUTES.LOGOUT.href} method="post">
                 <button

@@ -1,9 +1,11 @@
 import type { PostHog } from 'posthog-js'
 import { posthog } from 'posthog-js'
 
+let ph: PostHog | void | null = null
+
 export function initAnalytics(loaded?: (posthog: PostHog) => void): void {
   if (process.env.NODE_ENV === 'production') {
-    posthog.init('phc_deqi12dJ7yEp5PXhDRncRvDdBJ8v34vGOczaD73UaA9', {
+    ph = posthog.init('phc_deqi12dJ7yEp5PXhDRncRvDdBJ8v34vGOczaD73UaA9', {
       api_host: 'https://app.posthog.com',
       autocapture: false,
       capture_performance: false,
@@ -17,5 +19,7 @@ export function initAnalytics(loaded?: (posthog: PostHog) => void): void {
     // services to set up on initial show
   }
 }
+
+export { ph }
 
 export * from './use-analytics'
