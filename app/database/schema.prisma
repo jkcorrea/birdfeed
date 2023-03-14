@@ -61,7 +61,7 @@ model Transcript {
   user   User    @relation(fields: [userId], references: [id], onDelete: Cascade)
   tweets Tweet[]
 
-  @@map("transcript")
+  @@map("transcripts")
 }
 
 model Tweet {
