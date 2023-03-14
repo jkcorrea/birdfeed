@@ -9,7 +9,7 @@ interface AppRoute {
 export const APP_ROUTES = {
   LANDING: { title: 'Birdfeed', href: '/' },
   HOME: { title: 'Home', href: '/home', showInNav: true },
-  SETTINGS: { title: 'Settings', href: '/home/settings', showInNav: true },
+  SETTINGS: { title: 'Settings', href: '/settings', showInNav: true },
   LOGIN: { title: 'Log In', href: '/login' },
   LOGOUT: { title: 'Log Out', href: '/logout' },
 } as const satisfies Record<string, AppRoute>

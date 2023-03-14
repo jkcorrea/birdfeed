@@ -2,13 +2,13 @@ import { useEffect } from 'react'
 import { Outlet, useLoaderData, useLocation } from '@remix-run/react'
 import type { LoaderArgs, SerializeFrom } from '@remix-run/server-runtime'
 
-import { Navbar } from '~/components/Navbar'
+import { Navbar } from '~/components/AppNavbar'
 import { ph } from '~/lib/analytics'
 import { response } from '~/lib/http.server'
 import { isAnonymousSession, requireAuthSession } from '~/modules/auth'
 import { getUserTier } from '~/modules/user'
 
-export type HomeLayoutLoaderData = SerializeFrom<typeof loader>
+export type AppLayoutLoaderData = SerializeFrom<typeof loader>
 
 export async function loader({ request }: LoaderArgs) {
   try {
@@ -34,9 +34,9 @@ export async function loader({ request }: LoaderArgs) {
   }
 }
 
-export default function HomeLayout() {
+export default function AppLayout() {
   const location = useLocation()
-  const { email } = useLoaderData<HomeLayoutLoaderData>()
+  const { email } = useLoaderData<AppLayoutLoaderData>()
 
   // TODO - see if there's a race condition btwn this and the useEffect in root.tsx
   useEffect(() => {

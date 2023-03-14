@@ -19,7 +19,7 @@ import { tw } from '~/lib/utils'
 import type { IHomeAction } from './schemas'
 import { DeleteTranscriptSchema, GenerateTweetSchema, useIsSubmitting } from './schemas'
 
-import transcripts from '../../../test/fixtures/transcripts.json'
+import transcripts from '~/../test/fixtures/transcripts.json'
 
 dayjs.extend(relativeTime)
 
