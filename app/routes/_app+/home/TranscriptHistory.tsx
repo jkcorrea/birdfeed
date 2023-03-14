@@ -19,8 +19,6 @@ import { tw } from '~/lib/utils'
 import type { IHomeAction } from './schemas'
 import { DeleteTranscriptSchema, GenerateTweetSchema, useIsSubmitting } from './schemas'
 
-import transcripts from '~/../test/fixtures/transcripts.json'
-
 dayjs.extend(relativeTime)
 
 type RecentTranscript = SerializeFrom<Transcript>
@@ -149,7 +147,7 @@ const TranscriptItem = ({ transcript, isOpen, onClick }: TranscriptItemProps) =>
           <span className="text-sm font-semibold uppercase text-gray-600">Preview</span>
           {/* <button className="badge badge-secondary text-xs uppercase">🪄 Cleaned</button> */}
         </label>
-        <TextAreaField readOnly rows={2} className="resize-none rounded text-xs" value={transcripts[0]} />
+        <TextAreaField readOnly rows={2} className="resize-none rounded text-xs" value={transcript.content} />
 
         <div className="mt-3 flex justify-end gap-1">
           {/* Delete Form */}
