@@ -64,6 +64,8 @@ export async function action({ request }: ActionArgs) {
 
   const transcript = transcribedResponse.results.channels[0].alternatives[0].transcript
 
+  console.log(transcript)
+
   // const blob = new File([buffer], 'file.mp4', { type: 'video/mp4' })
 
   // const arrayBuffer = buffer.subarray(buffer.byteOffset, buffer.byteOffset + buffer.byteLength)
