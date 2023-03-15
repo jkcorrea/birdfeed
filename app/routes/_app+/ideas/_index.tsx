@@ -1,18 +1,12 @@
-import { ArrowPathIcon, TrashIcon } from '@heroicons/react/24/outline'
-import { Form, useLoaderData } from '@remix-run/react'
+import { useLoaderData } from '@remix-run/react'
 import type { LoaderArgs, SerializeFrom } from '@remix-run/server-runtime'
-import { motion } from 'framer-motion'
-import { useZorm } from 'react-zorm'
 
 import type { Prisma, Tweet } from '@prisma/client'
-import IntentField from '~/components/fields/IntentField'
 import { db } from '~/database'
 import { response } from '~/lib/http.server'
-import { tw } from '~/lib/utils'
 import { requireAuthSession } from '~/modules/auth'
 
-import type { IHomeAction } from '../home/schemas'
-import { DeleteTweetSchema, RegenerateTweetSchema, useIsSubmitting } from '../home/schemas'
+import TweetList from '../home/TweetList'
 
 type RecentTweet = SerializeFrom<Tweet>
 
@@ -51,91 +45,29 @@ function IdeaBin() {
   const { tweetsByRating } = useLoaderData<typeof loader>()
 
   return (
-    <div className="flex flex-col gap-5">
+    <div className="flex h-full flex-col gap-5 overflow-auto p-4">
       <div>
-        <h2>⭐️⭐️⭐️⭐️</h2>
-        <motion.ul layoutScroll className="space-y-4 overflow-y-scroll">
-          {tweetsByRating.four.map((t) => (
-            <TweetItem key={t.id} tweet={t} />
-          ))}
-        </motion.ul>
+        <h2 className="text-3xl font-bold">⭐️⭐️⭐️⭐️</h2>
+        <TweetList horizontal tweets={tweetsByRating.four} />
       </div>
       <div>
-        <h2>⭐️⭐️⭐️</h2>
-        <motion.ul layoutScroll className="space-y-4 overflow-y-scroll">
-          {tweetsByRating.three.map((t) => (
-            <TweetItem key={t.id} tweet={t} />
-          ))}
-        </motion.ul>
+        <h2 className="text-3xl font-bold">⭐️⭐️⭐️</h2>
+        <TweetList horizontal tweets={tweetsByRating.three} />
       </div>
       <div>
-        <h2>⭐️⭐️</h2>
-        <motion.ul layoutScroll className="space-y-4 overflow-y-scroll">
-          {tweetsByRating.two.map((t) => (
-            <TweetItem key={t.id} tweet={t} />
-          ))}
-        </motion.ul>
+        <h2 className="text-3xl font-bold">⭐️⭐️</h2>
+        <TweetList horizontal tweets={tweetsByRating.two} />
       </div>
       <div>
-        <h2>⭐️</h2>
-        <motion.ul layoutScroll className="space-y-4 overflow-y-scroll">
-          {tweetsByRating.one.map((t) => (
-            <TweetItem key={t.id} tweet={t} />
-          ))}
-        </motion.ul>
+        <h2 className="text-3xl font-bold">⭐️</h2>
+        <TweetList horizontal tweets={tweetsByRating.one} />
       </div>
       <div>
-        <h2>Unrated</h2>
-        <motion.ul layoutScroll className="space-y-4 overflow-y-scroll">
-          {tweetsByRating.unrated.map((t) => (
-            <TweetItem key={t.id} tweet={t} />
-          ))}
-        </motion.ul>
+        <h2 className="text-3xl font-bold">Unrated</h2>
+        <TweetList horizontal tweets={tweetsByRating.unrated} />
       </div>
     </div>
   )
 }
 
 export default IdeaBin
-
-interface TweetItemProps {
-  tweet: RecentTweet
-}
-
-const TweetItem = ({ tweet }: TweetItemProps) => (
-  <li className="flex cursor-pointer flex-col gap-5 rounded-lg bg-base-100 p-4 shadow transition hover:bg-primary/10">
-    <p className="w-full">{tweet.drafts[0]}</p>
-
-    <div onClick={(e) => e.stopPropagation()}>
-      <TweetActionsBar tweetId={tweet.id} />
-    </div>
-  </li>
-)
-
-function TweetActionsBar({ tweetId, onDelete }: { tweetId: string; onDelete?: () => void }) {
-  const zoRegen = useZorm('regenerate', RegenerateTweetSchema)
-  const zoDelete = useZorm('delete', DeleteTweetSchema, { onValidSubmit: onDelete })
-  const isRegenerating = useIsSubmitting('regenerate-tweet', (f) => f.get('tweetId') === tweetId)
-
-  return (
-    <div className="inline-flex items-center gap-2">
-      <Form replace method="post" ref={zoDelete.ref} className="flex items-center">
-        <IntentField<IHomeAction> value="delete-tweet" />
-        <input name={zoDelete.fields.tweetId()} type="hidden" value={tweetId} />
-        <button className="tooltip tooltip-right" data-tip="Delete">
-          <TrashIcon className="h-5 w-5" />
-          <span className="sr-only">Delete</span>
-        </button>
-      </Form>
-
-      <Form replace method="post" ref={zoRegen.ref} className="flex items-center">
-        <IntentField<IHomeAction> value="regenerate-tweet" />
-        <input name={zoRegen.fields.tweetId()} type="hidden" value={tweetId} />
-        <button className="tooltip tooltip-right" data-tip="Re-generate" disabled={isRegenerating}>
-          <ArrowPathIcon className={tw('h-5 w-5', isRegenerating && 'animate-spin')} />
-          <span className="sr-only">Re-generate</span>
-        </button>
-      </Form>
-    </div>
-  )
-}

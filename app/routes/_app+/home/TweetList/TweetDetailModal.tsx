@@ -1,72 +1,31 @@
 import { useEffect, useRef, useState } from 'react'
-import { BarsArrowUpIcon, ChevronLeftIcon, TrashIcon } from '@heroicons/react/24/outline'
-import { ArrowPathIcon } from '@heroicons/react/24/solid'
+import { BarsArrowUpIcon, ChevronLeftIcon } from '@heroicons/react/24/outline'
 import { Form } from '@remix-run/react'
-import type { SerializeFrom } from '@remix-run/server-runtime'
 import dayjs from 'dayjs'
 import relativeTime from 'dayjs/plugin/relativeTime'
-import { motion, transform } from 'framer-motion'
+import { transform } from 'framer-motion'
 import { useZorm, Value } from 'react-zorm'
 
-import type { Tweet } from '@prisma/client'
 import { TextAreaField } from '~/components/fields'
 import IntentField from '~/components/fields/IntentField'
 import FormErrorCatchall from '~/components/FormErrorCatchall'
 import FullscreenModal from '~/components/FullscreenModal'
-import { TWEET_CHAR_LIMIT } from '~/lib/constants'
+import { APP_ROUTES, TWEET_CHAR_LIMIT } from '~/lib/constants'
 import { tw } from '~/lib/utils'
 
-import type { IHomeAction } from './schemas'
-import {
-  DeleteTweetSchema,
-  RegenerateTweetSchema,
-  RestoreDraftSchema,
-  UpdateTweetSchema,
-  useIsSubmitting,
-} from './schemas'
+import type { IHomeAction } from '../schemas'
+import { RestoreDraftSchema, UpdateTweetSchema, useIsSubmitting } from '../schemas'
+import type { SerializedTweetItem } from '../types'
+import TweetActionBar from './TweetActionBar'
 
 dayjs.extend(relativeTime)
 
-type RecentTweet = SerializeFrom<Tweet>
-
 interface Props {
-  tweets: RecentTweet[]
+  tweet: SerializedTweetItem | null
+  onClose: () => void
 }
 
-const TweetQueue = ({ tweets }: Props) => {
-  const [shownTweet, setShownTweet] = useState<null | RecentTweet>(null)
-
-  return (
-    <>
-      <motion.ul layoutScroll className="space-y-4 overflow-y-scroll">
-        {tweets.map((t) => (
-          <TweetItem key={t.id} tweet={t} onClick={() => setShownTweet(t)} />
-        ))}
-      </motion.ul>
-      <TweetDetailModal tweet={shownTweet} onClose={() => setShownTweet(null)} />
-    </>
-  )
-}
-
-interface TweetItemProps {
-  onClick: () => void
-  tweet: RecentTweet
-}
-
-const TweetItem = ({ tweet, onClick }: TweetItemProps) => (
-  <li
-    className="flex cursor-pointer flex-col gap-5 rounded-lg bg-base-100 p-4 shadow transition hover:bg-primary/10"
-    onClick={onClick}
-  >
-    <p className="w-full">{tweet.drafts[0]}</p>
-
-    <div onClick={(e) => e.stopPropagation()}>
-      <TweetActionsBar tweetId={tweet.id} />
-    </div>
-  </li>
-)
-
-const TweetDetailModal = ({ tweet, onClose: _onClose }: { tweet: RecentTweet | null; onClose: () => void }) => {
+function TweetDetailModal({ tweet, onClose: _onClose }: Props) {
   const [showHistory, setShowHistory] = useState(false)
   const onClose = () => {
     setShowHistory(false)
@@ -116,7 +75,7 @@ const TweetDetailModal = ({ tweet, onClose: _onClose }: { tweet: RecentTweet | n
           {tweet.drafts.slice(1).map((draft, index) => (
             <li key={draft} className="flex items-center justify-between gap-2 text-left">
               <p className="w-full resize-none rounded text-sm">{draft}</p>
-              <Form replace method="post" ref={zoRestore.ref}>
+              <Form action={APP_ROUTES.HOME.href} replace method="post" ref={zoRestore.ref}>
                 <IntentField<IHomeAction> value="restore-tweet" />
                 <input name={zoRestore.fields.tweetId()} type="hidden" value={tweet.id} />
                 <input name={zoRestore.fields.draftIndex()} type="hidden" value={index + 1} />
@@ -134,7 +93,7 @@ const TweetDetailModal = ({ tweet, onClose: _onClose }: { tweet: RecentTweet | n
         </ul>
       ) : (
         <div className="mx-auto flex w-full max-w-md flex-col">
-          <Form id={updateFormId} replace method="post" ref={zoUpdate.ref}>
+          <Form action={APP_ROUTES.HOME.href} id={updateFormId} replace method="post" ref={zoUpdate.ref}>
             <IntentField<IHomeAction> value="update-tweet" />
             <input name={zoUpdate.fields.tweetId()} type="hidden" value={tweet.id} />
             <TextAreaField
@@ -160,7 +119,7 @@ const TweetDetailModal = ({ tweet, onClose: _onClose }: { tweet: RecentTweet | n
           <div className="divider my-2" />
 
           <div className="flex items-center justify-between">
-            <TweetActionsBar tweetId={tweet.id} onDelete={() => setTimeout(onClose, 0)} />
+            <TweetActionBar tweetId={tweet.id} onDelete={() => setTimeout(onClose, 0)} />
 
             <Value zorm={zoUpdate} name={zoUpdate.fields.draft()}>
               {(draft) => {
@@ -210,32 +169,4 @@ const TweetDetailModal = ({ tweet, onClose: _onClose }: { tweet: RecentTweet | n
   )
 }
 
-function TweetActionsBar({ tweetId, onDelete }: { tweetId: string; onDelete?: () => void }) {
-  const zoRegen = useZorm('regenerate', RegenerateTweetSchema)
-  const zoDelete = useZorm('delete', DeleteTweetSchema, { onValidSubmit: onDelete })
-  const isRegenerating = useIsSubmitting('regenerate-tweet', (f) => f.get('tweetId') === tweetId)
-
-  return (
-    <div className="inline-flex items-center gap-2">
-      <Form replace method="post" ref={zoDelete.ref} className="flex items-center">
-        <IntentField<IHomeAction> value="delete-tweet" />
-        <input name={zoDelete.fields.tweetId()} type="hidden" value={tweetId} />
-        <button className="tooltip tooltip-right" data-tip="Delete">
-          <TrashIcon className="h-5 w-5" />
-          <span className="sr-only">Delete</span>
-        </button>
-      </Form>
-
-      <Form replace method="post" ref={zoRegen.ref} className="flex items-center">
-        <IntentField<IHomeAction> value="regenerate-tweet" />
-        <input name={zoRegen.fields.tweetId()} type="hidden" value={tweetId} />
-        <button className="tooltip tooltip-right" data-tip="Re-generate" disabled={isRegenerating}>
-          <ArrowPathIcon className={tw('h-5 w-5', isRegenerating && 'animate-spin')} />
-          <span className="sr-only">Re-generate</span>
-        </button>
-      </Form>
-    </div>
-  )
-}
-
-export default TweetQueue
+export default TweetDetailModal

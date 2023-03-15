@@ -8,7 +8,7 @@ import { requireAuthSession } from '~/modules/auth'
 
 import TranscriptHistory from './TranscriptHistory'
 import TranscriptUploader from './TranscriptUploader'
-import TweetQueue from './TweetQueue'
+import TweetList from './TweetList'
 
 export async function loader({ request }: LoaderArgs) {
   const authSession = await requireAuthSession(request)
@@ -44,7 +44,7 @@ export default function HomePage() {
 
       <Column title="On Deck" className="flex-[4]">
         {recentTweets.length > 0 ? (
-          <TweetQueue tweets={recentTweets} />
+          <TweetList tweets={recentTweets} />
         ) : (
           <div className="flex h-20 items-center justify-center rounded-lg bg-base-300 p-2 px-6 text-center shadow-inner">
             <h2 className="text-lg">
