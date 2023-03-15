@@ -1,14 +1,12 @@
 import { useLoaderData } from '@remix-run/react'
-import type { LoaderArgs, SerializeFrom } from '@remix-run/server-runtime'
+import type { LoaderArgs } from '@remix-run/server-runtime'
 
-import type { Prisma, Tweet } from '@prisma/client'
+import type { Prisma } from '@prisma/client'
 import { db } from '~/database'
 import { response } from '~/lib/http.server'
 import { requireAuthSession } from '~/modules/auth'
 
 import TweetList from '../home/TweetList'
-
-type RecentTweet = SerializeFrom<Tweet>
 
 export async function loader({ request }: LoaderArgs) {
   const authSession = await requireAuthSession(request)

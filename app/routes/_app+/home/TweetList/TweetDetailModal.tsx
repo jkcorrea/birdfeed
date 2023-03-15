@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
 import { BarsArrowUpIcon, ChevronLeftIcon } from '@heroicons/react/24/outline'
-import { Form } from '@remix-run/react'
+import { useFetcher } from '@remix-run/react'
 import dayjs from 'dayjs'
 import relativeTime from 'dayjs/plugin/relativeTime'
 import { transform } from 'framer-motion'
@@ -10,11 +10,12 @@ import { TextAreaField } from '~/components/fields'
 import IntentField from '~/components/fields/IntentField'
 import FormErrorCatchall from '~/components/FormErrorCatchall'
 import FullscreenModal from '~/components/FullscreenModal'
+import { useIsSubmitting } from '~/hooks/use-is-submitting'
 import { APP_ROUTES, TWEET_CHAR_LIMIT } from '~/lib/constants'
 import { tw } from '~/lib/utils'
 
-import type { IHomeAction } from '../schemas'
-import { RestoreDraftSchema, UpdateTweetSchema, useIsSubmitting } from '../schemas'
+import type { IHomeAction, IHomeActionIntent } from '../schemas'
+import { RestoreDraftSchema, UpdateTweetSchema } from '../schemas'
 import type { SerializedTweetItem } from '../types'
 import TweetActionBar from './TweetActionBar'
 
@@ -32,11 +33,15 @@ function TweetDetailModal({ tweet, onClose: _onClose }: Props) {
     _onClose()
   }
 
+  const fetcher = useFetcher()
   const updateFormId = 'update-tweet'
   const zoUpdate = useZorm(updateFormId, UpdateTweetSchema)
   const zoRestore = useZorm('restore', RestoreDraftSchema)
 
-  const isSaving = useIsSubmitting('update-tweet', (f) => f.get('tweetId') === tweet?.id)
+  const isSaving = useIsSubmitting(
+    fetcher,
+    (f) => (f.get('intent') as IHomeActionIntent) === 'update-tweet' && f.get('tweetId') === tweet?.id
+  )
 
   const textAreaRef = useRef<HTMLTextAreaElement | null>(null)
   const expandTextArea = () => {
@@ -75,7 +80,7 @@ function TweetDetailModal({ tweet, onClose: _onClose }: Props) {
           {tweet.drafts.slice(1).map((draft, index) => (
             <li key={draft} className="flex items-center justify-between gap-2 text-left">
               <p className="w-full resize-none rounded text-sm">{draft}</p>
-              <Form action={APP_ROUTES.HOME.href} replace method="post" ref={zoRestore.ref}>
+              <fetcher.Form action={APP_ROUTES.HOME.href} method="post" ref={zoRestore.ref}>
                 <IntentField<IHomeAction> value="restore-tweet" />
                 <input name={zoRestore.fields.tweetId()} type="hidden" value={tweet.id} />
                 <input name={zoRestore.fields.draftIndex()} type="hidden" value={index + 1} />
@@ -87,13 +92,13 @@ function TweetDetailModal({ tweet, onClose: _onClose }: Props) {
                   <BarsArrowUpIcon className="h-4 w-4" />
                   <span className="sr-only">Restore</span>
                 </button>
-              </Form>
+              </fetcher.Form>
             </li>
           ))}
         </ul>
       ) : (
         <div className="mx-auto flex w-full max-w-md flex-col">
-          <Form action={APP_ROUTES.HOME.href} id={updateFormId} replace method="post" ref={zoUpdate.ref}>
+          <fetcher.Form action={APP_ROUTES.HOME.href} id={updateFormId} method="post" ref={zoUpdate.ref}>
             <IntentField<IHomeAction> value="update-tweet" />
             <input name={zoUpdate.fields.tweetId()} type="hidden" value={tweet.id} />
             <TextAreaField
@@ -114,7 +119,7 @@ function TweetDetailModal({ tweet, onClose: _onClose }: Props) {
                 Scheduled for <em>{dayjs('2023-03-08').fromNow()}</em>
               </p>
             </div>
-          </Form>
+          </fetcher.Form>
 
           <div className="divider my-2" />
 
