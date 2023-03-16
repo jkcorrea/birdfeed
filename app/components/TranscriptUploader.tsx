@@ -14,10 +14,8 @@ import { useAnalytics } from '~/lib/analytics/use-analytics'
 import { uploadBucket } from '~/lib/constants'
 import { tw } from '~/lib/utils'
 
-import type { IHomeAction, IUploadTranscript } from '../routes/_app+/home/schemas'
+import type { IHomeAction } from '../routes/_app+/home/schemas'
 import { UploadTranscriptSchema, useIsSubmitting } from '../routes/_app+/home/schemas'
-
-type UploadData = Pick<IUploadTranscript, 'bucketUri' | 'name'>
 
 type UploadStateArgs = {
   name: string
@@ -26,10 +24,16 @@ type UploadStateArgs = {
 }
 type UploadState =
   | { state: null }
-  | { state: 'LOADING' }
+  | { state: 'UPLOADING_2_BUCKET' }
   | (UploadStateArgs & {
-      state: 'SUCCESS'
+      state: 'READY_2_STORE'
     })
+  | {
+      state: 'STORING'
+    }
+  | {
+      state: 'SUCCESS'
+    }
   | {
       state: 'ERROR'
       error: string
@@ -40,7 +44,21 @@ function TranscriptUploader() {
     state: null,
   })
 
-  const isUploading = useIsSubmitting('upload-transcript')
+  const storingTranscript = useIsSubmitting('upload-transcript')
+
+  useEffect(() => {
+    if (storingTranscript) {
+      setUpload({
+        state: 'STORING',
+      })
+      return
+    } else if (upload.state === 'STORING') {
+      setUpload({
+        state: 'SUCCESS',
+      })
+      return
+    }
+  }, [storingTranscript])
 
   const { capture } = useAnalytics()
 
@@ -48,7 +66,7 @@ function TranscriptUploader() {
 
   const handleFileUpload = async (file: File) => {
     setUpload({
-      state: 'LOADING',
+      state: 'UPLOADING_2_BUCKET',
     })
 
     capture('transcript_upload', { file_name: file.name })
@@ -81,7 +99,7 @@ function TranscriptUploader() {
       name: file.name,
       mimetype: file.type,
       path: uploadData.path,
-      state: 'SUCCESS',
+      state: 'READY_2_STORE',
     })
   }
 
@@ -89,7 +107,7 @@ function TranscriptUploader() {
     <motion.div
       className={tw(
         'min-h-[5rem] rounded-lg bg-base-300 shadow-inner transition',
-        !isUploading && 'hover:bg-[rgb(226,221,218)]'
+        !storingTranscript && 'hover:bg-[rgb(226,221,218)]'
       )}
     >
       <input
@@ -128,9 +146,9 @@ const UploadFormRender = ({
 }) => {
   const zo = useZorm('upload', UploadTranscriptSchema, {
     onValidSubmit() {
-      setUpload({
-        state: null,
-      })
+      // setUpload({
+      //   state: null,
+      // })
     },
   })
 
@@ -142,14 +160,23 @@ const UploadFormRender = ({
   }
 
   switch (upload.state) {
-    case 'LOADING':
+    case 'UPLOADING_2_BUCKET':
       return (
         <div className="flex flex-col items-center py-2 text-center font-bold uppercase opacity-30">
           <CloudArrowUpIcon className="h-14 w-14 animate-pulse" />
           Uploading
+          {/* {upload.state === 'UPLOADING_2_BUCKET' ? `Uploading` : 'Saving Transcript'} */}
         </div>
       )
-    case 'SUCCESS':
+    case 'STORING':
+      return (
+        <div className="flex flex-col items-center py-2 text-center font-bold uppercase opacity-30">
+          <CloudArrowUpIcon className="h-14 w-14 animate-pulse" />
+          Saving Transcript
+          {/* {upload.state === 'UPLOADING_2_BUCKET' ? `Uploading` : 'Saving Transcript'} */}
+        </div>
+      )
+    case 'READY_2_STORE':
       return (
         <Form
           method="post"
@@ -158,17 +185,12 @@ const UploadFormRender = ({
           className="flex flex-col items-center justify-center gap-3 p-6"
         >
           <IntentField<IHomeAction> value="upload-transcript" />
-          <input
-            name={zo.fields.bucketUri()}
-            // name="transcriptFile"
-            defaultValue={upload.path}
-            className="hidden"
-            type="text"
-          />
+          <input name={zo.fields.pathInBucket()} defaultValue={upload.path} className="hidden" type="text" />
+          <input name={zo.fields.mimetype()} defaultValue={upload.mimetype} className="hidden" type="text" />
           <TextField
             label="Transcript Name"
             name={zo.fields.name()}
-            defaultValue={'temp'}
+            defaultValue={upload.name}
             className="input-xs"
             labelClassName="text-xs"
           />
@@ -184,6 +206,15 @@ const UploadFormRender = ({
 
           <FormErrorCatchall schema={UploadTranscriptSchema} zorm={zo} />
         </Form>
+      )
+    case 'SUCCESS':
+      return (
+        <>
+          <div> SUCCESS </div>
+          <button onClick={() => filePickerInputRef.current?.click()} className="h-full w-full">
+            Click here or drag to upload
+          </button>
+        </>
       )
     case 'ERROR':
       return <div> error </div>

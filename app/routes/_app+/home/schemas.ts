@@ -17,7 +17,8 @@ export type IGenerateTweet = z.infer<typeof GenerateTweetSchema>
 export const UploadTranscriptSchema = z.object({
   intent: z.literal('upload-transcript'),
   name: z.string(),
-  bucketUri: z.string(),
+  pathInBucket: z.string(),
+  mimetype: z.string(),
 })
 export type IUploadTranscript = z.infer<typeof UploadTranscriptSchema>
 

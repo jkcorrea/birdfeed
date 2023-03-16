@@ -3,9 +3,12 @@ import { parseFormAny } from 'react-zorm'
 
 import { db } from '~/database'
 import { generateTweetsFromContent, regenerateTweetFromSelf } from '~/integrations/openai'
+import { supabaseAdmin } from '~/integrations/supabase'
+import { uploadBucket } from '~/lib/constants'
 import { response } from '~/lib/http.server'
 import { assertPost, parseData } from '~/lib/utils'
 import { requireAuthSession } from '~/modules/auth'
+import { getTranscription } from '~/modules/upload'
 
 import type {
   IDeleteTranscript,
@@ -18,38 +21,42 @@ import type {
 } from './schemas'
 import { HomeActionSchema } from './schemas'
 
+export async function actionReducer(request: Request, userId?: string) {
+  const raw = parseFormAny(await request.formData())
+  const data = await parseData(raw, HomeActionSchema, 'Payload is invalid')
+  switch (data.intent) {
+    case 'generate-tweets':
+      await generateTweets(data)
+      break
+    case 'upload-transcript':
+      await uploadTranscript(data, userId)
+      break
+    case 'delete-transcript':
+      await deleteTranscript(data)
+      break
+    case 'regenerate-tweet':
+      await regenerateTweet(data)
+      break
+    case 'restore-tweet':
+      await restoreDraft(data)
+      break
+    case 'delete-tweet':
+      await deleteTweet(data)
+      break
+    case 'update-tweet':
+      await updateTweet(data)
+      break
+    default:
+      throw new Error(`Unknown action: ${data satisfies never}`)
+  }
+}
+
 export async function action({ request }: ActionArgs) {
   const authSession = await requireAuthSession(request)
   assertPost(request)
 
   try {
-    const raw = parseFormAny(await request.formData())
-    const data = await parseData(raw, HomeActionSchema, 'Payload is invalid')
-    switch (data.intent) {
-      case 'generate-tweets':
-        await generateTweets(data)
-        break
-      case 'upload-transcript':
-        await uploadTranscript(data, authSession.userId)
-        break
-      case 'delete-transcript':
-        await deleteTranscript(data)
-        break
-      case 'regenerate-tweet':
-        await regenerateTweet(data)
-        break
-      case 'restore-tweet':
-        await restoreDraft(data)
-        break
-      case 'delete-tweet':
-        await deleteTweet(data)
-        break
-      case 'update-tweet':
-        await updateTweet(data)
-        break
-      default:
-        throw new Error(`Unknown action: ${data satisfies never}`)
-    }
+    await actionReducer(request, authSession.userId)
   } catch (cause) {
     return response.error(cause, { authSession })
   }
@@ -82,11 +89,26 @@ async function deleteTweet({ tweetId }: IDeleteTweet) {
   await db.tweet.deleteMany({ where: { id: tweetId } })
 }
 
-async function uploadTranscript({ name, content }: IUploadTranscript, userId: string) {
+async function uploadTranscript({ name, mimetype, pathInBucket }: IUploadTranscript, userId?: string) {
+  const storage = supabaseAdmin().storage.from(uploadBucket)
+
+  const { data: urlData, error: urlError } = await storage.createSignedUrl(pathInBucket, 60 * 60 * 24 * 7)
+  if (urlError) throw urlError
+
+  const { signedUrl } = urlData
+
+  let content: string
+  if (mimetype === 'text/plain') {
+    content = await fetch(signedUrl).then((response) => response.text())
+  } else {
+    content = await getTranscription(signedUrl)
+  }
+
   await db.transcript.create({
     data: {
       name,
       createdAt: new Date(),
+      pathInBucket,
       userId,
       content,
     },
