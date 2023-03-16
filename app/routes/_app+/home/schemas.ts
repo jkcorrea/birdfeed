@@ -53,7 +53,12 @@ export type IDeleteTweet = z.infer<typeof DeleteTweetSchema>
 export const UpdateTweetSchema = z.object({
   intent: z.literal('update-tweet'),
   tweetId: z.string(),
-  draft: z.string(),
+  draft: z.string().optional(),
+  archived: z.preprocess((v) => (v === 'unarchive' ? false : v === 'archive' ? true : v), z.boolean().optional()),
+  rating: z.preprocess(
+    (v) => (typeof v === 'string' ? parseInt(v, 10) : v),
+    z.number().min(0).max(4).optional().nullish()
+  ),
 })
 export type IUpdateTweet = z.infer<typeof UpdateTweetSchema>
 

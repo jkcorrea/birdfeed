@@ -22,7 +22,7 @@ export async function loader({ request }: LoaderArgs) {
       take: 10,
     }),
     db.tweet.findMany({
-      where: { transcript: { userId } },
+      where: { transcript: { userId }, archived: false },
       orderBy: [{ sendAt: 'asc' }, { createdAt: 'desc' }],
     }),
   ])

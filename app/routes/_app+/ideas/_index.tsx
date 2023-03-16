@@ -12,13 +12,17 @@ export async function loader({ request }: LoaderArgs) {
   const authSession = await requireAuthSession(request)
   const { userId } = authSession
 
-  const getArgs: (rating: number | null) => Prisma.TweetFindManyArgs = (rating) => ({
-    where: { rating, archived: false, transcript: { userId } },
+  const getArgs: (rating?: number) => Prisma.TweetFindManyArgs = (rating) => ({
+    where: {
+      OR: rating ? { rating } : [{ rating: { lte: 0 } }, { rating: null }],
+      archived: true,
+      transcript: { userId },
+    },
     orderBy: [{ updatedAt: 'desc' }],
   })
 
   const [unrated, one, two, three, four] = await db.$transaction([
-    db.tweet.findMany(getArgs(null)),
+    db.tweet.findMany(getArgs()),
     db.tweet.findMany(getArgs(1)),
     db.tweet.findMany(getArgs(2)),
     db.tweet.findMany(getArgs(3)),
@@ -46,23 +50,23 @@ function IdeaBin() {
     <div className="flex h-full flex-col gap-5 overflow-auto p-4">
       <div>
         <h2 className="text-3xl font-bold">⭐️⭐️⭐️⭐️</h2>
-        <TweetList horizontal tweets={tweetsByRating.four} />
+        <TweetList isArchived tweets={tweetsByRating.four} />
       </div>
       <div>
         <h2 className="text-3xl font-bold">⭐️⭐️⭐️</h2>
-        <TweetList horizontal tweets={tweetsByRating.three} />
+        <TweetList isArchived tweets={tweetsByRating.three} />
       </div>
       <div>
         <h2 className="text-3xl font-bold">⭐️⭐️</h2>
-        <TweetList horizontal tweets={tweetsByRating.two} />
+        <TweetList isArchived tweets={tweetsByRating.two} />
       </div>
       <div>
         <h2 className="text-3xl font-bold">⭐️</h2>
-        <TweetList horizontal tweets={tweetsByRating.one} />
+        <TweetList isArchived tweets={tweetsByRating.one} />
       </div>
       <div>
         <h2 className="text-3xl font-bold">Unrated</h2>
-        <TweetList horizontal tweets={tweetsByRating.unrated} />
+        <TweetList isArchived tweets={tweetsByRating.unrated} />
       </div>
     </div>
   )
