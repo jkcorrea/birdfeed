@@ -11,6 +11,7 @@ module.exports = {
     'langchain/text_splitter',
     'p-queue',
     'p-timeout',
+    'gpt-3-encoder',
   ],
   routes: (defineRoutes) => flatRoutes('routes', defineRoutes),
   future: {
