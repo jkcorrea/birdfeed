@@ -1,5 +1,4 @@
 import { createId } from '@paralleldrive/cuid2'
-import { OpenAIChat } from 'langchain/llms'
 import { RecursiveCharacterTextSplitter } from 'langchain/text_splitter'
 
 import type { Tweet } from '@prisma/client'
@@ -25,13 +24,19 @@ export type GeneratedTweet = Pick<Tweet, 'id' | 'drafts' | 'document'>
 
 const clamp = (num: number, min: number, max: number) => Math.min(Math.max(num, min), max)
 
-const model = new OpenAIChat({
-  modelName: MODEL_NAME,
-  temperature: 0.8,
-  topP: 1,
-  frequencyPenalty: 0.3,
-  presencePenalty: 0,
-})
+async function getModel() {
+  const { OpenAIChat } = await import('langchain/llms')
+
+  const model = new OpenAIChat({
+    modelName: MODEL_NAME,
+    temperature: 0.8,
+    topP: 1,
+    frequencyPenalty: 0.3,
+    presencePenalty: 0,
+  })
+
+  return model
+}
 
 export async function generateTweetsFromContent(content: string, settings?: PromptSettings): Promise<GeneratedTweet[]> {
   const { maxTweets = 5, tone = '', topics = [], __skip_openai = false } = { ...defaultSettings, ...settings }
@@ -54,6 +59,7 @@ export async function generateTweetsFromContent(content: string, settings?: Prom
     )
 
     Logger.info('OpenAI prompt', prompts[0])
+    const model = await getModel()
     const res = await model.generate(prompts)
     completions = res.generations.map((gen) => gen[0].text)
     Logger.info('OpenAI raw response', completions.join('\n'))
@@ -85,6 +91,7 @@ export async function regenerateTweetFromSelf(tweet: Tweet): Promise<string> {
   })
 
   Logger.info('OpenAI prompt', prompt)
+  const model = await getModel()
   const res = await model.generate([prompt])
   const completion = res.generations[0][0].text
   Logger.info('OpenAI raw response', completion)
