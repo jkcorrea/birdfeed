@@ -7,6 +7,8 @@ datasource db {
 generator client {
   provider        = "prisma-client-js"
   previewFeatures = ["extendedWhereUnique"]
+  // NOTE: place the client outside of node_modules bc pnpm does funky stuff with node_modules
+  output          = "./client"
 }
 
 // Disclaimer: This schema is designed for a 3 tiers subscription app (free, tier_1, tier_2)

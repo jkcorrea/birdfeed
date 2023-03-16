@@ -5,6 +5,8 @@ node_modules
 .cache
 
 /app/styles/tailwind.css
+# Prisma client is placed outside of node_modules since pnpm does funky stuff w/ node_modules
+/app/database/client/
 
 .env*
 !.env.example
