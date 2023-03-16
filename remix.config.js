@@ -5,7 +5,14 @@ const { flatRoutes } = require('remix-flat-routes')
  */
 module.exports = {
   ignoredRouteFiles: ['**/.*'],
-  serverDependenciesToBundle: [/^langchain*/, 'p-queue', 'p-timeout', 'gpt-3-encoder'],
+  serverDependenciesToBundle: [
+    /^langchain*/,
+    'p-queue',
+    'p-timeout',
+    'gpt-3-encoder',
+    'gpt3-tokenizer',
+    'eventemitter3',
+  ],
   routes: (defineRoutes) => flatRoutes('routes', defineRoutes),
   future: {
     unstable_tailwind: true,

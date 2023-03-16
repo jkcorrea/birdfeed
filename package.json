@@ -38,7 +38,6 @@
     "daisyui": "^2.51.4",
     "dayjs": "^1.11.7",
     "framer-motion": "^10.3.2",
-    "gpt3-tokenizer": "^1.1.5",
     "huggingface": "^1.4.0",
     "isbinaryfile": "^5.0.0",
     "isbot": "^3.6.7",
