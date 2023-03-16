@@ -1,13 +1,13 @@
 import type { LoaderArgs } from '@remix-run/node'
 import { useLoaderData } from '@remix-run/react'
 
+import TranscriptUploader from '~/components/TranscriptUploader'
 import { db } from '~/database'
 import { response } from '~/lib/http.server'
 import { tw } from '~/lib/utils'
 import { requireAuthSession } from '~/modules/auth'
 
 import TranscriptHistory from './TranscriptHistory'
-import TranscriptUploader from './TranscriptUploader'
 import TweetList from './TweetList'
 
 export async function loader({ request }: LoaderArgs) {
