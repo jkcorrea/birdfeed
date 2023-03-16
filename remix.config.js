@@ -6,7 +6,8 @@ const { flatRoutes } = require('remix-flat-routes')
 module.exports = {
   ignoredRouteFiles: ['**/.*'],
   serverDependenciesToBundle: [
-    /^langchain*/,
+    'langchain/text_splitter',
+    'langchain/llms',
     'p-queue',
     'p-timeout',
     'gpt-3-encoder',
