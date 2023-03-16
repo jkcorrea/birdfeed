@@ -79,7 +79,7 @@ export default function Subscription() {
             Add Twitter
           </button>
         </Form>
-        <customerPortalFetcher.Form method="post" action="/api/customer-portal">
+        <customerPortalFetcher.Form method="post" action="/api/billing/customer-portal">
           <button
             type="button"
             disabled={isProcessing}

@@ -4,7 +4,7 @@ import { parseFormAny } from 'react-zorm'
 import { db } from '~/database'
 import { generateTweetsFromContent, regenerateTweetFromSelf } from '~/integrations/openai'
 import { supabaseAdmin } from '~/integrations/supabase'
-import { uploadBucket } from '~/lib/constants'
+import { UPLOAD_BUCKET_ID } from '~/lib/constants'
 import { response } from '~/lib/http.server'
 import { assertPost, parseData } from '~/lib/utils'
 import { requireAuthSession } from '~/modules/auth'
@@ -90,7 +90,7 @@ async function deleteTweet({ tweetId }: IDeleteTweet) {
 }
 
 async function uploadTranscript({ name, mimetype, pathInBucket }: IUploadTranscript, userId?: string) {
-  const storage = supabaseAdmin().storage.from(uploadBucket)
+  const storage = supabaseAdmin().storage.from(UPLOAD_BUCKET_ID)
 
   const { data: urlData, error: urlError } = await storage.createSignedUrl(pathInBucket, 60 * 60 * 24 * 7)
   if (urlError) throw urlError

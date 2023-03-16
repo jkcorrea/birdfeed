@@ -29,4 +29,4 @@ export const CLEANUP_WORDS = [
 
 export const TWEET_CHAR_LIMIT = 280
 
-export const uploadBucket = 'birdfeed-transcription-files'
+export const UPLOAD_BUCKET_ID = 'birdfeed-transcription-files'

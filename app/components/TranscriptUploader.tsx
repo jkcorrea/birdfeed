@@ -13,7 +13,7 @@ import FormErrorCatchall from '~/components/FormErrorCatchall'
 import { useIsSubmitting } from '~/hooks/use-is-submitting'
 import { getSupabase } from '~/integrations/supabase'
 import { useAnalytics } from '~/lib/analytics/use-analytics'
-import { uploadBucket } from '~/lib/constants'
+import { UPLOAD_BUCKET_ID } from '~/lib/constants'
 import { tw } from '~/lib/utils'
 
 import type { IHomeAction } from '../routes/_app+/home/schemas'
@@ -89,7 +89,7 @@ function TranscriptUploader() {
     const fileSuffix = file.name.split('.').pop()
 
     const supabase = getSupabase()
-    const storage = supabase.storage.from(uploadBucket)
+    const storage = supabase.storage.from(UPLOAD_BUCKET_ID)
     const { data: uploadData, error: uploadError } = await storage.upload(`${id}.${fileSuffix}`, file)
 
     if (uploadError) {
