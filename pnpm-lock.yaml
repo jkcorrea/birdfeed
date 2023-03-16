@@ -38,8 +38,11 @@ specifiers:
   eslint-plugin-simple-import-sort: ^8.0.0
   eslint-plugin-tailwindcss: ^3.10.1
   eslint-plugin-unused-imports: ^2.0.0
+  eventemitter3: ^5.0.0
   fast-glob: ^3.2.12
   framer-motion: ^10.3.2
+  gpt-3-encoder: ^1.1.4
+  gpt3-tokenizer: ^1.1.5
   huggingface: ^1.4.0
   isbinaryfile: ^5.0.0
   isbot: ^3.6.7
@@ -49,6 +52,8 @@ specifiers:
   oauth: ^0.10.0
   oauth-1.0a: ^2.2.6
   openai: ^3.2.1
+  p-queue: ^7.3.4
+  p-timeout: ^6.1.1
   pino: ^8.11.0
   pino-pretty: ^9.4.0
   postcss: ^8.4.21
@@ -87,7 +92,10 @@ dependencies:
   country-to-currency: 1.0.7
   daisyui: 2.51.4_j7yt3jd32cwenjqavrrga47yr4
   dayjs: 1.11.7
+  eventemitter3: 5.0.0
   framer-motion: 10.3.2_biqbaboplfbrettd7655fr4n2y
+  gpt-3-encoder: 1.1.4
+  gpt3-tokenizer: 1.1.5
   huggingface: 1.4.0
   isbinaryfile: 5.0.0
   isbot: 3.6.7
@@ -96,6 +104,8 @@ dependencies:
   oauth: 0.10.0
   oauth-1.0a: 2.2.6
   openai: 3.2.1
+  p-queue: 7.3.4
+  p-timeout: 6.1.1
   pino: 8.11.0
   postcss: 8.4.21
   posthog-js: 1.51.2
@@ -5107,6 +5117,10 @@ packages:
     resolution: {integrity: sha512-8guHBZCwKnFhYdHr2ysuRWErTwhoN2X8XELRlrRwpmfeY2jjuUN4taQMsULKUVo1K4DvZl+0pgfyoysHxvmvEw==}
     dev: false
 
+  /eventemitter3/5.0.0:
+    resolution: {integrity: sha512-riuVbElZZNXLeLEoprfNYoDSwTBRR44X3mnhdI1YcnENpWTCsTTVZ2zFuqQcpoyqPQIUXdiPEU0ECAq0KQRaHg==}
+    dev: false
+
   /events/3.3.0:
     resolution: {integrity: sha512-mQw+2fkQbALzQ7V0MY0IqdnXNOeTtP4r0lN9z7AAawCXgqea7bDii20AYrIBrFd/Hx0M2Ocz6S111CaFkUcb0Q==}
     engines: {node: '>=0.8.x'}
@@ -5664,6 +5678,10 @@ packages:
       p-cancelable: 2.1.1
       responselike: 2.0.1
     dev: true
+
+  /gpt-3-encoder/1.1.4:
+    resolution: {integrity: sha512-fSQRePV+HUAhCn7+7HL7lNIXNm6eaFWFbNLOOGtmSJ0qJycyQvj60OvRlH7mee8xAMjBDNRdMXlMwjAbMTDjkg==}
+    dev: false
 
   /gpt3-tokenizer/1.1.5:
     resolution: {integrity: sha512-O9iCL8MqGR0Oe9wTh0YftzIbysypNQmS5a5JG3cB3M4LMYjlAVvNnf8LUzVY9MrI7tj+YLY356uHtO2lLX2HpA==}
@@ -7490,6 +7508,11 @@ packages:
   /p-timeout/5.1.0:
     resolution: {integrity: sha512-auFDyzzzGZZZdHz3BtET9VEz0SE/uMEAx7uWfGPucfzEwwe/xH0iVeZibQmANYE/hp9T2+UUZT5m+BKyrDp3Ew==}
     engines: {node: '>=12'}
+    dev: false
+
+  /p-timeout/6.1.1:
+    resolution: {integrity: sha512-yqz2Wi4fiFRpMmK0L2pGAU49naSUaP23fFIQL2Y6YT+qDGPoFwpvgQM/wzc6F8JoenUkIlAFa4Ql7NguXBxI7w==}
+    engines: {node: '>=14.16'}
     dev: false
 
   /pac-proxy-agent/5.0.0:
