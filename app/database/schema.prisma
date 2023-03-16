@@ -55,11 +55,12 @@ model Transcript {
   updatedAt DateTime @updatedAt
 
   name           String
+  pathInBucket   String?
   content        String
   neverGenerated Boolean @default(true)
 
-  userId String
-  user   User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId String?
+  user   User?    @relation(fields: [userId], references: [id], onDelete: Cascade)
   tweets Tweet[]
 
   @@map("transcripts")

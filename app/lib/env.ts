@@ -27,6 +27,7 @@ declare global {
       STRIPE_ENDPOINT_SECRET: string
       DEFAULT_CURRENCY: Currency
       OPENAI_API_KEY: string
+      DEEPGRAM_API_KEY: string
     }
   }
 }
@@ -64,6 +65,7 @@ export const OPENAI_API_KEY = getEnv('OPENAI_API_KEY')
 export const TWITTER_CONSUMER_KEY = getEnv('TWITTER_CONSUMER_KEY')
 export const TWITTER_CONSUMER_SECRET = getEnv('TWITTER_CONSUMER_SECRET')
 export const TWITTER_CALLBACK_URL = getEnv('TWITTER_CALLBACK_URL')
+export const DEEPGRAM_API_KEY = getEnv('DEEPGRAM_API_KEY')
 
 /**
  * Shared envs

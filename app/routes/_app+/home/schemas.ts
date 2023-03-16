@@ -1,6 +1,5 @@
 import { z } from 'zod'
 
-import { MIN_CONTENT_LENGTH } from '~/lib/constants'
 import { NODE_ENV } from '~/lib/env'
 
 export const GenerateTweetSchema = z.object({
@@ -18,10 +17,8 @@ export type IGenerateTweet = z.infer<typeof GenerateTweetSchema>
 export const UploadTranscriptSchema = z.object({
   intent: z.literal('upload-transcript'),
   name: z.string(),
-  content: z
-    .string()
-    .trim()
-    .min(MIN_CONTENT_LENGTH, { message: 'The transcript is a little short. Give us a lil more to work with!' }),
+  pathInBucket: z.string(),
+  mimetype: z.string(),
 })
 export type IUploadTranscript = z.infer<typeof UploadTranscriptSchema>
 
