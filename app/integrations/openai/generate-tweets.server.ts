@@ -17,6 +17,8 @@ const RESULT_REGEX = /(?:\d\W*)\s*"?(.*)"?$/gm
 const UNNECESSARY_QUOTES_REGEX = /(^"|"$)/g
 const HASHTAGS_REGEX = /#\w+(?:\s+|$)/g
 
+const CHUNK_SIZE = 2500 // 15min * 150wpm => 2250
+
 const cleanup = (str: string) => str.replaceAll(UNNECESSARY_QUOTES_REGEX, '').replaceAll(HASHTAGS_REGEX, '').trim()
 
 export type GeneratedTweet = Pick<Tweet, 'id' | 'drafts' | 'document'>
@@ -34,8 +36,7 @@ const model = new OpenAIChat({
 export async function generateTweetsFromContent(content: string, settings?: PromptSettings): Promise<GeneratedTweet[]> {
   const { maxTweets = 5, tone = '', topics = [], __skip_openai = false } = { ...defaultSettings, ...settings }
   const splitter = new RecursiveCharacterTextSplitter({
-    // Each chunk should be 4096 - max output
-    chunkSize: 2500, // 15min * 150wpm => 2250
+    chunkSize: CHUNK_SIZE,
   })
   const chunks = await splitter.createDocuments([content])
   if (chunks.length > 1) Logger.info('Split transcript into chunks', chunks.length)
@@ -80,7 +81,7 @@ export async function regenerateTweetFromSelf(tweet: Tweet): Promise<string> {
   const prompt = makeRegenPrompt({
     drafts: tweet.drafts.slice(0, 5),
     tone: 'neutral',
-    transcript: tweet.document,
+    transcript: tweet.document.slice(0, CHUNK_SIZE),
   })
 
   Logger.info('OpenAI prompt', prompt)

@@ -21,11 +21,11 @@ model User {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  email        String        @unique
-  customerId   String        @unique // Created by Stripe
+  email      String @unique
+  customerId String @unique // Created by Stripe
 
-  twitterOAuthToken   String?
-  twitterOAuthTokenSecret   String?
+  twitterOAuthToken       String?
+  twitterOAuthTokenSecret String?
 
   currency     Currency?
   tierId       TierId
@@ -61,7 +61,7 @@ model Transcript {
   user   User    @relation(fields: [userId], references: [id], onDelete: Cascade)
   tweets Tweet[]
 
-  @@map("transcript")
+  @@map("transcripts")
 }
 
 model Tweet {
@@ -73,6 +73,8 @@ model Tweet {
   document String
   sendAt   DateTime?
   sent     Boolean   @default(false)
+  rating   Int?
+  archived Boolean   @default(false)
 
   transcript   Transcript @relation(fields: [transcriptId], references: [id], onDelete: Cascade)
   transcriptId String

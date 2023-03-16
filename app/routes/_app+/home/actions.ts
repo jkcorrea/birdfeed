@@ -132,7 +132,7 @@ async function restoreDraft({ draftIndex, tweetId }: IRestoreDraft) {
   })
 }
 
-async function updateTweet({ tweetId, draft }: IUpdateTweet) {
+async function updateTweet({ tweetId, archived, draft, rating }: IUpdateTweet) {
   const { drafts } = await db.tweet.findUniqueOrThrow({
     where: { id: tweetId },
     select: { drafts: true },
@@ -140,6 +140,10 @@ async function updateTweet({ tweetId, draft }: IUpdateTweet) {
 
   await db.tweet.update({
     where: { id: tweetId },
-    data: { drafts: { set: [draft, ...drafts.slice(1)] } },
+    data: {
+      archived,
+      drafts: draft ? { set: [draft, ...drafts.slice(1)] } : undefined,
+      rating: rating && rating <= 0 ? null : rating,
+    },
   })
 }

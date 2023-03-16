@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { Form } from '@remix-run/react'
+import { useFetcher } from '@remix-run/react'
 import type { SerializeFrom } from '@remix-run/server-runtime'
 import dayjs from 'dayjs'
 import relativeTime from 'dayjs/plugin/relativeTime'
@@ -12,14 +12,13 @@ import { TextAreaField } from '~/components/fields'
 import IntentField from '~/components/fields/IntentField'
 import FormErrorCatchall from '~/components/FormErrorCatchall'
 import { useKeypress } from '~/hooks'
+import { useIsSubmitting } from '~/hooks/use-is-submitting'
 import { useAnalytics } from '~/lib/analytics/use-analytics'
 import { NODE_ENV } from '~/lib/env'
 import { tw } from '~/lib/utils'
 
-import type { IHomeAction } from './schemas'
-import { DeleteTranscriptSchema, GenerateTweetSchema, useIsSubmitting } from './schemas'
-
-import transcripts from '~/../test/fixtures/transcripts.json'
+import type { IHomeAction, IHomeActionIntent } from './schemas'
+import { DeleteTranscriptSchema, GenerateTweetSchema } from './schemas'
 
 dayjs.extend(relativeTime)
 
@@ -44,7 +43,7 @@ const TranscriptHistory = ({ transcripts }: Props) => {
   }, [transcripts, topmostId])
 
   return (
-    <motion.ul layoutScroll className="mt-7 space-y-4 overflow-y-scroll">
+    <motion.ul layoutScroll className="mt-7 space-y-4 overflow-y-auto">
       {transcripts.map((t) => (
         <TranscriptItem
           key={t.id}
@@ -96,10 +95,15 @@ const variants: Variants = {
 }
 
 const TranscriptItem = ({ transcript, isOpen, onClick }: TranscriptItemProps) => {
+  const fetcher = useFetcher()
+
   const zoGenerate = useZorm('generate', GenerateTweetSchema)
   const zoDelete = useZorm('delete', DeleteTranscriptSchema)
 
-  const isGenerating = useIsSubmitting('generate-tweets', (f) => f.get('transcriptId') === transcript.id)
+  const isGenerating = useIsSubmitting(
+    fetcher,
+    (f) => (f.get('intent') as IHomeActionIntent) === 'generate-tweets' && f.get('transcriptId') === transcript.id
+  )
 
   const skipOAI = useKeypress('Shift') && NODE_ENV === 'development'
 
@@ -149,21 +153,21 @@ const TranscriptItem = ({ transcript, isOpen, onClick }: TranscriptItemProps) =>
           <span className="text-sm font-semibold uppercase text-gray-600">Preview</span>
           {/* <button className="badge badge-secondary text-xs uppercase">🪄 Cleaned</button> */}
         </label>
-        <TextAreaField readOnly rows={2} className="resize-none rounded text-xs" value={transcripts[0]} />
+        <TextAreaField readOnly rows={2} className="resize-none rounded text-xs" value={transcript.content} />
 
         <div className="mt-3 flex justify-end gap-1">
           {/* Delete Form */}
-          <Form method="post" ref={zoDelete.ref}>
+          <fetcher.Form method="post" ref={zoDelete.ref}>
             <IntentField<IHomeAction> value="delete-transcript" />
             <input name={zoDelete.fields.transcriptId()} type="hidden" value={transcript.id} />
 
             <button className="btn-outline btn-primary btn-error btn-xs btn" disabled={isGenerating}>
               Delete
             </button>
-          </Form>
+          </fetcher.Form>
 
           {/* Submit Form */}
-          <Form method="post" ref={zoGenerate.ref}>
+          <fetcher.Form method="post" ref={zoGenerate.ref}>
             <IntentField<IHomeAction> value="generate-tweets" />
             <input name={zoGenerate.fields.transcriptId()} type="hidden" value={transcript.id} />
             {skipOAI && <input name={zoGenerate.fields.__skip_openai()} type="hidden" checked readOnly />}
@@ -176,7 +180,7 @@ const TranscriptItem = ({ transcript, isOpen, onClick }: TranscriptItemProps) =>
               {transcript.neverGenerated ? 'Generate' : 'Re-generate'}
               {skipOAI ? ' (skip)' : ''}
             </button>
-          </Form>
+          </fetcher.Form>
         </div>
         <FormErrorCatchall zorm={zoGenerate} schema={GenerateTweetSchema} />
         <FormErrorCatchall zorm={zoDelete} schema={DeleteTranscriptSchema} />

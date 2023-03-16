@@ -1,23 +1,25 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { CloudArrowUpIcon } from '@heroicons/react/24/outline'
-import { Form } from '@remix-run/react'
+import { useFetcher } from '@remix-run/react'
 import { AnimatePresence, motion } from 'framer-motion'
 import { useZorm } from 'react-zorm'
 
 import { TextField } from '~/components/fields'
 import IntentField from '~/components/fields/IntentField'
 import FormErrorCatchall from '~/components/FormErrorCatchall'
+import { useIsSubmitting } from '~/hooks/use-is-submitting'
 import { useAnalytics } from '~/lib/analytics/use-analytics'
 import { AppError, tw } from '~/lib/utils'
 
-import type { IHomeAction, IUploadTranscript } from './schemas'
-import { UploadTranscriptSchema, useIsSubmitting } from './schemas'
+import type { IHomeAction, IHomeActionIntent, IUploadTranscript } from './schemas'
+import { UploadTranscriptSchema } from './schemas'
 
 type UploadData = Pick<IUploadTranscript, 'content' | 'name'>
 
 function TranscriptUploader() {
+  const fetcher = useFetcher()
   const [upload, setUpload] = useState<UploadData | null>(null)
-  const isUploading = useIsSubmitting('upload-transcript')
+  const isUploading = useIsSubmitting(fetcher, (f) => (f.get('intent') as IHomeActionIntent) === 'upload-transcript')
 
   // 2nd step: Upload form where user can change the name before uploading
   const zo = useZorm('upload', UploadTranscriptSchema, {
@@ -86,7 +88,7 @@ function TranscriptUploader() {
               Uploading
             </div>
           ) : upload ? (
-            <Form method="post" ref={zo.ref} className="flex flex-col items-center justify-center gap-3 p-6">
+            <fetcher.Form method="post" ref={zo.ref} className="flex flex-col items-center justify-center gap-3 p-6">
               <IntentField<IHomeAction> value="upload-transcript" />
               <input name={zo.fields.content()} type="hidden" value={upload.content} />
               <TextField
@@ -107,7 +109,7 @@ function TranscriptUploader() {
               </div>
 
               <FormErrorCatchall schema={UploadTranscriptSchema} zorm={zo} />
-            </Form>
+            </fetcher.Form>
           ) : (
             <button disabled={isUploading} onClick={() => fileInputRef.current?.click()} className="h-full w-full">
               {isUploading ? 'Uploading...' : 'Click here or drag to upload'}

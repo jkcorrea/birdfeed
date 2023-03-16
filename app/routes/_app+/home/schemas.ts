@@ -1,4 +1,3 @@
-import { useTransition } from '@remix-run/react'
 import { z } from 'zod'
 
 import { MIN_CONTENT_LENGTH } from '~/lib/constants'
@@ -54,7 +53,12 @@ export type IDeleteTweet = z.infer<typeof DeleteTweetSchema>
 export const UpdateTweetSchema = z.object({
   intent: z.literal('update-tweet'),
   tweetId: z.string(),
-  draft: z.string(),
+  draft: z.string().optional(),
+  archived: z.preprocess((v) => (v === 'unarchive' ? false : v === 'archive' ? true : v), z.boolean().optional()),
+  rating: z.preprocess(
+    (v) => (typeof v === 'string' ? parseInt(v, 10) : v),
+    z.number().min(0).max(4).optional().nullish()
+  ),
 })
 export type IUpdateTweet = z.infer<typeof UpdateTweetSchema>
 
@@ -70,16 +74,3 @@ export const HomeActionSchema = z.discriminatedUnion('intent', [
 ])
 export type IHomeAction = z.infer<typeof HomeActionSchema>
 export type IHomeActionIntent = IHomeAction['intent']
-
-/** Simple type-safe helper for determining different action submission states */
-export function useIsSubmitting(intent: IHomeActionIntent, filter?: (formData: FormData) => boolean) {
-  const transition = useTransition()
-  return (
-    // is the overall form in a submitting state
-    transition.state === 'submitting' &&
-    // are we submitting a form with the same intent
-    transition.submission?.formData.get('intent') == intent &&
-    // allow the caller to check for additional form data
-    (!filter || filter(transition.submission.formData))
-  )
-}
