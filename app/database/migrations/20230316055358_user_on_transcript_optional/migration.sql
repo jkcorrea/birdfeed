@@ -1,2 +1,2 @@
 -- AlterTable
-ALTER TABLE "transcript" ALTER COLUMN "userId" DROP NOT NULL;
+ALTER TABLE "transcripts" ALTER COLUMN "userId" DROP NOT NULL;

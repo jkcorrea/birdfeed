@@ -1,2 +1,2 @@
 -- AlterTable
-ALTER TABLE "transcript" ADD COLUMN     "pathInBucket" TEXT;
+ALTER TABLE "transcripts" ADD COLUMN     "pathInBucket" TEXT;

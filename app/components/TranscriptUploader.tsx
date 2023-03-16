@@ -1,7 +1,8 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { CloudArrowUpIcon } from '@heroicons/react/24/outline'
 import { createId } from '@paralleldrive/cuid2'
-import { Form } from '@remix-run/react'
+import type { FetcherWithComponents } from '@remix-run/react'
+import { useFetcher } from '@remix-run/react'
 import { AnimatePresence, motion } from 'framer-motion'
 import type { Dispatch, RefObject, SetStateAction } from 'react'
 import { useZorm } from 'react-zorm'
@@ -9,13 +10,14 @@ import { useZorm } from 'react-zorm'
 import { TextField } from '~/components/fields'
 import IntentField from '~/components/fields/IntentField'
 import FormErrorCatchall from '~/components/FormErrorCatchall'
+import { useIsSubmitting } from '~/hooks/use-is-submitting'
 import { getSupabase } from '~/integrations/supabase'
 import { useAnalytics } from '~/lib/analytics/use-analytics'
 import { uploadBucket } from '~/lib/constants'
 import { tw } from '~/lib/utils'
 
 import type { IHomeAction } from '../routes/_app+/home/schemas'
-import { UploadTranscriptSchema, useIsSubmitting } from '../routes/_app+/home/schemas'
+import { UploadTranscriptSchema } from '../routes/_app+/home/schemas'
 
 type UploadStateArgs = {
   name: string
@@ -44,7 +46,8 @@ function TranscriptUploader() {
     state: null,
   })
 
-  const storingTranscript = useIsSubmitting('upload-transcript')
+  const fetcher = useFetcher()
+  const storingTranscript = useIsSubmitting(fetcher)
 
   useEffect(() => {
     if (storingTranscript) {
@@ -58,6 +61,8 @@ function TranscriptUploader() {
       })
       return
     }
+    // NOTE: We don't want to re-run this effect when storingTranscript changes
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [storingTranscript])
 
   const { capture } = useAnalytics()
@@ -126,7 +131,7 @@ function TranscriptUploader() {
           transition={{ duration: 0.2 }}
           className="flex h-full w-full items-center justify-center"
         >
-          <UploadFormRender upload={upload} setUpload={setUpload} filePickerInputRef={fileInputRef} />
+          <UploadFormRender upload={upload} setUpload={setUpload} filePickerInputRef={fileInputRef} fetcher={fetcher} />
         </motion.div>
       </AnimatePresence>
 
@@ -139,10 +144,12 @@ const UploadFormRender = ({
   upload,
   setUpload,
   filePickerInputRef,
+  fetcher,
 }: {
   upload: UploadState
   setUpload: Dispatch<SetStateAction<UploadState>>
   filePickerInputRef: RefObject<HTMLInputElement>
+  fetcher: FetcherWithComponents<any>
 }) => {
   const zo = useZorm('upload', UploadTranscriptSchema, {
     onValidSubmit() {
@@ -160,25 +167,17 @@ const UploadFormRender = ({
   }
 
   switch (upload.state) {
+    case 'STORING':
     case 'UPLOADING_2_BUCKET':
       return (
         <div className="flex flex-col items-center py-2 text-center font-bold uppercase opacity-30">
           <CloudArrowUpIcon className="h-14 w-14 animate-pulse" />
-          Uploading
-          {/* {upload.state === 'UPLOADING_2_BUCKET' ? `Uploading` : 'Saving Transcript'} */}
-        </div>
-      )
-    case 'STORING':
-      return (
-        <div className="flex flex-col items-center py-2 text-center font-bold uppercase opacity-30">
-          <CloudArrowUpIcon className="h-14 w-14 animate-pulse" />
-          Saving Transcript
-          {/* {upload.state === 'UPLOADING_2_BUCKET' ? `Uploading` : 'Saving Transcript'} */}
+          {upload.state === 'UPLOADING_2_BUCKET' ? `Uploading` : 'Saving Transcript'}
         </div>
       )
     case 'READY_2_STORE':
       return (
-        <Form
+        <fetcher.Form
           method="post"
           ref={zo.ref}
           encType="multipart/form-data"
@@ -205,7 +204,7 @@ const UploadFormRender = ({
           </div>
 
           <FormErrorCatchall schema={UploadTranscriptSchema} zorm={zo} />
-        </Form>
+        </fetcher.Form>
       )
     case 'SUCCESS':
       return (

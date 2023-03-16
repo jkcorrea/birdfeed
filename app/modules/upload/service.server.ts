@@ -1,36 +1,13 @@
 import { Deepgram } from '@deepgram/sdk'
-import { Storage } from '@google-cloud/storage'
 import { createId } from '@paralleldrive/cuid2'
 import { unstable_createFileUploadHandler, unstable_parseMultipartFormData } from '@remix-run/node'
 
 import { supabaseAdmin } from '~/integrations/supabase'
 import { uploadBucket } from '~/lib/constants'
-import { DEEPGRAM_API_KEY, GOOGLE_APPLICATION_CREDENTIALS } from '~/lib/env'
-
-const storage = new Storage({
-  keyFilename: GOOGLE_APPLICATION_CREDENTIALS,
-})
-
-async function uploadToGoogleStorage(filePath: string): Promise<string> {
-  const bucket = storage.bucket(uploadBucket)
-  const fileName = filePath.split('/').pop() || ''
-  const file = bucket.file(fileName)
-
-  await bucket.upload(filePath, {
-    destination: fileName,
-    resumable: false,
-  })
-
-  const [signedUrl] = await file.getSignedUrl({
-    action: 'read',
-    expires: Date.now() + 1000 * 60 * 60, // 1 hour
-  })
-
-  return signedUrl
-}
+import { DEEPGRAM_API_KEY } from '~/lib/env'
 
 async function uploadToSupabaseStorage(file: File): Promise<string> {
-  const storage = await supabaseAdmin().storage.from(uploadBucket)
+  const storage = supabaseAdmin().storage.from(uploadBucket)
   const { data: uploadData, error: uploadError } = await storage.upload(`public/uploads/${file.name}`, file)
 
   if (uploadError) throw new Error(uploadError.message)
