@@ -31,6 +31,7 @@ const model = new OpenAIChat({
   topP: 1,
   frequencyPenalty: 0.3,
   presencePenalty: 0,
+  concurrency: 10,
 })
 
 export async function generateTweetsFromContent(content: string, settings?: PromptSettings): Promise<GeneratedTweet[]> {
