@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
-import { CloudArrowUpIcon } from '@heroicons/react/24/outline'
+import { CloudArrowUpIcon, InboxArrowDownIcon, SignalSlashIcon } from '@heroicons/react/24/outline'
 import { createId } from '@paralleldrive/cuid2'
 import type { FetcherWithComponents } from '@remix-run/react'
 import { useFetcher } from '@remix-run/react'
@@ -41,12 +41,13 @@ type UploadState =
       error: string
     }
 
-function TranscriptUploader() {
+function TranscriptUploader({ surface }: { surface: 'authed' | 'public' }) {
   const [upload, setUpload] = useState<UploadState>({
     state: null,
   })
 
   const fetcher = useFetcher()
+
   const storingTranscript = useIsSubmitting(fetcher)
 
   useEffect(() => {
@@ -56,10 +57,16 @@ function TranscriptUploader() {
       })
       return
     } else if (upload.state === 'STORING') {
+      if (fetcher.data.error) {
+        setUpload({
+          state: 'ERROR',
+          error: fetcher.data.error.message,
+        })
+        return
+      }
       setUpload({
         state: 'SUCCESS',
       })
-      return
     }
     // NOTE: We don't want to re-run this effect when storingTranscript changes
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -100,12 +107,25 @@ function TranscriptUploader() {
       return
     }
 
-    setUpload({
-      name: file.name,
-      mimetype: file.type,
-      path: uploadData.path,
-      state: 'READY_2_STORE',
-    })
+    if (surface === 'authed') {
+      setUpload({
+        name: file.name,
+        mimetype: file.type,
+        path: uploadData.path,
+        state: 'READY_2_STORE',
+      })
+      return
+    } else {
+      fetcher.submit(
+        {
+          intent: 'upload-transcript',
+          name: file.name,
+          mimetype: file.type,
+          pathInBucket: uploadData.path,
+        },
+        { method: 'post' }
+      )
+    }
   }
 
   return (
@@ -151,13 +171,7 @@ const UploadFormRender = ({
   filePickerInputRef: RefObject<HTMLInputElement>
   fetcher: FetcherWithComponents<any>
 }) => {
-  const zo = useZorm('upload', UploadTranscriptSchema, {
-    onValidSubmit() {
-      // setUpload({
-      //   state: null,
-      // })
-    },
-  })
+  const zo = useZorm('upload', UploadTranscriptSchema)
 
   const clearUpload = () => {
     setUpload({
@@ -170,19 +184,20 @@ const UploadFormRender = ({
     case 'STORING':
     case 'UPLOADING_2_BUCKET':
       return (
-        <div className="flex flex-col items-center py-2 text-center font-bold uppercase opacity-30">
-          <CloudArrowUpIcon className="h-14 w-14 animate-pulse" />
-          {upload.state === 'UPLOADING_2_BUCKET' ? `Uploading` : 'Saving Transcript'}
+        <div className="h-full w-full p-3 text-center text-2xl font-black opacity-60">
+          <div className="rounded-lg border-2 border-dashed border-neutral p-6">
+            <div className="flex flex-col justify-center">
+              <CloudArrowUpIcon className="h-14 w-full" />
+              <span>{upload.state === 'UPLOADING_2_BUCKET' ? `Uploading` : 'Transcribing'}</span>
+              <span className="mb-4 text-base">this could take a while...</span>
+              <progress className="progress w-full"></progress>
+            </div>
+          </div>
         </div>
       )
     case 'READY_2_STORE':
       return (
-        <fetcher.Form
-          method="post"
-          ref={zo.ref}
-          encType="multipart/form-data"
-          className="flex flex-col items-center justify-center gap-3 p-6"
-        >
+        <fetcher.Form method="post" ref={zo.ref} className="flex flex-col items-center justify-center gap-3 p-6">
           <IntentField<IHomeAction> value="upload-transcript" />
           <input name={zo.fields.pathInBucket()} defaultValue={upload.path} className="hidden" type="text" />
           <input name={zo.fields.mimetype()} defaultValue={upload.mimetype} className="hidden" type="text" />
@@ -207,20 +222,35 @@ const UploadFormRender = ({
         </fetcher.Form>
       )
     case 'SUCCESS':
-      return (
-        <>
-          <div> SUCCESS </div>
-          <button onClick={() => filePickerInputRef.current?.click()} className="h-full w-full">
-            Click here or drag to upload
-          </button>
-        </>
-      )
+      return <div> SUCCESS </div>
     case 'ERROR':
-      return <div> error </div>
+      return (
+        <button
+          className="h-full w-full p-3 text-2xl font-black text-error opacity-60"
+          onClick={() => filePickerInputRef.current?.click()}
+        >
+          <div className="rounded-lg border-2 border-dashed border-neutral p-6">
+            <div className="flex flex-col justify-center">
+              <SignalSlashIcon className="mb-3 h-14 w-full" />
+              <span>There was an Error.</span>
+              <span className="text-base">{upload.error}</span>
+            </div>
+          </div>
+        </button>
+      )
     default:
       return (
-        <button onClick={() => filePickerInputRef.current?.click()} className="h-full w-full">
-          Click here or drag to upload
+        <button
+          className="h-full w-full p-3 text-2xl font-black opacity-60"
+          onClick={() => filePickerInputRef.current?.click()}
+        >
+          <div className="rounded-lg border-2 border-dashed border-neutral p-6">
+            <div className="flex flex-col justify-center">
+              <InboxArrowDownIcon className="mb-3 h-14 w-full" />
+              <span>Drop Podcast File</span>
+              <span className="text-base">accepts audio, video, and txt</span>
+            </div>
+          </div>
         </button>
       )
   }
@@ -283,10 +313,10 @@ function Dropzone({ onFile }: { onFile: (file: File) => void }) {
           exit={{ opacity: 0 }}
           className="pointer-events-none fixed inset-0 z-[999] bg-gray-800/25 transition"
         >
-          <div className="absolute inset-0 flex items-center justify-center">
-            <div className="rounded-lg bg-white/50 p-8 shadow-lg">
-              <CloudArrowUpIcon className="h-32 w-32 text-black/25" />
-              <div className="text-center text-black/50">Drop to upload</div>
+          <div className=" absolute inset-0 flex items-center justify-center text-2xl font-black opacity-40">
+            <div className="rounded-lg bg-base-100 shadow-lg">
+              <CloudArrowUpIcon className=" h-32 w-full pt-7 " />
+              <div className="px-9 pb-9 text-center">Drop to upload</div>
             </div>
           </div>
         </motion.div>
