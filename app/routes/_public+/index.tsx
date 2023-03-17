@@ -92,7 +92,8 @@ export default function Home() {
       </nav>
       <div>
         <main className="flex flex-col gap-y-10">
-          <h1 className="text-5xl font-black tracking-tight md:mx-10">
+          {/* <h1 className="text-5xl font-black tracking-tight md:mx-10"> */}
+          <h1 className="text-4xl font-black tracking-tight sm:text-center sm:text-6xl">
             Turn your podcasts into <AnimatedWord words={['tweets.', 'ideas.', 'posts.']} />
           </h1>
           <p className="text-lg leading-8 text-gray-600 sm:text-center">
