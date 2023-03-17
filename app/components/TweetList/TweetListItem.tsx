@@ -24,12 +24,27 @@ interface TweetProps extends BaseProps {
 export const TweetListItem = ({ tweet, onClick, horizontal, showRating, isPublic }: PublicProps | TweetProps) => (
   <li
     className={tw(
-      'flex flex-col rounded-lg bg-base-100 shadow transition',
+      'flex flex-col rounded-lg bg-base-100 p-2 shadow transition',
       onClick && 'cursor-pointer hover:bg-primary/10',
       horizontal ? 'min-w-[400px]' : 'h-fit min-w-[300px]'
     )}
     onClick={onClick}
   >
+    {/* Public header */}
+    {isPublic && (
+      <>
+        <div className="flex flex-row gap-3 p-2">
+          <div className="bg-opacity/60 flex w-fit items-center rounded-full bg-base-300 p-1.5 px-3 text-xl">🐣</div>
+          <div className="leading-tight">
+            <h2 className="font-bold">birdfeed</h2>
+            <h3 className="text-sm font-semibold opacity-60">@birdfeed.ai</h3>
+          </div>
+        </div>
+        <div className="divider divider-vertical my-0" />
+      </>
+    )}
+
+    {/* Tweet content */}
     <p className="w-full p-4 ">{tweet.drafts[0]}</p>
 
     <div className="divider divider-vertical my-0" />
