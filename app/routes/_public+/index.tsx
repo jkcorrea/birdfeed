@@ -1,6 +1,6 @@
 import { Fragment } from 'react'
 import type { ActionArgs, LoaderArgs } from '@remix-run/node'
-import { Link, useFetcher, useLoaderData } from '@remix-run/react'
+import { Link, useFetcher } from '@remix-run/react'
 import { parseFormAny } from 'react-zorm'
 
 import { AnimatedWord } from '~/components/AnimatedWord'
@@ -27,8 +27,7 @@ export async function loader({ request }: LoaderArgs) {
 
   try {
     // const pricingPlan = await getPricingPlan(getDefaultCurrency(request))
-    const tweets = await db.tweet.findMany({ take: 10 })
-    return response.ok({ tweets }, { authSession: null })
+    return response.ok({}, { authSession: null })
   } catch (cause) {
     throw response.error(cause, { authSession: null })
   }
@@ -59,7 +58,6 @@ export async function action({ request }: ActionArgs) {
 
 export default function Home() {
   const fetcher = useFetcher<typeof action>()
-  const data = useLoaderData<typeof loader>()
 
   return (
     <div className="mx-auto max-w-screen-lg space-y-20 py-8">
@@ -89,7 +87,6 @@ export default function Home() {
 
           <TranscriptUploader fetcher={fetcher} />
 
-          <TweetGrid tweets={data.tweets} />
           {fetcher.data &&
             (fetcher.data?.error ? fetcher.data.error.message : <TweetGrid tweets={fetcher.data.tweets} />)}
         </main>
