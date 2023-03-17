@@ -90,6 +90,7 @@ export default function App() {
 
         <Scripts />
         <LiveReload />
+        <script async src="https://platform.twitter.com/widgets.js" />
       </body>
     </html>
   )
