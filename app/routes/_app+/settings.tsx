@@ -2,10 +2,10 @@ import type { ActionArgs, LoaderArgs } from '@remix-run/node'
 import { Form, useFetcher, useLoaderData, useTransition } from '@remix-run/react'
 import { parseFormAny } from 'react-zorm'
 
-import { Time } from '~/components'
 import IntentField from '~/components/fields/IntentField'
 import { getTwitterOAuthRedirectURL } from '~/integrations/twitter'
 import { getDefaultCurrency, response } from '~/lib/http.server'
+import { useLocales } from '~/lib/locale-provider'
 import { isFormProcessing, tw } from '~/lib/utils'
 import { destroyAuthSession, requireAuthSession } from '~/modules/auth'
 import { getPricingPlan, PricingTable } from '~/modules/price'
@@ -129,5 +129,21 @@ function DeleteTestAccount() {
         {isProcessing ? 'Deleting...' : 'Delete my account'}
       </button>
     </Form>
+  )
+}
+
+function Time({ date }: { date?: string | null }) {
+  const { locales, timeZone } = useLocales()
+
+  if (!date) return <span>-</span>
+
+  return (
+    <time dateTime={date}>
+      {new Intl.DateTimeFormat(locales, {
+        dateStyle: 'medium',
+        timeStyle: 'medium',
+        timeZone,
+      }).format(new Date(date))}
+    </time>
   )
 }

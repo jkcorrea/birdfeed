@@ -2,11 +2,10 @@ import { useLoaderData } from '@remix-run/react'
 import type { LoaderArgs } from '@remix-run/server-runtime'
 
 import type { Prisma } from '@prisma/client'
+import { TweetList } from '~/components/TweetList'
 import { db } from '~/database'
 import { response } from '~/lib/http.server'
 import { requireAuthSession } from '~/modules/auth'
-
-import TweetList from '../home/TweetList'
 
 export async function loader({ request }: LoaderArgs) {
   const authSession = await requireAuthSession(request)
@@ -50,23 +49,23 @@ function IdeaBin() {
     <div className="flex h-full flex-col gap-5 overflow-auto p-4">
       <div>
         <h2 className="text-3xl font-bold">⭐️⭐️⭐️⭐️</h2>
-        <TweetList isArchived tweets={tweetsByRating.four} />
+        <TweetList horizontal showRating tweets={tweetsByRating.four} />
       </div>
       <div>
         <h2 className="text-3xl font-bold">⭐️⭐️⭐️</h2>
-        <TweetList isArchived tweets={tweetsByRating.three} />
+        <TweetList horizontal showRating tweets={tweetsByRating.three} />
       </div>
       <div>
         <h2 className="text-3xl font-bold">⭐️⭐️</h2>
-        <TweetList isArchived tweets={tweetsByRating.two} />
+        <TweetList horizontal showRating tweets={tweetsByRating.two} />
       </div>
       <div>
         <h2 className="text-3xl font-bold">⭐️</h2>
-        <TweetList isArchived tweets={tweetsByRating.one} />
+        <TweetList horizontal showRating tweets={tweetsByRating.one} />
       </div>
       <div>
         <h2 className="text-3xl font-bold">Unrated</h2>
-        <TweetList isArchived tweets={tweetsByRating.unrated} />
+        <TweetList horizontal showRating tweets={tweetsByRating.unrated} />
       </div>
     </div>
   )
