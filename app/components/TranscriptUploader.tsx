@@ -106,8 +106,8 @@ function TranscriptUploader({ fetcher }: Props) {
                   ) : (
                     <>
                       <InboxArrowDownIcon className="mb-3 h-14 w-full" />
-                      <span>Drop Podcast File</span>
-                      <span className="text-base">accepts audio, video, & text files</span>
+                      <span>Drop file here</span>
+                      <span className="text-base">accepts audio, video, or transcript (.txt) files</span>
                     </>
                   )}
                 </div>

@@ -31,6 +31,7 @@ const model = new OpenAIChat({
   topP: 1,
   frequencyPenalty: 0.3,
   presencePenalty: 0,
+  concurrency: 10,
 })
 
 export async function generateTweetsFromContent(content: string, settings?: PromptSettings): Promise<GeneratedTweet[]> {
@@ -47,7 +48,7 @@ export async function generateTweetsFromContent(content: string, settings?: Prom
       makeGenPrompt({
         transcript: chunk.pageContent,
         // Try to get ~10 tweets, but don't go over 15
-        numTweets: clamp(maxTweets / chunks.length, 1, 15),
+        numTweets: Math.round(clamp(maxTweets / chunks.length, 1, 15)),
         tone,
         topics,
       })

@@ -6,7 +6,9 @@ import { parseFormAny } from 'react-zorm'
 import { AnimatedWord } from '~/components/AnimatedWord'
 import TranscriptUploader from '~/components/TranscriptUploader'
 import { TweetListItem } from '~/components/TweetList'
+import { db } from '~/database'
 import useScrollToRef from '~/hooks/use-scroll-to-ref'
+import type { GeneratedTweet } from '~/integrations/openai'
 import { generateTweetsFromContent } from '~/integrations/openai'
 import { APP_ROUTES } from '~/lib/constants'
 import { response } from '~/lib/http.server'
@@ -25,7 +27,6 @@ export async function loader({ request }: LoaderArgs) {
 
   try {
     // const pricingPlan = await getPricingPlan(getDefaultCurrency(request))
-
     return response.ok({}, { authSession: null })
   } catch (cause) {
     throw response.error(cause, { authSession: null })
@@ -40,7 +41,14 @@ export async function action({ request }: ActionArgs) {
 
     const tweets = await generateTweetsFromContent(transcript.content, {
       maxTweets: 10,
-    }).then((tweets) => tweets.map((tweet) => tweet.drafts[0]))
+    })
+
+    await db.tweet.createMany({
+      data: tweets.map((tweet) => ({
+        ...tweet,
+        transcriptId: transcript.id,
+      })),
+    })
 
     return response.ok({ tweets }, { authSession: null })
   } catch (cause) {
@@ -52,19 +60,21 @@ export default function Home() {
   const fetcher = useFetcher<typeof action>()
 
   return (
-    <div className="mx-auto max-w-screen-lg space-y-20 py-8">
+    <div className="mx-auto max-w-screen-lg space-y-20 px-10 py-8 lg:px-0">
       <nav className="flex items-center justify-between" aria-label="Global">
         <div className="flex items-center space-x-2 lg:min-w-0 lg:flex-1" aria-label="Global">
-          <Link to="/" className="-m-1.5 p-1.5 text-2xl font-black text-gray-900 hover:text-gray-900">
+          <Link to="/" className="-m-1.5 whitespace-nowrap p-1.5 text-2xl font-black">
             🐣 Birdfeed
           </Link>
         </div>
-        <Link to={APP_ROUTES.LOGIN.href} className="btn-ghost btn mr-5">
-          Log In
-        </Link>
-        <Link to={APP_ROUTES.JOIN.href} className="btn-outline btn-accent btn">
-          Sign Up
-        </Link>
+        <div className="inline-flex items-center">
+          <Link to={APP_ROUTES.LOGIN.href} className="btn-ghost btn-sm btn md:btn-md md:mr-5">
+            Log In
+          </Link>
+          <Link to={APP_ROUTES.JOIN.href} className="btn-outline btn-accent btn-sm btn md:btn-md">
+            Sign Up
+          </Link>
+        </div>
       </nav>
       <div>
         <main className="flex flex-col gap-y-10">
@@ -87,10 +97,10 @@ export default function Home() {
   )
 }
 
-function TweetGrid({ tweets }: { tweets: string[] }) {
+function TweetGrid({ tweets }: { tweets: GeneratedTweet[] }) {
   const ref = useScrollToRef()
 
-  const [left, right] = tweets.reduce<[string[], string[]]>(
+  const [left, right] = tweets.reduce<[GeneratedTweet[], GeneratedTweet[]]>(
     (acc, tweet, i) => {
       if (i % 2 === 0) acc[0].push(tweet)
       else acc[1].push(tweet)
@@ -107,12 +117,12 @@ function TweetGrid({ tweets }: { tweets: string[] }) {
   )
 }
 
-function TweetColumn({ tweets, hasAd }: { tweets: string[]; hasAd?: boolean }) {
+function TweetColumn({ tweets, hasAd }: { tweets: GeneratedTweet[]; hasAd?: boolean }) {
   return (
-    <div className="grid gap-4">
+    <div className="grid h-auto gap-4">
       {tweets.map((tweet, ix) => (
-        <Fragment key={tweet}>
-          <TweetListItem tweet={tweet} />
+        <Fragment key={tweet.id}>
+          <TweetListItem isPublic tweet={tweet} />
           {hasAd && ix === Math.floor((tweets.length * 2) / 3) - 1 && (
             <div className="flex h-20 w-full flex-col items-center justify-center rounded-lg bg-base-300 text-center shadow-inner">
               <h3 className="text-lg font-bold">More, better tweets</h3>
@@ -127,7 +137,7 @@ function TweetColumn({ tweets, hasAd }: { tweets: string[]; hasAd?: boolean }) {
   )
 }
 
-function LoadingColumn() {
+function _LoadingColumn() {
   return (
     <div className="grid gap-4">
       {[...Array(5)].map((_, ix) => (
