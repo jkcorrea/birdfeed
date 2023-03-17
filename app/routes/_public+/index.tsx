@@ -1,9 +1,14 @@
-import type { LoaderArgs } from '@remix-run/node'
+import { useEffect, useState } from 'react'
+import type { ActionArgs, LoaderArgs } from '@remix-run/node'
 import { Link } from '@remix-run/react'
+import { motion } from 'framer-motion'
 
+import TranscriptUploader from '~/components/TranscriptUploader'
 import { APP_ROUTES } from '~/lib/constants'
 import { response } from '~/lib/http.server'
 import { isAnonymousSession } from '~/modules/auth'
+
+import { actionReducer } from '../_app+/home/actions'
 
 export async function loader({ request }: LoaderArgs) {
   const isAnonymous = await isAnonymousSession(request)
@@ -19,6 +24,54 @@ export async function loader({ request }: LoaderArgs) {
   } catch (cause) {
     throw response.error(cause, { authSession: null })
   }
+}
+
+export async function action({ request }: ActionArgs) {
+  try {
+    await actionReducer(request)
+  } catch (error: any) {
+    return response.error(error.message, { authSession: null })
+  }
+
+  return response.ok({}, { authSession: null })
+}
+
+const useWordCycle = (words: string[], duration: number) => {
+  const [index, setIndex] = useState(0)
+
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setIndex((prevIndex) => (prevIndex + 1) % words.length)
+    }, duration)
+
+    return () => clearInterval(interval)
+  }, [duration, words.length])
+
+  return words[index]
+}
+
+const AnimatedWord = ({ words }: { words: string[] }) => {
+  const duration = 5000
+  const word = useWordCycle(words, duration)
+
+  const animationVariants = {
+    hidden: { opacity: 0, y: -20 },
+    visible: { opacity: 1, y: 0 },
+    exit: { opacity: 0, y: 20 },
+  }
+
+  return (
+    <motion.span
+      key={word}
+      initial="hidden"
+      animate="visible"
+      exit="exit"
+      variants={animationVariants}
+      transition={{ duration: 0.8, ease: 'easeInOut' }}
+    >
+      {word}
+    </motion.span>
+  )
 }
 
 export default function Home() {
@@ -39,8 +92,9 @@ export default function Home() {
       </nav>
       <div>
         <main className="flex flex-col gap-y-10">
+          {/* <h1 className="text-5xl font-black tracking-tight md:mx-10"> */}
           <h1 className="text-4xl font-black tracking-tight sm:text-center sm:text-6xl">
-            Turn your podcasts into tweets.
+            Turn your podcasts into <AnimatedWord words={['tweets.', 'ideas.', 'posts.']} />
           </h1>
           <p className="text-lg leading-8 text-gray-600 sm:text-center">
             Birdfeed listens to your content and crafts tweets in your words. Upload hours of audio and get tweets in
@@ -54,6 +108,7 @@ export default function Home() {
               </span>
             </Link>
           </div>
+          <TranscriptUploader />
         </main>
       </div>
     </div>

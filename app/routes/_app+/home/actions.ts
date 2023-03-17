@@ -97,6 +97,8 @@ async function uploadTranscript({ name, mimetype, pathInBucket }: IUploadTranscr
 
   const { signedUrl } = urlData
 
+  if (mimetype.includes('image')) throw new Error('Image files are not supported')
+
   let content: string
   if (mimetype === 'text/plain') {
     content = await fetch(signedUrl).then((response) => response.text())
