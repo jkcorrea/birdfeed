@@ -108,7 +108,7 @@ export default function Home() {
               </span>
             </Link>
           </div>
-          <TranscriptUploader surface="public" />
+          <TranscriptUploader />
         </main>
       </div>
     </div>

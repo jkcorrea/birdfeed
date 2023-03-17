@@ -41,7 +41,7 @@ type UploadState =
       error: string
     }
 
-function TranscriptUploader({ surface }: { surface: 'authed' | 'public' }) {
+function TranscriptUploader({ authed }: { authed?: boolean }) {
   const [upload, setUpload] = useState<UploadState>({
     state: null,
   })
@@ -107,7 +107,7 @@ function TranscriptUploader({ surface }: { surface: 'authed' | 'public' }) {
       return
     }
 
-    if (surface === 'authed') {
+    if (authed) {
       setUpload({
         name: file.name,
         mimetype: file.type,
