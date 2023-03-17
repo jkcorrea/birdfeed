@@ -1,12 +1,14 @@
 import { Fragment } from 'react'
 import type { ActionArgs, LoaderArgs } from '@remix-run/node'
-import { Link, useFetcher } from '@remix-run/react'
+import { Link, useFetcher, useLoaderData } from '@remix-run/react'
 import { parseFormAny } from 'react-zorm'
 
 import { AnimatedWord } from '~/components/AnimatedWord'
 import TranscriptUploader from '~/components/TranscriptUploader'
 import { TweetListItem } from '~/components/TweetList'
+import { db } from '~/database'
 import useScrollToRef from '~/hooks/use-scroll-to-ref'
+import type { GeneratedTweet } from '~/integrations/openai'
 import { generateTweetsFromContent } from '~/integrations/openai'
 import { APP_ROUTES } from '~/lib/constants'
 import { response } from '~/lib/http.server'
@@ -25,8 +27,8 @@ export async function loader({ request }: LoaderArgs) {
 
   try {
     // const pricingPlan = await getPricingPlan(getDefaultCurrency(request))
-
-    return response.ok({}, { authSession: null })
+    const tweets = await db.tweet.findMany({ take: 10 })
+    return response.ok({ tweets }, { authSession: null })
   } catch (cause) {
     throw response.error(cause, { authSession: null })
   }
@@ -40,7 +42,14 @@ export async function action({ request }: ActionArgs) {
 
     const tweets = await generateTweetsFromContent(transcript.content, {
       maxTweets: 10,
-    }).then((tweets) => tweets.map((tweet) => tweet.drafts[0]))
+    })
+
+    await db.tweet.createMany({
+      data: tweets.map((tweet) => ({
+        ...tweet,
+        transcriptId: transcript.id,
+      })),
+    })
 
     return response.ok({ tweets }, { authSession: null })
   } catch (cause) {
@@ -50,6 +59,7 @@ export async function action({ request }: ActionArgs) {
 
 export default function Home() {
   const fetcher = useFetcher<typeof action>()
+  const data = useLoaderData<typeof loader>()
 
   return (
     <div className="mx-auto max-w-screen-lg space-y-20 py-8">
@@ -79,6 +89,7 @@ export default function Home() {
 
           <TranscriptUploader fetcher={fetcher} />
 
+          <TweetGrid tweets={data.tweets} />
           {fetcher.data &&
             (fetcher.data?.error ? fetcher.data.error.message : <TweetGrid tweets={fetcher.data.tweets} />)}
         </main>
@@ -87,10 +98,10 @@ export default function Home() {
   )
 }
 
-function TweetGrid({ tweets }: { tweets: string[] }) {
+function TweetGrid({ tweets }: { tweets: GeneratedTweet[] }) {
   const ref = useScrollToRef()
 
-  const [left, right] = tweets.reduce<[string[], string[]]>(
+  const [left, right] = tweets.reduce<[GeneratedTweet[], GeneratedTweet[]]>(
     (acc, tweet, i) => {
       if (i % 2 === 0) acc[0].push(tweet)
       else acc[1].push(tweet)
@@ -107,12 +118,12 @@ function TweetGrid({ tweets }: { tweets: string[] }) {
   )
 }
 
-function TweetColumn({ tweets, hasAd }: { tweets: string[]; hasAd?: boolean }) {
+function TweetColumn({ tweets, hasAd }: { tweets: GeneratedTweet[]; hasAd?: boolean }) {
   return (
-    <div className="grid gap-4">
+    <div className="grid h-auto gap-4">
       {tweets.map((tweet, ix) => (
-        <Fragment key={tweet}>
-          <TweetListItem tweet={tweet} />
+        <Fragment key={tweet.id}>
+          <TweetListItem isPublic tweet={tweet} />
           {hasAd && ix === Math.floor((tweets.length * 2) / 3) - 1 && (
             <div className="flex h-20 w-full flex-col items-center justify-center rounded-lg bg-base-300 text-center shadow-inner">
               <h3 className="text-lg font-bold">More, better tweets</h3>
@@ -127,7 +138,7 @@ function TweetColumn({ tweets, hasAd }: { tweets: string[]; hasAd?: boolean }) {
   )
 }
 
-function LoadingColumn() {
+function _LoadingColumn() {
   return (
     <div className="grid gap-4">
       {[...Array(5)].map((_, ix) => (
