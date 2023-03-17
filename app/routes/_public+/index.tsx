@@ -79,6 +79,30 @@ export default function Home() {
       <h1 className="text-5xl font-black tracking-tight md:mx-10">
         Turn your podcasts into <AnimatedWord words={['tweets.', 'ideas.', 'posts.']} />
       </h1>
+      <div className="juestify-center flex flex-row space-x-4">
+        {/* <EmailShareButton url={''}><EmailShareButton /> */}
+        {/* <FacebookShareButton /> */}
+        {/* <LinkedinShareButton url={'https://birdfeed.ai'}>
+          <TwitterIcon size={32} round={true} />
+        </LinkedinShareButton> */}
+        <a href="mailto:🐣">email</a>
+        {/* <TwitterShareButton
+          url={'https://birdfeed.ai'}
+          title={
+            "I'm totally using Birdfeed to turn my podcasts into tweets. And you know what? You should totally get on that too, my dude!"
+          }
+          related={['jahilliar', 'jaykay.codes']}
+        > */}
+        {/* <div className="rounded-lg border-2 "> */}
+        {/* <TwitterIcon size={32} round={true} /> */}
+        {/* share on twitter */}
+        {/* </div> */}
+        {/* </TwitterShareButton> */}
+        <a href="sms:1">Send a message</a>
+        <a href="https://www.instagram.com/">Open Instagram</a>
+
+        {/* <WhatsappShareButton /> */}
+      </div>
       <TranscriptUploader surface="public" />
     </main>
   )
