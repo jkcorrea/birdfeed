@@ -13,10 +13,10 @@ import FullscreenModal from '~/components/FullscreenModal'
 import { useIsSubmitting } from '~/hooks/use-is-submitting'
 import { APP_ROUTES, TWEET_CHAR_LIMIT } from '~/lib/constants'
 import { tw } from '~/lib/utils'
+import type { IHomeAction, IHomeActionIntent } from '~/routes/_app+/home/schemas'
+import { RestoreDraftSchema, UpdateTweetSchema } from '~/routes/_app+/home/schemas'
+import type { SerializedTweetItem } from '~/types'
 
-import type { IHomeAction, IHomeActionIntent } from '../schemas'
-import { RestoreDraftSchema, UpdateTweetSchema } from '../schemas'
-import type { SerializedTweetItem } from '../types'
 import TweetActionBar from './TweetActionBar'
 
 dayjs.extend(relativeTime)
@@ -26,7 +26,7 @@ interface Props {
   onClose: () => void
 }
 
-function TweetDetailModal({ tweet, onClose: _onClose }: Props) {
+export function TweetDetailModal({ tweet, onClose: _onClose }: Props) {
   const [showHistory, setShowHistory] = useState(false)
   const onClose = () => {
     setShowHistory(false)
@@ -124,12 +124,7 @@ function TweetDetailModal({ tweet, onClose: _onClose }: Props) {
           <div className="divider my-2" />
 
           <div className="flex items-center justify-between">
-            <TweetActionBar
-              isArchived={tweet.archived}
-              rating={tweet.rating}
-              tweetId={tweet.id}
-              onDelete={() => setTimeout(onClose, 0)}
-            />
+            <TweetActionBar showRating tweet={tweet} onDelete={() => setTimeout(onClose, 0)} />
 
             <Value zorm={zoUpdate} name={zoUpdate.fields.draft()}>
               {(draft) => {
@@ -178,5 +173,3 @@ function TweetDetailModal({ tweet, onClose: _onClose }: Props) {
     </FullscreenModal>
   )
 }
-
-export default TweetDetailModal

@@ -3,11 +3,11 @@ import { createId } from '@paralleldrive/cuid2'
 import { unstable_createFileUploadHandler, unstable_parseMultipartFormData } from '@remix-run/node'
 
 import { supabaseAdmin } from '~/integrations/supabase'
-import { uploadBucket } from '~/lib/constants'
+import { UPLOAD_BUCKET_ID } from '~/lib/constants'
 import { DEEPGRAM_API_KEY } from '~/lib/env'
 
 async function uploadToSupabaseStorage(file: File): Promise<string> {
-  const storage = supabaseAdmin().storage.from(uploadBucket)
+  const storage = supabaseAdmin().storage.from(UPLOAD_BUCKET_ID)
   const { data: uploadData, error: uploadError } = await storage.upload(`public/uploads/${file.name}`, file)
 
   if (uploadError) throw new Error(uploadError.message)

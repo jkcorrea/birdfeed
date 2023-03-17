@@ -9,7 +9,7 @@
     "db:deploy-migration": "prisma migrate deploy",
     "dev": "run-p dev:*",
     "dev:remix": "remix dev | pino-pretty",
-    "dev:stripe": "stripe listen --forward-to localhost:3000/api/stripe/webhook",
+    "dev:stripe": "stripe listen --forward-to localhost:3000/api/webhook/stripe",
     "format": "eslint --fix .",
     "lint": "eslint --cache --cache-location ./node_modules/.cache/eslint .",
     "setup": "run-s setup:db setup:stripe setup:seed",

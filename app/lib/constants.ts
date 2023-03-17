@@ -12,6 +12,7 @@ export const APP_ROUTES = {
   IDEAS: { title: 'Idea Bin', href: '/ideas', showInNav: true },
   SETTINGS: { title: 'Settings', href: '/settings', showInNav: true },
   LOGIN: { title: 'Log In', href: '/login' },
+  JOIN: { title: 'Join', href: '/join' },
   LOGOUT: { title: 'Log Out', href: '/logout' },
 } as const satisfies Record<string, AppRoute>
 export const NAV_ROUTES = Object.values(APP_ROUTES).filter((r) => 'showInNav' in r && r.showInNav)
@@ -29,4 +30,4 @@ export const CLEANUP_WORDS = [
 
 export const TWEET_CHAR_LIMIT = 280
 
-export const uploadBucket = 'birdfeed-transcription-files'
+export const UPLOAD_BUCKET_ID = 'birdfeed-transcription-files'

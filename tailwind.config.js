@@ -6,6 +6,9 @@ module.exports = {
   content: ['./app/**/*.{ts,tsx,jsx,js}'],
   theme: {
     extend: {
+      animation: {
+        'pulse-slow': 'pulse 4s cubic-bezier(0.4, 0, 0.6, 1) infinite',
+      },
       fontFamily: {
         sans: ['Nunito', ...theme.fontFamily.sans],
         serif: ['Nunito', ...theme.fontFamily.serif],

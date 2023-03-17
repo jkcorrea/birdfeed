@@ -84,7 +84,7 @@ export function PricingTable({
                     <span className="text-base font-medium text-gray-700">/{intervalLabel}</span>
                   </p>
                   {userTierId === 'free' && id !== 'free' ? (
-                    <subscribeFetcher.Form method="post" action="/api/subscribe">
+                    <subscribeFetcher.Form method="post" action="/api/billing/subscribe">
                       <input type="hidden" name="priceId" value={priceId} />
                       <button
                         disabled={isProcessing || !active}

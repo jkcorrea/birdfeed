@@ -1,7 +1,6 @@
 import type { LoaderArgs } from '@remix-run/node'
 import { Link } from '@remix-run/react'
 
-import { ButtonLink } from '~/components'
 import { APP_ROUTES } from '~/lib/constants'
 import { response } from '~/lib/http.server'
 import { isAnonymousSession } from '~/modules/auth'
@@ -31,9 +30,12 @@ export default function Home() {
             🐣 Birdfeed
           </Link>
         </div>
-        <ButtonLink to="/join" className="px-4 py-1.5 text-base font-semibold leading-7">
+        <Link to={APP_ROUTES.LOGIN.href} className="btn-ghost btn mr-5">
           Log In
-        </ButtonLink>
+        </Link>
+        <Link to={APP_ROUTES.JOIN.href} className="btn-outline btn-accent btn">
+          Sign Up
+        </Link>
       </nav>
       <div>
         <main className="flex flex-col gap-y-10">
@@ -45,12 +47,12 @@ export default function Home() {
             seconds, delivered to your inbox or tweeted automatically.
           </p>
           <div className="flex gap-x-4 sm:justify-center">
-            <ButtonLink to="/join" className="px-4 py-1.5 text-base font-semibold leading-7">
+            <Link to={APP_ROUTES.JOIN.href} className="btn-accent btn">
               Get started{' '}
-              <span className="text-white" aria-hidden="true">
+              <span aria-hidden="true" className="ml-1">
                 &rarr;
               </span>
-            </ButtonLink>
+            </Link>
           </div>
         </main>
       </div>
