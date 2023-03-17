@@ -60,19 +60,21 @@ export default function Home() {
   const fetcher = useFetcher<typeof action>()
 
   return (
-    <div className="mx-auto max-w-screen-lg space-y-20 py-8">
+    <div className="mx-auto max-w-screen-lg space-y-20 px-10 py-8 lg:px-0">
       <nav className="flex items-center justify-between" aria-label="Global">
         <div className="flex items-center space-x-2 lg:min-w-0 lg:flex-1" aria-label="Global">
-          <Link to="/" className="-m-1.5 p-1.5 text-2xl font-black text-gray-900 hover:text-gray-900">
+          <Link to="/" className="-m-1.5 whitespace-nowrap p-1.5 text-2xl font-black">
             🐣 Birdfeed
           </Link>
         </div>
-        <Link to={APP_ROUTES.LOGIN.href} className="btn-ghost btn mr-5">
-          Log In
-        </Link>
-        <Link to={APP_ROUTES.JOIN.href} className="btn-outline btn-accent btn">
-          Sign Up
-        </Link>
+        <div className="inline-flex items-center">
+          <Link to={APP_ROUTES.LOGIN.href} className="btn-ghost btn-sm btn md:btn-md md:mr-5">
+            Log In
+          </Link>
+          <Link to={APP_ROUTES.JOIN.href} className="btn-outline btn-accent btn-sm btn md:btn-md">
+            Sign Up
+          </Link>
+        </div>
       </nav>
       <div>
         <main className="flex flex-col gap-y-10">
