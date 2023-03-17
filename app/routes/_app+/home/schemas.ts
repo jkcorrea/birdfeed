@@ -14,13 +14,13 @@ export const GenerateTweetSchema = z.object({
 })
 export type IGenerateTweet = z.infer<typeof GenerateTweetSchema>
 
-export const UploadTranscriptSchema = z.object({
-  intent: z.literal('upload-transcript'),
+export const CreateTranscriptSchema = z.object({
+  intent: z.literal('create-transcript'),
   name: z.string(),
   pathInBucket: z.string(),
   mimetype: z.string(),
 })
-export type IUploadTranscript = z.infer<typeof UploadTranscriptSchema>
+export type ICreateTranscript = z.infer<typeof CreateTranscriptSchema>
 
 export const DeleteTranscriptSchema = z.object({
   intent: z.literal('delete-transcript'),
@@ -62,7 +62,7 @@ export type IUpdateTweet = z.infer<typeof UpdateTweetSchema>
 /** Combination schema of all possible action schemas */
 export const HomeActionSchema = z.discriminatedUnion('intent', [
   GenerateTweetSchema,
-  UploadTranscriptSchema,
+  CreateTranscriptSchema,
   DeleteTranscriptSchema,
   RegenerateTweetSchema,
   RestoreDraftSchema,

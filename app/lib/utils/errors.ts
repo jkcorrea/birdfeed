@@ -30,15 +30,25 @@ export class AppError extends Error {
   readonly status: FailureReason['status']
   traceId: FailureReason['traceId']
 
-  constructor({ message, status = 500, cause = null, metadata, tag = 'untagged 🐞', traceId }: FailureReason) {
+  constructor(reason: FailureReason | string) {
     super()
+
+    const {
+      message,
+      status = 500,
+      cause = null,
+      metadata = {},
+      tag = 'untagged 🐞',
+      traceId = createId(),
+    } = typeof reason === 'string' ? { message: reason } : reason
+
     this.name = 'AppError 👀'
     this.message = message
     this.status = isAppError(cause) ? cause.status : status
     this.cause = cause
     this.metadata = metadata
     this.tag = tag
-    this.traceId = traceId || createId()
+    this.traceId = traceId
   }
 }
 

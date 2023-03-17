@@ -11,8 +11,7 @@ import type { Transcript } from '@prisma/client'
 import { TextAreaField } from '~/components/fields'
 import IntentField from '~/components/fields/IntentField'
 import FormErrorCatchall from '~/components/FormErrorCatchall'
-import { useKeypress } from '~/hooks'
-import { useIsSubmitting } from '~/hooks/use-is-submitting'
+import { useIsSubmitting, useKeypress } from '~/hooks'
 import { useAnalytics } from '~/lib/analytics/use-analytics'
 import { NODE_ENV } from '~/lib/env'
 import { tw } from '~/lib/utils'
@@ -131,7 +130,7 @@ const TranscriptItem = ({ transcript, isOpen, onClick }: TranscriptItemProps) =>
               {transcript.name}
               {transcript.neverGenerated && (
                 // eslint-disable-next-line tailwindcss/classnames-order
-                <span className="badge badge-secondary badge-sm ml-2 justify-end">NEW</span>
+                <span className="badge-secondary badge badge-sm ml-2 justify-end">NEW</span>
               )}
             </h3>
           </span>

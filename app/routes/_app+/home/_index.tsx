@@ -1,5 +1,5 @@
 import type { LoaderArgs } from '@remix-run/node'
-import { useLoaderData } from '@remix-run/react'
+import { useFetcher, useLoaderData } from '@remix-run/react'
 
 import TranscriptUploader from '~/components/TranscriptUploader'
 import { TweetList } from '~/components/TweetList'
@@ -34,11 +34,12 @@ export { action } from './actions'
 
 export default function HomePage() {
   const { recentTranscripts, recentTweets } = useLoaderData<typeof loader>()
+  const fetcher = useFetcher()
 
   return (
     <div className="flex h-full min-w-[1024px] gap-10 overflow-x-auto md:overflow-hidden lg:gap-12">
       <Column title="Transcripts">
-        <TranscriptUploader authed />
+        <TranscriptUploader fetcher={fetcher} />
         <TranscriptHistory transcripts={recentTranscripts} />
       </Column>
 

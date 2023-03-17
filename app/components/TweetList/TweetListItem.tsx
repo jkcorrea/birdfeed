@@ -7,13 +7,12 @@ import TweetActionBar from './TweetActionBar'
 
 interface Props {
   onClick?: () => void
-  tweet: SerializedTweetItem
+  tweet: SerializedTweetItem | string
   horizontal?: boolean
   showRating?: boolean
-  isPublic?: boolean
 }
 
-export const TweetListItem = ({ tweet, onClick, horizontal, showRating, isPublic }: Props) => (
+export const TweetListItem = ({ tweet, onClick, horizontal, showRating }: Props) => (
   <li
     className={tw(
       'flex flex-col rounded-lg bg-base-100 shadow transition',
@@ -22,21 +21,25 @@ export const TweetListItem = ({ tweet, onClick, horizontal, showRating, isPublic
     )}
     onClick={onClick}
   >
-    <p className="w-full p-4 ">{tweet.drafts[0]}</p>
+    <p className="w-full p-4 ">{typeof tweet === 'string' ? tweet : tweet.drafts[0]}</p>
 
     <div className="divider divider-vertical my-0" />
     <div className="flex px-4" onClick={(e) => e.stopPropagation()}>
-      {isPublic ? <PublicActionBar tweet={tweet} /> : <TweetActionBar tweet={tweet} showRating={showRating} />}
+      {typeof tweet === 'string' ? (
+        <PublicActionBar tweet={tweet} />
+      ) : (
+        <TweetActionBar tweet={tweet} showRating={showRating} />
+      )}
     </div>
   </li>
 )
 
-const PublicActionBar = ({ tweet }: { tweet: SerializedTweetItem }) => (
+const PublicActionBar = ({ tweet }: { tweet: string }) => (
   <div className="flex w-full items-center justify-end gap-4 pt-1 pb-2">
     <a
       target="_blank"
       rel="noreferrer"
-      href={buildSendTweetUrl(tweet.drafts[0], true)}
+      href={buildSendTweetUrl(tweet, true)}
       type="button"
       className="btn-primary btn-ghost btn-sm btn"
     >
