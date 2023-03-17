@@ -5,19 +5,20 @@ import { db } from '~/database'
 import { generateTweetsFromContent, regenerateTweetFromSelf } from '~/integrations/openai'
 import { supabaseAdmin } from '~/integrations/supabase'
 import { UPLOAD_BUCKET_ID } from '~/lib/constants'
+import { SUPABASE_URL } from '~/lib/env'
 import { response } from '~/lib/http.server'
-import { assertPost, parseData } from '~/lib/utils'
+import { AppError, assertPost, parseData } from '~/lib/utils'
 import { requireAuthSession } from '~/modules/auth'
-import { getTranscription } from '~/modules/upload'
+import { transcribeMedia } from '~/modules/upload'
 
 import type {
+  ICreateTranscript,
   IDeleteTranscript,
   IDeleteTweet,
   IGenerateTweet,
   IRegenerateTweet,
   IRestoreDraft,
   IUpdateTweet,
-  IUploadTranscript,
 } from './schemas'
 import { HomeActionSchema } from './schemas'
 
@@ -28,8 +29,8 @@ export async function actionReducer(request: Request, userId?: string) {
     case 'generate-tweets':
       await generateTweets(data)
       break
-    case 'upload-transcript':
-      await uploadTranscript(data, userId)
+    case 'create-transcript':
+      await createTranscript(data, userId)
       break
     case 'delete-transcript':
       await deleteTranscript(data)
@@ -47,7 +48,7 @@ export async function actionReducer(request: Request, userId?: string) {
       await updateTweet(data)
       break
     default:
-      throw new Error(`Unknown action: ${data satisfies never}`)
+      throw new AppError({ message: `Unknown action: ${data satisfies never}` })
   }
 }
 
@@ -89,27 +90,35 @@ async function deleteTweet({ tweetId }: IDeleteTweet) {
   await db.tweet.deleteMany({ where: { id: tweetId } })
 }
 
-async function uploadTranscript({ name, mimetype, pathInBucket }: IUploadTranscript, userId?: string) {
+export async function createTranscript({ name, mimetype, pathInBucket }: ICreateTranscript, userId?: string) {
+  if (mimetype.includes('image')) throw new AppError('Image files are not supported')
+
   const storage = supabaseAdmin().storage.from(UPLOAD_BUCKET_ID)
-
-  const { data: urlData, error: urlError } = await storage.createSignedUrl(pathInBucket, 60 * 60 * 24 * 7)
-  if (urlError) throw urlError
-
-  const { signedUrl } = urlData
-
-  if (mimetype.includes('image')) throw new Error('Image files are not supported')
-
   let content: string
+
   if (mimetype === 'text/plain') {
-    content = await fetch(signedUrl).then((response) => response.text())
+    // Text is easy! Just download & read it into content
+    const { data: blob, error } = await storage.download(pathInBucket)
+    if (error) throw error
+    content = await blob.text()
   } else {
-    content = await getTranscription(signedUrl)
+    // NOTE: Deepgram can't access files on localhost, so we need to download the file and send it as a buffer
+    if (SUPABASE_URL.match(/^http:\/\/(localhost|0\.0\.0\.0|127\.0\.0\.1)/)) {
+      const { data: blob, error } = await storage.download(pathInBucket)
+      if (error || !blob) throw error ?? new AppError('Could not download file on localhost')
+      const buffer = Buffer.from(await blob?.arrayBuffer())
+      content = await transcribeMedia({ buffer, mimetype })
+    } else {
+      // not on localhost! let's assume the url is routable & send that to deepgram
+      const { data: urlData, error } = await storage.createSignedUrl(pathInBucket, 60 * 60 * 24 * 7)
+      if (error) throw error
+      content = await transcribeMedia({ url: urlData.signedUrl, mimetype })
+    }
   }
 
-  await db.transcript.create({
+  return db.transcript.create({
     data: {
       name,
-      createdAt: new Date(),
       pathInBucket,
       userId,
       content,

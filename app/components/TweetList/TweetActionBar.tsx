@@ -3,7 +3,7 @@ import { ArrowPathIcon, InboxArrowDownIcon, InboxIcon, TrashIcon } from '@heroic
 import { useFetcher } from '@remix-run/react'
 import { useZorm } from 'react-zorm'
 
-import { useIsSubmitting } from '~/hooks/use-is-submitting'
+import { useIsSubmitting } from '~/hooks'
 import { APP_ROUTES } from '~/lib/constants'
 import { tw } from '~/lib/utils'
 import type { IHomeAction, IHomeActionIntent } from '~/routes/_app+/home/schemas'
