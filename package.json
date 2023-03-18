@@ -20,7 +20,7 @@
     "start:ci": "dotenv -- remix-serve build",
     "typecheck": "tsc -b",
     "validate": "run-p lint typecheck",
-    "invoke": "dotenv -- node -r esbuild-runner/register --"
+    "playground": "scripts/playground.sh"
   },
   "dependencies": {
     "@deepgram/sdk": "^1.18.1",
