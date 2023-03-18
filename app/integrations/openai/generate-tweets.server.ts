@@ -17,7 +17,7 @@ const RESULT_REGEX = /(?:\d\W*)\s*"?(.*)"?$/gm
 const UNNECESSARY_QUOTES_REGEX = /(^"|"$)/g
 const HASHTAGS_REGEX = /#\w+(?:\s+|$)/g
 
-const CHUNK_SIZE = 2500 // 15min * 150wpm => 2250
+const CHUNK_SIZE = 11250 // 15min * 150wpm * 5char/word => 2250
 
 const cleanup = (str: string) => str.replaceAll(UNNECESSARY_QUOTES_REGEX, '').replaceAll(HASHTAGS_REGEX, '').trim()
 
@@ -39,6 +39,7 @@ export async function generateTweetsFromContent(content: string, settings?: Prom
   const splitter = new RecursiveCharacterTextSplitter({
     chunkSize: CHUNK_SIZE,
   })
+
   const chunks = await splitter.createDocuments([content])
   if (chunks.length > 1) Logger.info('Split transcript into chunks', chunks.length)
 
@@ -55,8 +56,11 @@ export async function generateTweetsFromContent(content: string, settings?: Prom
     )
 
     Logger.info('OpenAI prompt', prompts[0])
-    const res = await model.generate(prompts)
-    completions = res.generations.map((gen) => gen[0].text)
+    // Langchain calls to openai with 1 request w/ mutliple messages (aka prompts)
+    // This structure makes multiple called to openai with 1 message each
+    const responsesPromises = prompts.map((prompt) => model.generate([prompt]))
+    const responses = await Promise.all(responsesPromises)
+    completions = responses.reduce((acc, res) => [...acc, ...res.generations.map((gen) => gen[0].text)], [] as string[])
     Logger.info('OpenAI raw response', completions.join('\n'))
   }
 
