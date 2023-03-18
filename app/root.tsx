@@ -10,6 +10,7 @@ import {
   useLoaderData,
   useLocation,
 } from '@remix-run/react'
+import { ExternalScripts } from 'remix-utils'
 
 import { NotifyError } from './components/NotifyError'
 import { initAnalytics, useAnalytics } from './lib/analytics'
@@ -88,9 +89,9 @@ export default function App() {
 
         <ScrollRestoration />
 
+        <ExternalScripts />
         <Scripts />
         <LiveReload />
-        <script async src="https://platform.twitter.com/widgets.js" />
       </body>
     </html>
   )

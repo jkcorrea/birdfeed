@@ -3,12 +3,12 @@ import type { ActionArgs, LoaderArgs } from '@remix-run/node'
 import { Link, useFetcher } from '@remix-run/react'
 import type { HTMLAttributes, ReactNode } from 'react'
 import { parseFormAny } from 'react-zorm'
+import type { ExternalScriptsFunction } from 'remix-utils'
 
 import { AnimatedWord } from '~/components/AnimatedWord'
 import TranscriptUploader from '~/components/TranscriptUploader'
 import { TweetListItem } from '~/components/TweetList'
 import { db } from '~/database'
-import useScrollToRef from '~/hooks/use-scroll-to-ref'
 import type { GeneratedTweet } from '~/integrations/openai'
 import { generateTweetsFromContent } from '~/integrations/openai'
 import { APP_ROUTES } from '~/lib/constants'
@@ -18,6 +18,15 @@ import { isAnonymousSession } from '~/modules/auth'
 
 import { createTranscript } from '../_app+/home/actions'
 import { CreateTranscriptSchema } from '../_app+/home/schemas'
+
+const scripts: ExternalScriptsFunction = () => [
+  {
+    async: true,
+    src: 'https://platform.twitter.com/widgets.js',
+  },
+]
+
+export const handle = { scripts }
 
 export async function loader({ request }: LoaderArgs) {
   const isAnonymous = await isAnonymousSession(request)
@@ -61,7 +70,7 @@ export default function Home() {
   const fetcher = useFetcher<typeof action>()
 
   return (
-    <div className="mx-auto max-w-screen-lg px-10 py-8 lg:px-0">
+    <div className="container mx-auto max-w-screen-lg px-10 py-8 lg:px-0">
       <nav className="mb-10 flex items-center justify-between" aria-label="Global">
         <div className="flex items-center space-x-2 lg:min-w-0 lg:flex-1" aria-label="Global">
           <Link to="/" className="-m-1.5 whitespace-nowrap p-1.5 text-2xl font-black">
@@ -93,14 +102,14 @@ export default function Home() {
 
           <TranscriptUploader fetcher={fetcher} />
 
-          <div className="grid-col-1 mt-8 grid gap-4 md:grid-cols-3">
+          <div className="grid-col-1 mt-8 grid gap-4 lg:grid-cols-3">
             <ContentCardWrapper header={<h1 className="font-bold leading-loose">Usecases </h1>}>
               Lorem ipsum dolor sit amet consectetur, adipisicing elit. Libero minus autem cupiditate, nobis labore
               mollitia nam! Quidem facilis ipsam optio modi consectetur, minima adipisci repudiandae tempora nam
               laudantium odio sapiente.
             </ContentCardWrapper>
             <ContentCardWrapper
-              className="order-first md:order-none"
+              className="order-first lg:order-none"
               header={<h1 className="font-bold leading-loose">Seem cool? Like & Retweet</h1>}
             >
               <blockquote className="twitter-tweet">
@@ -122,7 +131,7 @@ export default function Home() {
           </div>
 
           {/* Leaving this here incase we need to work on generated tweets */}
-          {/* <TweetGrid tweets={_pregenTweets.map((t, i) => ({ id: `${i}`, document: '', drafts: [t] }))} /> */}
+          <TweetGrid tweets={_pregenTweets.map((t, i) => ({ id: `${i}`, document: '', drafts: [t] }))} />
 
           {/* Tweet results */}
           {fetcher.data &&
@@ -134,11 +143,9 @@ export default function Home() {
 }
 
 function TweetGrid({ tweets }: { tweets: GeneratedTweet[] }) {
-  const ref = useScrollToRef()
-
   const [left, right] = tweets.reduce<[GeneratedTweet[], GeneratedTweet[]]>(
     (acc, tweet, i) => {
-      if (i % 2 === 0) acc[0].push(tweet)
+      if (i % 2 === 1) acc[0].push(tweet)
       else acc[1].push(tweet)
       return acc
     },
@@ -146,16 +153,24 @@ function TweetGrid({ tweets }: { tweets: GeneratedTweet[] }) {
   )
 
   return (
-    <div ref={ref} className="mx-auto grid max-w-screen-md gap-4 px-10 sm:grid-cols-2 sm:px-0">
-      <TweetColumn hasAd tweets={left} />
-      <TweetColumn tweets={right} />
-    </div>
+    <>
+      <h3
+        ref={(el) => el?.scrollIntoView({ behavior: 'smooth' })}
+        className="mt-16 mb-12 text-center text-5xl font-bold"
+      >
+        Your Tweets
+      </h3>
+      <div className="mx-auto grid max-w-screen-md gap-4 md:grid-cols-2">
+        <TweetColumn hasAd tweets={left} />
+        <TweetColumn tweets={right} />
+      </div>
+    </>
   )
 }
 
 function TweetColumn({ tweets, hasAd }: { tweets: GeneratedTweet[]; hasAd?: boolean }) {
   return (
-    <div className="grid h-auto gap-4">
+    <div className="grid h-min gap-4">
       {tweets.map((tweet, ix) => (
         <Fragment key={tweet.id}>
           <TweetListItem isPublic tweet={tweet} />

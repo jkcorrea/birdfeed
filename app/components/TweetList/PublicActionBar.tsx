@@ -1,4 +1,5 @@
 import { HandThumbDownIcon, HandThumbUpIcon } from '@heroicons/react/24/outline'
+import { PaperAirplaneIcon } from '@heroicons/react/24/solid'
 import { useFetcher } from '@remix-run/react'
 import { useZorm } from 'react-zorm'
 
@@ -44,9 +45,10 @@ export const PublicActionBar = ({ tweet }: { tweet: GeneratedTweet }) => {
         rel="noreferrer"
         href={buildSendTweetUrl(tweet.drafts[0], true)}
         type="button"
-        className="btn-primary btn-ghost btn-sm btn"
+        className="btn-primary btn-info btn-sm btn gap-2 lowercase text-white"
       >
-        Tweet it
+        tweet
+        <PaperAirplaneIcon className="-mt-1 h-4 w-4 -rotate-45" />
       </a>
     </div>
   )
