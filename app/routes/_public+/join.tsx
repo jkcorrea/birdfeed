@@ -8,8 +8,8 @@ import { TextField } from '~/components/fields'
 import { APP_ROUTES } from '~/lib/constants'
 import { response } from '~/lib/http.server'
 import { AppError, isFormProcessing, parseData } from '~/lib/utils'
-import { createAuthSession, isAnonymousSession } from '~/modules/auth'
-import { createUserAccount, getUserByEmail } from '~/modules/user'
+import { createAuthSession, isAnonymousSession } from '~/services/auth'
+import { createUserAccount, getUserByEmail } from '~/services/user'
 
 export async function loader({ request }: LoaderArgs) {
   try {

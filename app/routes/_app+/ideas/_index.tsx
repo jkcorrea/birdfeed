@@ -5,7 +5,7 @@ import type { Prisma } from '@prisma/client'
 import { TweetList } from '~/components/TweetList'
 import { db } from '~/database'
 import { response } from '~/lib/http.server'
-import { requireAuthSession } from '~/modules/auth'
+import { requireAuthSession } from '~/services/auth'
 
 export async function loader({ request }: LoaderArgs) {
   const authSession = await requireAuthSession(request)

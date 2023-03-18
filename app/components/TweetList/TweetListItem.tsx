@@ -1,7 +1,7 @@
 import type { ReactNode } from 'react'
 
-import type { GeneratedTweet } from '~/integrations/openai'
 import { tw } from '~/lib/utils'
+import type { GeneratedTweet } from '~/services/openai'
 import type { SerializedTweetItem } from '~/types'
 
 import { PublicActionBar } from './PublicActionBar'

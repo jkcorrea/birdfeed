@@ -6,7 +6,7 @@ import { TweetList } from '~/components/TweetList'
 import { db } from '~/database'
 import { response } from '~/lib/http.server'
 import { tw } from '~/lib/utils'
-import { requireAuthSession } from '~/modules/auth'
+import { requireAuthSession } from '~/services/auth'
 
 import TranscriptHistory from './TranscriptHistory'
 

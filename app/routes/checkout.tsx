@@ -2,11 +2,11 @@ import { SparklesIcon } from '@heroicons/react/24/outline'
 import type { LoaderArgs } from '@remix-run/node'
 import { Link, useLoaderData, useSubmit } from '@remix-run/react'
 
-import { useInterval } from '~/hooks'
 import { APP_ROUTES } from '~/lib/constants'
+import { useInterval } from '~/lib/hooks'
 import { response } from '~/lib/http.server'
-import { requireAuthSession } from '~/modules/auth'
-import { getSubscription } from '~/modules/subscription'
+import { requireAuthSession } from '~/services/auth'
+import { getSubscription } from '~/services/billing'
 
 export async function loader({ request }: LoaderArgs) {
   const authSession = await requireAuthSession(request)

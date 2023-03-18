@@ -4,10 +4,9 @@ import { z } from 'zod'
 
 import { response } from '~/lib/http.server'
 import { AppError, parseData } from '~/lib/utils'
-import { requireAuthSession } from '~/modules/auth'
-import { createCheckoutSession } from '~/modules/checkout'
-import { getSubscription } from '~/modules/subscription'
-import { getBillingInfo } from '~/modules/user'
+import { requireAuthSession } from '~/services/auth'
+import { createCheckoutSession, getSubscription } from '~/services/billing'
+import { getBillingInfo } from '~/services/user'
 
 export type SubscribeApiAction = typeof action
 

@@ -7,8 +7,8 @@ import { capitalCase, snakeCase } from 'change-case'
 import fg from 'fast-glob'
 
 import { db } from '~/database'
-import { supabaseAdmin } from '~/integrations/supabase'
-import { createUserAccount } from '~/modules/user'
+import { supabaseAdmin } from '~/services/supabase'
+import { createUserAccount } from '~/services/user'
 
 const env = process.env.NODE_ENV ?? 'development'
 

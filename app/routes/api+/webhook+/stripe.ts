@@ -1,12 +1,18 @@
 import type { ActionArgs } from '@remix-run/node'
 import { z } from 'zod'
 
-import { stripe } from '~/integrations/stripe'
+import { TierId } from '@prisma/client'
 import { STRIPE_ENDPOINT_SECRET } from '~/lib/env'
 import { response } from '~/lib/http.server'
 import { AppError, parseData } from '~/lib/utils'
-import { createSubscription, deleteSubscription, fetchSubscription, updateSubscription } from '~/modules/subscription'
-import { TierId, updateTier } from '~/modules/tier'
+import {
+  createSubscription,
+  deleteSubscription,
+  fetchSubscription,
+  stripe,
+  updateSubscription,
+  updateTier,
+} from '~/services/billing'
 
 const tag = 'Stripe webhook 🎣'
 

@@ -1,8 +1,8 @@
 import type { Prisma, TierId } from '@prisma/client'
 import { Currency, Interval } from '@prisma/client'
 import { db } from '~/database'
-import { stripe } from '~/integrations/stripe'
 import { DEFAULT_CURRENCY, SERVER_URL } from '~/lib/env'
+import { stripe } from '~/services/billing'
 
 import type { PriceByInterval } from './config/pricing-plan'
 import { pricingPlan } from './config/pricing-plan'

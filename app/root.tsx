@@ -17,7 +17,7 @@ import { initAnalytics, useAnalytics } from './lib/analytics'
 import { APP_THEME } from './lib/constants'
 import { getBrowserEnv } from './lib/env'
 import { response } from './lib/http.server'
-import { isAnonymousSession, requireAuthSession } from './modules/auth'
+import { isAnonymousSession, requireAuthSession } from './services/auth'
 
 import tailwindStylesheetUrl from './assets/tailwind.css'
 
