@@ -131,7 +131,7 @@ export default function Home() {
           </div>
 
           {/* Leaving this here incase we need to work on generated tweets */}
-          <TweetGrid tweets={_pregenTweets.map((t, i) => ({ id: `${i}`, document: '', drafts: [t] }))} />
+          {/* <TweetGrid tweets={_pregenTweets.map((t, i) => ({ id: `${i}`, document: '', drafts: [t] }))} /> */}
 
           {/* Tweet results */}
           {fetcher.data &&
