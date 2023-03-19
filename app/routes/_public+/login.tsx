@@ -66,7 +66,10 @@ export default function LoginPage() {
     <div className="flex min-h-full flex-col justify-center">
       <div className="mx-auto w-full max-w-md px-8">
         <Form ref={zo.ref} method="post" className="space-y-6" replace>
-          <h1 className="text-2xl font-bold">Login in</h1>
+          <h1 className="text-2xl font-bold">Log in</h1>
+          <p className="text-gray-500">
+            Access is currently invite only. For info on how to join the waitlist, see the home page.
+          </p>
 
           <TextField
             data-test-id="email"
