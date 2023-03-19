@@ -78,12 +78,30 @@ export default function Home() {
           </Link>
         </div>
         <div className="inline-flex items-center">
-          <Link to={APP_ROUTES.LOGIN.href} className="btn-ghost btn-sm btn md:btn-md md:mr-5">
+          <a
+            target="_blank"
+            rel="noreferrer"
+            href={''}
+            type="button"
+            className="btn-ghost btn-sm btn md:btn-md md:mr-5"
+          >
+            Log In
+          </a>
+          <a
+            target="_blank"
+            rel="noreferrer"
+            href={''}
+            type="button"
+            className="btn-outline btn-accent btn-sm btn md:btn-md"
+          >
+            Get started
+          </a>
+          {/* <Link to={APP_ROUTES.LOGIN.href} className="btn-ghost btn-sm btn md:btn-md md:mr-5">
             Log In
           </Link>
           <Link to={APP_ROUTES.JOIN.href} className="btn-outline btn-accent btn-sm btn md:btn-md">
             Sign Up
-          </Link>
+          </Link> */}
         </div>
       </nav>
 
@@ -102,15 +120,35 @@ export default function Home() {
 
           <TranscriptUploader fetcher={fetcher} />
 
-          <div className="grid-col-1 mt-8 grid gap-4 lg:grid-cols-3">
-            <ContentCardWrapper header={<h1 className="font-bold leading-loose">Usecases </h1>}>
-              Lorem ipsum dolor sit amet consectetur, adipisicing elit. Libero minus autem cupiditate, nobis labore
-              mollitia nam! Quidem facilis ipsam optio modi consectetur, minima adipisci repudiandae tempora nam
-              laudantium odio sapiente.
+          <div className="grid-col-1 mt-8 grid gap-4 leading-relaxed lg:grid-cols-3">
+            <ContentCardWrapper header={<h1 className="font-bold leading-loose">Use Cases</h1>}>
+              <p>
+                Whether you&#39;re a <span className="font-black">brand marketer</span> aiming to enhance audience
+                interaction, a <span className="font-black">content creator</span> striving to broaden your impact, or
+                an <span className="font-black">influencer</span> eager to make an impression. Birdfeed helps with
+              </p>
+              <ul className="list-inside list-disc py-3">
+                <li>Generate and schedule tweets.</li>
+                <li>Inspire new content.</li>
+                <li>Keep standout excerpts.</li>
+                <li>Refresh ideas for old podcasts.</li>
+              </ul>
+              <p>
+                Want early access? Like and retweet{' '}
+                <a
+                  className="inline text-blue-500 hover:text-blue-700"
+                  target="_blank"
+                  rel="noreferrer"
+                  href="https://tomp3.cc/"
+                >
+                  this tweet{' '}
+                </a>
+                .
+              </p>
             </ContentCardWrapper>
             <ContentCardWrapper
               className="order-first lg:order-none"
-              header={<h1 className="font-bold leading-loose">Seem cool? Like & Retweet</h1>}
+              header={<h1 className="font-bold leading-loose">Want to help? Like & Retweet 🙏</h1>}
             >
               <blockquote className="twitter-tweet">
                 <p lang="en" dir="ltr">
@@ -124,9 +162,27 @@ export default function Home() {
               </blockquote>
             </ContentCardWrapper>
             <ContentCardWrapper header={<h1 className="font-bold leading-loose">Tips & Quickstart </h1>}>
-              Lorem ipsum dolor sit amet consectetur, adipisicing elit. Libero minus autem cupiditate, nobis labore
-              mollitia nam! Quidem facilis ipsam optio modi consectetur, minima adipisci repudiandae tempora nam
-              laudantium odio sapiente.
+              <p>Taking too long to generate tweets? No content, but want to see how it works? Try this</p>
+              <p className="py-2">
+                {' '}
+                Find your favorite podcast on youtube. Keep it short. We like{' '}
+                <a target="_blank" rel="noreferrer" href="https://www.youtube.com/watch?v=XFIoi6vkpXo">
+                  this Planet Money episode.{' '}
+                </a>
+              </p>
+              <p className="py-2">
+                {' '}
+                Convert the youtube link to a low resolution mp3. Use{' '}
+                <a
+                  className="inline text-blue-500 hover:text-blue-700"
+                  target="_blank"
+                  rel="noreferrer"
+                  href="https://tomp3.cc/"
+                >
+                  this tool{' '}
+                </a>
+                and set the quality to 64kbps then upload.
+              </p>
             </ContentCardWrapper>
           </div>
 

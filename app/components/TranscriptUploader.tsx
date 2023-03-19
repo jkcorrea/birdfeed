@@ -13,10 +13,22 @@ import { tw } from '~/lib/utils'
 import type { ICreateTranscript } from '../routes/_app+/home/schemas'
 
 interface Props {
+  isAuthed?: boolean
   fetcher: FetcherWithComponents<any>
 }
 
-function TranscriptUploader({ fetcher }: Props) {
+const fileSizeLimits = {
+  unauthed: {
+    size: 500_000_000, // 500mb
+    label: '500 MB',
+  },
+  authed: {
+    size: 10_000_000_000, // 10gb
+    label: '10 GB',
+  },
+}
+
+function TranscriptUploader({ isAuthed, fetcher }: Props) {
   const { capture } = useAnalytics()
   const fileInputRef = useRef<HTMLInputElement>(null)
   const [error, setError] = useState<string | null>(null)
@@ -25,11 +37,13 @@ function TranscriptUploader({ fetcher }: Props) {
 
   const handleFileUpload = async (file: File) => {
     capture('transcript_upload', { file_name: file.name })
-    // 10 gbs
-    if (file.size > 10000000000) {
-      setError('File size is too large. Please upload a file smaller than 10GB.')
+
+    const limits = isAuthed ? fileSizeLimits.authed : fileSizeLimits.unauthed
+    if (file.size > limits.size) {
+      setError(`File size is too large. Please upload a file smaller than ${limits.label}.`)
       return
     }
+
     setIsUploading(true)
 
     const id = createId()
