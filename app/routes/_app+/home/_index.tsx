@@ -39,7 +39,7 @@ export default function HomePage() {
   return (
     <div className="flex h-full min-w-[1024px] gap-10 overflow-x-auto md:overflow-hidden lg:gap-12">
       <Column title="Transcripts">
-        <TranscriptUploader fetcher={fetcher} />
+        <TranscriptUploader isAuthed fetcher={fetcher} />
         <TranscriptHistory transcripts={recentTranscripts} />
       </Column>
 
