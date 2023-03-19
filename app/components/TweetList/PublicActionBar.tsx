@@ -3,9 +3,9 @@ import { PaperAirplaneIcon } from '@heroicons/react/24/solid'
 import { useFetcher } from '@remix-run/react'
 import { useZorm } from 'react-zorm'
 
-import type { GeneratedTweet } from '~/integrations/openai'
 import { buildSendTweetUrl, tw } from '~/lib/utils'
 import { RateTweetSchema } from '~/routes/api+/rate-tweet'
+import type { GeneratedTweet } from '~/services/openai'
 
 export const PublicActionBar = ({ tweet }: { tweet: GeneratedTweet }) => {
   const zo = useZorm('rate-tweet', RateTweetSchema)

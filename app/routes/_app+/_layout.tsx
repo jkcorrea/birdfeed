@@ -5,8 +5,8 @@ import type { LoaderArgs, SerializeFrom } from '@remix-run/server-runtime'
 import { Navbar } from '~/components/AppNavbar'
 import { ph } from '~/lib/analytics'
 import { response } from '~/lib/http.server'
-import { isAnonymousSession, requireAuthSession } from '~/modules/auth'
-import { getUserTier } from '~/modules/user'
+import { isAnonymousSession, requireAuthSession } from '~/services/auth'
+import { getUserTier } from '~/services/user'
 
 export type AppLayoutLoaderData = SerializeFrom<typeof loader>
 

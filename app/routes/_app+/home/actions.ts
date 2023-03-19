@@ -2,14 +2,14 @@ import type { ActionArgs } from '@remix-run/server-runtime'
 import { parseFormAny } from 'react-zorm'
 
 import { db } from '~/database'
-import { generateTweetsFromContent, regenerateTweetFromSelf } from '~/integrations/openai'
-import { supabaseAdmin } from '~/integrations/supabase'
 import { UPLOAD_BUCKET_ID } from '~/lib/constants'
 import { SUPABASE_URL } from '~/lib/env'
 import { response } from '~/lib/http.server'
 import { AppError, assertPost, parseData } from '~/lib/utils'
-import { requireAuthSession } from '~/modules/auth'
-import { transcribeMedia } from '~/modules/upload'
+import { requireAuthSession } from '~/services/auth'
+import { generateTweetsFromContent, regenerateTweetFromSelf } from '~/services/openai'
+import { supabaseAdmin } from '~/services/supabase'
+import { transcribeMedia } from '~/services/transcription'
 
 import type {
   ICreateTranscript,

@@ -1,9 +1,9 @@
 import type { ActionArgs } from '@remix-run/node'
 
 import { response } from '~/lib/http.server'
-import { requireAuthSession } from '~/modules/auth'
-import { createBillingPortalSession } from '~/modules/billing-portal'
-import { getBillingInfo } from '~/modules/user'
+import { requireAuthSession } from '~/services/auth'
+import { createBillingPortalSession } from '~/services/billing'
+import { getBillingInfo } from '~/services/user'
 
 export async function action({ request }: ActionArgs) {
   const authSession = await requireAuthSession(request)

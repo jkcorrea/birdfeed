@@ -4,11 +4,11 @@ import { createId } from '@paralleldrive/cuid2'
 import type { FetcherWithComponents } from '@remix-run/react'
 import { AnimatePresence, motion } from 'framer-motion'
 
-import { useIsSubmitting } from '~/hooks'
-import { getSupabase } from '~/integrations/supabase'
 import { useAnalytics } from '~/lib/analytics/use-analytics'
 import { UPLOAD_BUCKET_ID } from '~/lib/constants'
+import { useIsSubmitting } from '~/lib/hooks'
 import { tw } from '~/lib/utils'
+import { getSupabase } from '~/services/supabase'
 
 import type { ICreateTranscript } from '../routes/_app+/home/schemas'
 

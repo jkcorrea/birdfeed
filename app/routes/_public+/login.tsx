@@ -7,7 +7,7 @@ import { TextField } from '~/components/fields'
 import { APP_ROUTES } from '~/lib/constants'
 import { response } from '~/lib/http.server'
 import { isFormProcessing, parseData } from '~/lib/utils'
-import { createAuthSession, isAnonymousSession, signInWithEmail } from '~/modules/auth'
+import { createAuthSession, isAnonymousSession, signInWithEmail } from '~/services/auth'
 
 export async function loader({ request }: LoaderArgs) {
   try {
