@@ -6,7 +6,7 @@ import { AnimatePresence, motion } from 'framer-motion'
 
 import { useAnalytics } from '~/lib/analytics/use-analytics'
 import { UPLOAD_BUCKET_ID } from '~/lib/constants'
-import { useIsSubmitting } from '~/lib/hooks'
+import { useIsSubmitting, useMockProgress } from '~/lib/hooks'
 import { tw } from '~/lib/utils'
 import { getSupabase } from '~/services/supabase'
 
@@ -34,6 +34,12 @@ function TranscriptUploader({ isAuthed, fetcher }: Props) {
   const [error, setError] = useState<string | null>(null)
   const [isUploading, setIsUploading] = useState(false)
   const isTranscribing = useIsSubmitting(fetcher)
+
+  const { start: startProgress, finish: finishProgress, progress } = useMockProgress(3000)
+  useEffect(() => {
+    if (isTranscribing || isUploading) startProgress()
+    else finishProgress()
+  }, [isUploading, isTranscribing, startProgress, finishProgress])
 
   const handleFileUpload = async (file: File) => {
     capture('transcript_upload', { file_name: file.name })
@@ -94,7 +100,7 @@ function TranscriptUploader({ isAuthed, fetcher }: Props) {
                   <CloudArrowUpIcon className="h-14 w-full" />
                   <span>{isTranscribing ? 'Transcribing' : 'Uploading'}</span>
                   <span className="mb-4 text-base">this could take a while...</span>
-                  <progress className="progress w-full"></progress>
+                  <progress className="progress" value={progress} max={1} />
                 </div>
               </div>
             </div>
