@@ -44,6 +44,8 @@ export const meta: MetaFunction = () => ({
   charset: 'utf-8',
   title: 'Birdfeed',
   viewport: 'width=device-width,initial-scale=1',
+  description: 'Turn hours of content into tweets in seconds',
+  'og:image': '/og-image.png',
 })
 
 export async function loader({ request }: LoaderArgs) {

@@ -21,6 +21,8 @@ import { generateTweetsFromContent } from '~/services/openai'
 import { createTranscript } from '../_app+/home/actions'
 import { CreateTranscriptSchema } from '../_app+/home/schemas'
 
+import birdfeedIcon from '~/assets/birdfeed-icon.png'
+
 const scripts: ExternalScriptsFunction = () =>
   // NOTE rendering this in dev causes hydration mismatch issues, luckily it's only cosmetic & we don't need it in dev
   NODE_ENV === 'development'
@@ -79,8 +81,8 @@ export default function Home() {
     <div className="container mx-auto max-w-screen-lg px-10 py-8 lg:px-0">
       <nav className="mb-8 flex items-center justify-between" aria-label="Global">
         <div className="flex items-center space-x-2 lg:min-w-0 lg:flex-1" aria-label="Global">
-          <Link to="/" className="-m-1.5 whitespace-nowrap p-1.5 text-2xl font-black">
-            🐣 Birdfeed
+          <Link to="/" className="-m-1.5 flex items-center whitespace-nowrap p-1.5 text-2xl font-black">
+            <img src={birdfeedIcon} alt="Birdfeed AI" className="inline h-10 w-10" /> Birdfeed
           </Link>
         </div>
         <div className="inline-flex items-center">
