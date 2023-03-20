@@ -11,6 +11,7 @@ import { DeleteTweetSchema, RegenerateTweetSchema, UpdateTweetSchema } from '~/r
 import type { SerializedTweetItem } from '~/types'
 
 import IntentField from '../fields/IntentField'
+import SendTweetButton from './SendTweetButton'
 
 const starClassName = tw('mask mask-star-2 h-5 w-5 !bg-none text-neutral  transition duration-75')
 const btnClassName = 'btn-ghost tooltip tooltip-right btn-xs btn-circle btn flex items-center justify-center'
@@ -75,7 +76,7 @@ function TweetActionBar({ tweet, onDelete, showRating }: Props) {
         </fetcher.Form>
       </div>
 
-      {showRating && (
+      {showRating ? (
         <div className="rating">
           <input
             type="radio"
@@ -114,6 +115,8 @@ function TweetActionBar({ tweet, onDelete, showRating }: Props) {
             onChange={updateRating}
           />
         </div>
+      ) : (
+        <SendTweetButton body={tweet.drafts[0]} />
       )}
     </div>
   )

@@ -1,14 +1,15 @@
 import { useEffect, useState } from 'react'
 import { HandThumbDownIcon, HandThumbUpIcon } from '@heroicons/react/24/outline'
-import { PaperAirplaneIcon } from '@heroicons/react/24/solid'
 import { useFetcher } from '@remix-run/react'
 import { toast } from 'react-hot-toast'
 import { useZorm } from 'react-zorm'
 
 import { useIsSubmitting } from '~/lib/hooks'
-import { buildSendTweetUrl, tw } from '~/lib/utils'
+import { tw } from '~/lib/utils'
 import { RateTweetSchema } from '~/routes/api+/rate-tweet'
 import type { GeneratedTweet } from '~/services/openai'
+
+import SendTweetButton from './SendTweetButton'
 
 const TOAST_ID = 'rate-tweet-toast'
 
@@ -66,16 +67,7 @@ export const PublicActionBar = ({ tweet }: { tweet: GeneratedTweet }) => {
         </fetcher.Form>
       </div>
 
-      <a
-        target="_blank"
-        rel="noreferrer"
-        href={buildSendTweetUrl(tweet.drafts[0], true)}
-        type="button"
-        className="btn-primary btn-info btn-sm btn gap-2 lowercase text-white"
-      >
-        tweet
-        <PaperAirplaneIcon className="-mt-1 h-4 w-4 -rotate-45" />
-      </a>
+      <SendTweetButton body={tweet.drafts[0]} />
     </div>
   )
 }
