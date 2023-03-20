@@ -28,7 +28,7 @@ export const TweetListItem = ({ tweet, onClick, horizontal, showRating, isPublic
     className={tw(
       'flex flex-col rounded-lg bg-base-100 py-2 px-4 shadow transition',
       onClick && 'cursor-pointer hover:bg-primary/10',
-      horizontal ? 'min-w-[400px]' : 'h-fit min-w-[300px]'
+      horizontal ? 'min-w-[400px]' : 'min-w-[300px] grow'
     )}
     onClick={onClick}
   >
@@ -45,8 +45,8 @@ export const TweetListItem = ({ tweet, onClick, horizontal, showRating, isPublic
     {/* Tweet content */}
     <p className="w-full p-4 ">{tweet.drafts[0]}</p>
 
-    <div className="divider divider-vertical my-0" />
-    <div className="flex px-4" onClick={(e) => e.stopPropagation()}>
+    <div className="divider divider-vertical mt-auto mb-0" />
+    <div className="flex  px-4" onClick={(e) => e.stopPropagation()}>
       {isPublic ? <PublicActionBar tweet={tweet} /> : <TweetActionBar tweet={tweet} showRating={showRating} />}
     </div>
   </li>

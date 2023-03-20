@@ -68,7 +68,9 @@ export function TweetDetailModal({ tweet, onClose: _onClose }: Props) {
         )
       }
       rightAction={
-        !showHistory && (
+        !showHistory &&
+        tweet &&
+        tweet.drafts.length > 1 && (
           <button type="button" className="link" onClick={() => setShowHistory(true)}>
             Draft History
           </button>
@@ -114,14 +116,14 @@ export function TweetDetailModal({ tweet, onClose: _onClose }: Props) {
               defaultValue={tweet.drafts[0]}
             />
 
-            <div className="mt-3 flex items-center justify-between">
+            {/* <div className="mt-3 flex items-center justify-between">
               <p className="select-none text-sm font-light text-gray-600">
                 Scheduled for <em>{dayjs('2023-03-08').fromNow()}</em>
               </p>
-            </div>
+            </div> */}
           </fetcher.Form>
 
-          <div className="divider my-2" />
+          <div className="divider my-3" />
 
           <div className="flex items-center justify-between">
             <TweetActionBar showRating tweet={tweet} onDelete={() => setTimeout(onClose, 0)} />

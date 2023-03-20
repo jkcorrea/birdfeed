@@ -12,7 +12,8 @@ import type { SerializedTweetItem } from '~/types'
 
 import IntentField from '../fields/IntentField'
 
-const starClassName = tw('mask mask-star-2 !bg-none text-neutral transition duration-75')
+const starClassName = tw('mask mask-star-2 h-5 w-5 !bg-none text-neutral  transition duration-75')
+const btnClassName = 'btn-ghost tooltip tooltip-right btn-xs btn-circle btn flex items-center justify-center'
 
 interface Props {
   tweet: SerializedTweetItem
@@ -43,12 +44,12 @@ function TweetActionBar({ tweet, onDelete, showRating }: Props) {
   }
 
   return (
-    <div className="inline-flex w-full justify-between gap-2">
-      <div className="inline-flex items-center gap-2">
+    <div className="inline-flex w-full justify-between gap-2 py-2">
+      <div className="inline-flex items-center gap-3">
         <fetcher.Form action={APP_ROUTES.HOME.href} method="post" ref={zoDelete.ref} className="flex items-center">
           <IntentField<IHomeAction> value="delete-tweet" />
           <input name={zoDelete.fields.tweetId()} type="hidden" value={tweet.id} />
-          <button className="tooltip tooltip-right" data-tip="Delete">
+          <button className={btnClassName} data-tip="Delete">
             <TrashIcon className="h-5 w-5" />
             <span className="sr-only">Delete</span>
           </button>
@@ -57,7 +58,7 @@ function TweetActionBar({ tweet, onDelete, showRating }: Props) {
         <fetcher.Form action={APP_ROUTES.HOME.href} method="post" ref={zoRegen.ref} className="flex items-center">
           <IntentField<IHomeAction> value="regenerate-tweet" />
           <input name={zoRegen.fields.tweetId()} type="hidden" value={tweet.id} />
-          <button className="tooltip tooltip-right" data-tip="Re-generate" disabled={isRegenerating}>
+          <button className={btnClassName} data-tip="Re-generate" disabled={isRegenerating}>
             <ArrowPathIcon className={tw('h-5 w-5', isRegenerating && 'animate-spin')} />
             <span className="sr-only">Re-generate</span>
           </button>
@@ -67,7 +68,7 @@ function TweetActionBar({ tweet, onDelete, showRating }: Props) {
           <IntentField<IHomeAction> value="update-tweet" />
           <input name={zoUpdate.fields.tweetId()} type="hidden" value={tweet.id} />
           <input name={zoUpdate.fields.archived()} type="hidden" value={tweet.archived ? 'unarchive' : 'archive'} />
-          <button className="tooltip tooltip-right" data-tip={tweet.archived ? 'Move to queue' : 'Move to Idea Bin'}>
+          <button className={btnClassName} data-tip={tweet.archived ? 'Move to queue' : 'Move to Idea Bin'}>
             {tweet.archived ? <InboxIcon className="h-5 w-5" /> : <InboxArrowDownIcon className="h-5 w-5" />}
             <span className="sr-only">{tweet.archived ? 'Move to queue' : 'Move to ideas bin'}</span>
           </button>
@@ -75,7 +76,7 @@ function TweetActionBar({ tweet, onDelete, showRating }: Props) {
       </div>
 
       {showRating && (
-        <div className="rating rating-sm">
+        <div className="rating">
           <input
             type="radio"
             data-rating={0}
