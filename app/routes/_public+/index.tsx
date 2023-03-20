@@ -127,12 +127,7 @@ export default function Home() {
             </ul>
             <p>
               Want early access? Like and retweet{' '}
-              <a
-                className="inline text-blue-500 hover:text-blue-700"
-                target="_blank"
-                rel="noreferrer"
-                href="https://tomp3.cc/"
-              >
+              <a className="link-hover link-info link" target="_blank" rel="noreferrer" href="https://tomp3.cc/">
                 this tweet{' '}
               </a>
               .
@@ -163,12 +158,7 @@ export default function Home() {
             <p className="py-2">
               {' '}
               Convert the youtube link to a low resolution mp3. Use{' '}
-              <a
-                className="inline text-blue-500 hover:text-blue-700"
-                target="_blank"
-                rel="noreferrer"
-                href="https://tomp3.cc/"
-              >
+              <a className="link-hover link-info link" target="_blank" rel="noreferrer" href="https://tomp3.cc/">
                 this tool{' '}
               </a>
               and set the quality to 64kbps then upload.

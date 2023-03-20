@@ -1,11 +1,12 @@
 import type { ActionArgs, LoaderArgs } from '@remix-run/node'
-import { Form, useFetcher, useLoaderData, useTransition } from '@remix-run/react'
+import { Form, useFetcher, useLoaderData, useNavigation } from '@remix-run/react'
 import { parseFormAny } from 'react-zorm'
 
 import IntentField from '~/components/fields/IntentField'
+import { useIsSubmitting } from '~/lib/hooks'
 import { getDefaultCurrency, response } from '~/lib/http.server'
 import { useLocales } from '~/lib/locale-provider'
-import { isFormProcessing, tw } from '~/lib/utils'
+import { tw } from '~/lib/utils'
 import { destroyAuthSession, requireAuthSession } from '~/services/auth'
 import { getPricingPlan, getSubscription } from '~/services/billing'
 import { getTwitterOAuthRedirectURL } from '~/services/twitter'
@@ -67,7 +68,7 @@ export async function action({ request }: ActionArgs) {
 export default function Subscription() {
   const { pricingPlan, userTier, subscription } = useLoaderData<typeof loader>()
   const customerPortalFetcher = useFetcher()
-  const isProcessing = isFormProcessing(customerPortalFetcher.state)
+  const isSubmitting = useIsSubmitting(customerPortalFetcher)
 
   const { cancelAtPeriodEnd, currentPeriodEnd, interval } = subscription || {}
 
@@ -83,10 +84,10 @@ export default function Subscription() {
         <customerPortalFetcher.Form method="post" action="/api/billing/customer-portal">
           <button
             type="button"
-            disabled={isProcessing}
+            disabled={isSubmitting}
             className={tw('btn', cancelAtPeriodEnd ? 'btn-warning' : 'btn-accent')}
           >
-            {isProcessing
+            {isSubmitting
               ? 'Redirecting to Customer Portal...'
               : userTier.id !== 'free'
               ? cancelAtPeriodEnd
@@ -120,14 +121,14 @@ function Highlight({ children, important }: { children: React.ReactNode; importa
 }
 
 function DeleteTestAccount() {
-  const transition = useTransition()
-  const isProcessing = isFormProcessing(transition.state)
+  const nav = useNavigation()
+  const isSubmitting = useIsSubmitting(nav)
 
   return (
     <Form method="post">
       <IntentField<SettingsReducer> value={'delete-account'} />
-      <button disabled={isProcessing} className="btn-outline btn-error btn">
-        {isProcessing ? 'Deleting...' : 'Delete my account'}
+      <button disabled={isSubmitting} className="btn-outline btn-error btn">
+        {isSubmitting ? 'Deleting...' : 'Delete my account'}
       </button>
     </Form>
   )

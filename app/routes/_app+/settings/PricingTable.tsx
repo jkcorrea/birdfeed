@@ -4,8 +4,9 @@ import { CheckBadgeIcon } from '@heroicons/react/24/outline'
 import { useFetcher } from '@remix-run/react'
 
 import type { Interval, TierId } from '@prisma/client'
+import { useIsSubmitting } from '~/lib/hooks'
 import { useLocales } from '~/lib/locale-provider'
-import { isFormProcessing, tw } from '~/lib/utils'
+import { tw } from '~/lib/utils'
 import type { PricingPlan } from '~/services/billing'
 
 export function PricingTable({
@@ -20,7 +21,7 @@ export function PricingTable({
   const [displayAnnual, setDisplayAnnual] = useState(defaultDisplayAnnual)
   const subscribeFetcher = useFetcher()
   const { locales } = useLocales()
-  const isProcessing = isFormProcessing(subscribeFetcher.state)
+  const isSubmitting = useIsSubmitting(subscribeFetcher)
   const processingTierId = subscribeFetcher.submission?.formData.get('tierId') as TierId
   const intervalFilter = (displayAnnual ? 'year' : 'month') satisfies Interval
 
@@ -86,8 +87,8 @@ export function PricingTable({
                     <subscribeFetcher.Form method="post" action="/api/billing/subscribe">
                       <input type="hidden" name="priceId" value={priceId} />
                       <button
-                        disabled={isProcessing || !active}
-                        className={tw('btn mt-8 block w-full', isProcessing && 'opacity-50')}
+                        disabled={isSubmitting || !active}
+                        className={tw('btn mt-8 block w-full', isSubmitting && 'opacity-50')}
                       >
                         {id === processingTierId ? `Upgrading to ${name}...` : `Upgrade to ${name}`}
                       </button>

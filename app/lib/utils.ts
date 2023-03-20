@@ -9,9 +9,6 @@ export * from './utils/zod'
 
 export const toDate = (date: number) => new Date(date * 1_000)
 
-export const isFormProcessing = (state: 'idle' | 'submitting' | 'loading') =>
-  state === 'submitting' || state === 'loading'
-
 export { twMerge as tw } from 'tailwind-merge'
 
 export const cleanupTranscript = (content: string) =>

@@ -1,12 +1,13 @@
 import type { ActionArgs, LoaderArgs } from '@remix-run/node'
-import { Form, Link, useActionData, useSearchParams, useTransition } from '@remix-run/react'
+import { Form, Link, useActionData, useNavigation, useSearchParams } from '@remix-run/react'
 import { parseFormAny, useZorm } from 'react-zorm'
 import { z } from 'zod'
 
 import { TextField } from '~/components/fields'
 import { APP_ROUTES } from '~/lib/constants'
+import { useIsSubmitting } from '~/lib/hooks'
 import { response } from '~/lib/http.server'
-import { isFormProcessing, parseData } from '~/lib/utils'
+import { parseData } from '~/lib/utils'
 import { createAuthSession, isAnonymousSession, signInWithEmail } from '~/services/auth'
 
 export async function loader({ request }: LoaderArgs) {
@@ -59,8 +60,8 @@ export default function LoginPage() {
   const actionResponse = useActionData<typeof action>()
   const [searchParams] = useSearchParams()
   const redirectTo = searchParams.get('redirectTo') ?? undefined
-  const transition = useTransition()
-  const isProcessing = isFormProcessing(transition.state)
+  const nav = useNavigation()
+  const isSubmitting = useIsSubmitting(nav)
 
   return (
     <div className="flex min-h-full flex-col justify-center">
@@ -79,7 +80,7 @@ export default function LoginPage() {
             type="email"
             autoComplete="email"
             autoFocus={true}
-            disabled={isProcessing}
+            disabled={isSubmitting}
           />
 
           <TextField
@@ -89,13 +90,13 @@ export default function LoginPage() {
             name={zo.fields.password()}
             type="password"
             autoComplete="password"
-            disabled={isProcessing}
+            disabled={isSubmitting}
           />
 
           <input type="hidden" name={zo.fields.redirectTo()} value={redirectTo} />
 
-          <button className="btn-primary btn w-full" disabled={isProcessing}>
-            {isProcessing ? '...' : 'Log in'}
+          <button className="btn-primary btn w-full" disabled={isSubmitting}>
+            {isSubmitting ? '...' : 'Log in'}
           </button>
 
           <div className="flex items-center justify-center">

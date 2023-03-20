@@ -1,13 +1,14 @@
 import * as React from 'react'
 import type { ActionArgs, LoaderArgs } from '@remix-run/node'
-import { Form, Link, useActionData, useSearchParams, useTransition } from '@remix-run/react'
+import { Form, Link, useActionData, useNavigation, useSearchParams } from '@remix-run/react'
 import { parseFormAny, useZorm } from 'react-zorm'
 import { z } from 'zod'
 
 import { TextField } from '~/components/fields'
 import { APP_ROUTES } from '~/lib/constants'
+import { useIsSubmitting } from '~/lib/hooks'
 import { response } from '~/lib/http.server'
-import { AppError, isFormProcessing, parseData } from '~/lib/utils'
+import { AppError, parseData } from '~/lib/utils'
 import { createAuthSession, isAnonymousSession } from '~/services/auth'
 import { createUserAccount, getUserByEmail } from '~/services/user'
 
@@ -73,8 +74,8 @@ export default function Join() {
   const actionResponse = useActionData<typeof action>()
   const [searchParams] = useSearchParams()
   const redirectTo = searchParams.get('redirectTo') ?? undefined
-  const transition = useTransition()
-  const isProcessing = isFormProcessing(transition.state)
+  const nav = useNavigation()
+  const isSubmitting = useIsSubmitting(nav)
 
   return (
     <div className="flex min-h-full flex-col justify-center">
@@ -93,7 +94,7 @@ export default function Join() {
             type="email"
             autoComplete="email"
             autoFocus={true}
-            disabled={isProcessing}
+            disabled={isSubmitting}
           />
 
           <TextField
@@ -103,13 +104,13 @@ export default function Join() {
             name={zo.fields.password()}
             type="password"
             autoComplete="new-password"
-            disabled={isProcessing}
+            disabled={isSubmitting}
           />
 
           <input type="hidden" name={zo.fields.redirectTo()} value={redirectTo} />
 
-          <button className="btn-primary btn w-full" disabled={isProcessing}>
-            {isProcessing ? '...' : 'Create Account'}
+          <button className="btn-primary btn w-full" disabled={isSubmitting}>
+            {isSubmitting ? '...' : 'Create Account'}
           </button>
 
           <div className="flex items-center justify-center">
