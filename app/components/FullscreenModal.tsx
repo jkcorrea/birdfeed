@@ -38,8 +38,8 @@ const FullscreenModal = ({
       >
         <div className="fixed inset-0 bg-black/50" />
       </Transition.Child>
-      <div className="fixed inset-x-0 inset-y-[5%] items-center overflow-y-auto">
-        <div className="flex justify-center text-center">
+      <div className="fixed inset-0 overflow-y-auto">
+        <div className="flex min-h-full items-center justify-center text-center">
           <Transition.Child
             as={Fragment}
             enter="ease-out duration-300"
