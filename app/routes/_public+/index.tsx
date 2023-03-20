@@ -6,6 +6,7 @@ import { parseFormAny } from 'react-zorm'
 import type { ExternalScriptsFunction } from 'remix-utils'
 
 import { AnimatedWord } from '~/components/AnimatedWord'
+import { PublicFooter } from '~/components/PublicFooter'
 import TranscriptUploader from '~/components/TranscriptUploader'
 import { TweetListItem } from '~/components/TweetList'
 import { db } from '~/database'
@@ -71,129 +72,112 @@ export default function Home() {
 
   return (
     <div className="container mx-auto max-w-screen-lg px-10 py-8 lg:px-0">
-      <nav className="mb-10 flex items-center justify-between" aria-label="Global">
+      <nav className="mb-8 flex items-center justify-between" aria-label="Global">
         <div className="flex items-center space-x-2 lg:min-w-0 lg:flex-1" aria-label="Global">
           <Link to="/" className="-m-1.5 whitespace-nowrap p-1.5 text-2xl font-black">
             🐣 Birdfeed
           </Link>
         </div>
         <div className="inline-flex items-center">
-          <a
-            target="_blank"
-            rel="noreferrer"
-            href={''}
-            type="button"
-            className="btn-ghost btn-sm btn md:btn-md md:mr-5"
-          >
-            Log In
-          </a>
-          <a
-            target="_blank"
-            rel="noreferrer"
-            href={''}
-            type="button"
-            className="btn-outline btn-accent btn-sm btn md:btn-md"
-          >
-            Get started
-          </a>
           {/* <Link to={APP_ROUTES.LOGIN.href} className="btn-ghost btn-sm btn md:btn-md md:mr-5">
             Log In
-          </Link>
-          <Link to={APP_ROUTES.JOIN.href} className="btn-outline btn-accent btn-sm btn md:btn-md">
+          </Link> */}
+          <button type="button" className="btn-outline btn-accent btn-sm btn md:btn-md">
+            Join waitlist
+          </button>
+          {/* <Link to={APP_ROUTES.JOIN.href} className="btn-outline btn-accent btn-sm btn md:btn-md">
             Sign Up
           </Link> */}
         </div>
       </nav>
 
-      <div>
-        <main className="flex flex-col">
-          <div className="mb-10">
-            <h1 className="text-4xl font-black tracking-tight sm:text-center sm:text-6xl">
-              Turn your <AnimatedWord words={['podcasts', 'meetings', 'content']} /> into tweets.
-            </h1>
-            <p className="mx-auto mt-6 text-lg leading-snug text-gray-600 sm:text-center">
-              Birdfeed listens to hours of content and crafts tweets in your words.
-              <br />
-              Upload hours of audio and get tweets in seconds, delivered to your inbox or tweeted automatically.
+      <main className="flex flex-col">
+        <div className="mb-6">
+          <h1 className="text-4xl font-black tracking-tight sm:text-center sm:text-6xl">
+            Turn your <AnimatedWord words={['podcasts', 'meetings', 'content']} /> into tweets.
+          </h1>
+          <p className="mx-auto mt-6 text-lg leading-snug text-gray-600 sm:text-center">
+            Birdfeed listens to hours of content and crafts tweets in your words.
+            <br />
+            Upload hours of audio and get tweets in seconds, delivered to your inbox or tweeted automatically.
+          </p>
+        </div>
+
+        <TranscriptUploader fetcher={fetcher} />
+
+        <div className="grid-col-1 mt-8 grid gap-4 leading-relaxed lg:grid-cols-3">
+          <ContentCardWrapper header={<h1 className="font-bold leading-loose">Use Cases</h1>}>
+            <p>
+              Whether you&#39;re a <span className="font-black">brand marketer</span> aiming to enhance audience
+              interaction, a <span className="font-black">content creator</span> striving to broaden your impact, or an{' '}
+              <span className="font-black">influencer</span> eager to make an impression. Birdfeed helps with
             </p>
-          </div>
-
-          <TranscriptUploader fetcher={fetcher} />
-
-          <div className="grid-col-1 mt-8 grid gap-4 leading-relaxed lg:grid-cols-3">
-            <ContentCardWrapper header={<h1 className="font-bold leading-loose">Use Cases</h1>}>
-              <p>
-                Whether you&#39;re a <span className="font-black">brand marketer</span> aiming to enhance audience
-                interaction, a <span className="font-black">content creator</span> striving to broaden your impact, or
-                an <span className="font-black">influencer</span> eager to make an impression. Birdfeed helps with
+            <ul className="list-inside list-disc py-3">
+              <li>Generate and schedule tweets.</li>
+              <li>Inspire new content.</li>
+              <li>Keep standout excerpts.</li>
+              <li>Refresh ideas for old podcasts.</li>
+            </ul>
+            <p>
+              Want early access? Like and retweet{' '}
+              <a
+                className="inline text-blue-500 hover:text-blue-700"
+                target="_blank"
+                rel="noreferrer"
+                href="https://tomp3.cc/"
+              >
+                this tweet{' '}
+              </a>
+              .
+            </p>
+          </ContentCardWrapper>
+          <ContentCardWrapper
+            className="order-first lg:order-none"
+            header={<h1 className="font-bold leading-loose">Want to help? Like & Retweet 🙏</h1>}
+          >
+            <blockquote className="twitter-tweet">
+              <p lang="en" dir="ltr">
+                &quot;When you&#39;re starting out, the line between being an entrepreneur and being unemployed is kinda
+                in your head.&quot; -<a href="https://twitter.com/bchesky?ref_src=twsrc%5Etfw">@bchesky</a>
               </p>
-              <ul className="list-inside list-disc py-3">
-                <li>Generate and schedule tweets.</li>
-                <li>Inspire new content.</li>
-                <li>Keep standout excerpts.</li>
-                <li>Refresh ideas for old podcasts.</li>
-              </ul>
-              <p>
-                Want early access? Like and retweet{' '}
-                <a
-                  className="inline text-blue-500 hover:text-blue-700"
-                  target="_blank"
-                  rel="noreferrer"
-                  href="https://tomp3.cc/"
-                >
-                  this tweet{' '}
-                </a>
-                .
-              </p>
-            </ContentCardWrapper>
-            <ContentCardWrapper
-              className="order-first lg:order-none"
-              header={<h1 className="font-bold leading-loose">Want to help? Like & Retweet 🙏</h1>}
-            >
-              <blockquote className="twitter-tweet">
-                <p lang="en" dir="ltr">
-                  &quot;When you&#39;re starting out, the line between being an entrepreneur and being unemployed is
-                  kinda in your head.&quot; -<a href="https://twitter.com/bchesky?ref_src=twsrc%5Etfw">@bchesky</a>
-                </p>
-                &mdash; Justin Hilliard (@jahilliar){' '}
-                <a href="https://twitter.com/jahilliar/status/1634993271964598272?ref_src=twsrc%5Etfw">
-                  March 12, 2023
-                </a>
-              </blockquote>
-            </ContentCardWrapper>
-            <ContentCardWrapper header={<h1 className="font-bold leading-loose">Tips & Quickstart </h1>}>
-              <p>Taking too long to generate tweets? No content, but want to see how it works? Try this</p>
-              <p className="py-2">
-                {' '}
-                Find your favorite podcast on youtube. Keep it short. We like{' '}
-                <a target="_blank" rel="noreferrer" href="https://www.youtube.com/watch?v=XFIoi6vkpXo">
-                  this Planet Money episode.{' '}
-                </a>
-              </p>
-              <p className="py-2">
-                {' '}
-                Convert the youtube link to a low resolution mp3. Use{' '}
-                <a
-                  className="inline text-blue-500 hover:text-blue-700"
-                  target="_blank"
-                  rel="noreferrer"
-                  href="https://tomp3.cc/"
-                >
-                  this tool{' '}
-                </a>
-                and set the quality to 64kbps then upload.
-              </p>
-            </ContentCardWrapper>
-          </div>
+              &mdash; Justin Hilliard (@jahilliar){' '}
+              <a href="https://twitter.com/jahilliar/status/1634993271964598272?ref_src=twsrc%5Etfw">March 12, 2023</a>
+            </blockquote>
+          </ContentCardWrapper>
+          <ContentCardWrapper header={<h1 className="font-bold leading-loose">Tips & Quickstart </h1>}>
+            <p>Taking too long to generate tweets? No content, but want to see how it works? Try this</p>
+            <p className="py-2">
+              {' '}
+              Find your favorite podcast on youtube. Keep it short. We like{' '}
+              <a target="_blank" rel="noreferrer" href="https://www.youtube.com/watch?v=XFIoi6vkpXo">
+                this Planet Money episode.{' '}
+              </a>
+            </p>
+            <p className="py-2">
+              {' '}
+              Convert the youtube link to a low resolution mp3. Use{' '}
+              <a
+                className="inline text-blue-500 hover:text-blue-700"
+                target="_blank"
+                rel="noreferrer"
+                href="https://tomp3.cc/"
+              >
+                this tool{' '}
+              </a>
+              and set the quality to 64kbps then upload.
+            </p>
+          </ContentCardWrapper>
+        </div>
 
-          {/* Leaving this here incase we need to work on generated tweets */}
-          {/* <TweetGrid tweets={_pregenTweets.map((t, i) => ({ id: `${i}`, document: '', drafts: [t] }))} /> */}
+        {/* Leaving this here incase we need to work on generated tweets */}
+        {/* <TweetGrid tweets={_pregenTweets.map((t, i) => ({ id: `${i}`, document: '', drafts: [t] }))} /> */}
 
-          {/* Tweet results */}
-          {fetcher.data &&
-            (fetcher.data?.error ? fetcher.data.error.message : <TweetGrid tweets={fetcher.data.tweets} />)}
-        </main>
-      </div>
+        {/* Tweet results */}
+        {fetcher.data &&
+          (fetcher.data?.error ? fetcher.data.error.message : <TweetGrid tweets={fetcher.data.tweets} />)}
+      </main>
+
+      <PublicFooter />
     </div>
   )
 }
