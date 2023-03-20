@@ -1,4 +1,5 @@
-import { useEffect } from 'react'
+import { useEffect, useMemo } from 'react'
+import { XCircleIcon } from '@heroicons/react/24/outline'
 import type { LinksFunction, LoaderArgs, MetaFunction } from '@remix-run/node'
 import {
   Links,
@@ -7,15 +8,18 @@ import {
   Outlet,
   Scripts,
   ScrollRestoration,
+  useFetchers,
   useLoaderData,
   useLocation,
 } from '@remix-run/react'
+import { toast, Toaster } from 'react-hot-toast'
 import { ExternalScripts } from 'remix-utils'
 
-import { NotifyError } from './components/NotifyError'
+import { NotificationToast } from './components/NotificationToast'
 import { initAnalytics, useAnalytics } from './lib/analytics'
 import { APP_THEME } from './lib/constants'
-import { getBrowserEnv } from './lib/env'
+import { getBrowserEnv, NODE_ENV } from './lib/env'
+import type { CatchResponse } from './lib/http.server'
 import { response } from './lib/http.server'
 import { isAnonymousSession, requireAuthSession } from './services/auth'
 
@@ -70,6 +74,21 @@ export default function App() {
     capture('$pageview')
   }, [key, capture])
 
+  // Notify any errors from server
+  const fetchers = useFetchers()
+  const error = useMemo(() => fetchers.map((f) => (f.data as CatchResponse | null)?.error)[0], [fetchers])
+  useEffect(() => {
+    if (error)
+      toast.custom(
+        (t) => (
+          <NotificationToast title="An error occured 😫" toast={t}>
+            <ErrorBody error={error} />
+          </NotificationToast>
+        ),
+        { position: 'top-right', icon: <XCircleIcon className="h-6 w-6 text-error" />, duration: 10_000 }
+      )
+  }, [error])
+
   return (
     <html data-theme={APP_THEME} className="h-full bg-base-200">
       <head>
@@ -83,7 +102,7 @@ export default function App() {
           }}
         />
 
-        <NotifyError />
+        <Toaster />
 
         <Outlet />
 
@@ -96,3 +115,18 @@ export default function App() {
     </html>
   )
 }
+
+const ErrorBody = ({ error }: { error: CatchResponse['error'] }) => (
+  <>
+    <p className="mt-1 text-sm text-gray-500">{error?.message}</p>
+    {NODE_ENV === 'development' && error?.traceId ? (
+      <p className="mt-1 text-sm text-gray-500">TraceId: {error.traceId}</p>
+    ) : null}
+    {NODE_ENV === 'development' && error?.metadata ? (
+      <p className="mt-1 text-sm text-gray-500">
+        <span>Metadata:</span>
+        <pre className="overflow-x-auto text-xs">{JSON.stringify(error.metadata, null, 2)}</pre>
+      </p>
+    ) : null}
+  </>
+)
