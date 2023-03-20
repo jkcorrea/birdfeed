@@ -43,7 +43,7 @@ export default function HomePage() {
         <TranscriptHistory transcripts={recentTranscripts} />
       </Column>
 
-      <Column title="On Deck" className="flex-[4]">
+      <Column title="On Deck" className="flex-[2]">
         {recentTweets.length > 0 ? (
           <TweetList tweets={recentTweets} />
         ) : (
@@ -57,17 +57,17 @@ export default function HomePage() {
         )}
       </Column>
 
-      <Column title="Posted">
+      {/* <Column title="Posted">
         <div className="flex h-20 items-center justify-center rounded-lg bg-base-300 p-2 shadow-inner">
           <h2 className="text-lg">Coming soon</h2>
         </div>
-      </Column>
+      </Column> */}
     </div>
   )
 }
 
 const Column = ({ title, className, children }: { title: string; className?: string; children: React.ReactNode }) => (
-  <div className={tw('flex flex-[3] flex-col', className)}>
+  <div className={tw('flex flex-[1] flex-col', className)}>
     <h1 className="mb-7 text-2xl font-bold">{title}</h1>
     {children}
   </div>

@@ -80,7 +80,7 @@ function TranscriptUploader({ isAuthed, fetcher }: Props) {
     <div
       key={fetcher.state}
       className={tw(
-        'min-h-[5rem] rounded-lg bg-base-300 shadow-inner transition',
+        'rounded-lg bg-base-300 shadow-inner transition',
         !(isUploading && isTranscribing) && 'hover:bg-[rgb(226,221,218)]'
       )}
     >
