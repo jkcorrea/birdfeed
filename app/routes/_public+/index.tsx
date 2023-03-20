@@ -11,6 +11,7 @@ import TranscriptUploader from '~/components/TranscriptUploader'
 import { TweetListItem } from '~/components/TweetList'
 import { db } from '~/database'
 import { APP_ROUTES } from '~/lib/constants'
+import { NODE_ENV } from '~/lib/env'
 import { response } from '~/lib/http.server'
 import { parseData, tw } from '~/lib/utils'
 import { isAnonymousSession } from '~/services/auth'
@@ -20,12 +21,16 @@ import { generateTweetsFromContent } from '~/services/openai'
 import { createTranscript } from '../_app+/home/actions'
 import { CreateTranscriptSchema } from '../_app+/home/schemas'
 
-const scripts: ExternalScriptsFunction = () => [
-  {
-    async: true,
-    src: 'https://platform.twitter.com/widgets.js',
-  },
-]
+const scripts: ExternalScriptsFunction = () =>
+  // NOTE rendering this in dev causes hydration mismatch issues, luckily it's only cosmetic & we don't need it in dev
+  NODE_ENV === 'development'
+    ? []
+    : [
+        {
+          async: true,
+          src: 'https://platform.twitter.com/widgets.js',
+        },
+      ]
 
 export const handle = { scripts }
 
