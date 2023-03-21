@@ -61,6 +61,7 @@ function makeStripeCreatePricePayloads(price: PriceByInterval, name: string, id:
 async function seed() {
   const seedTiers = Object.values(pricingPlan).map(
     async ({ name, tierId, price: priceData, description, featuresList, limits: { maxUsage } }) => {
+      console.log(`Seeding tier ${name}...`)
       try {
         await stripe.products.create({
           id: tierId,

@@ -1,4 +1,4 @@
-import { Fragment } from 'react'
+import { Fragment, useState } from 'react'
 import type { ActionArgs, LoaderArgs } from '@remix-run/node'
 import { Link, useFetcher } from '@remix-run/react'
 import type { HTMLAttributes, ReactNode } from 'react'
@@ -7,6 +7,7 @@ import type { ExternalScriptsFunction } from 'remix-utils'
 
 import { AnimatedWord } from '~/components/AnimatedWord'
 import { PublicFooter } from '~/components/PublicFooter'
+import { SubscribeModal } from '~/components/SubscribeModal'
 import TranscriptUploader from '~/components/TranscriptUploader'
 import { TweetCard } from '~/components/TweetCard'
 import { db } from '~/database'
@@ -77,6 +78,8 @@ export async function action({ request }: ActionArgs) {
 export default function Home() {
   const fetcher = useFetcher<typeof action>()
 
+  const [subscribeModalOpen, setSubscribeModalOpen] = useState(false)
+
   return (
     <div className="container mx-auto max-w-screen-lg px-10 py-8 lg:px-0">
       <nav className="mb-8 flex items-center justify-between" aria-label="Global">
@@ -86,18 +89,14 @@ export default function Home() {
           </Link>
         </div>
         <div className="inline-flex items-center">
-          {/* <Link to={APP_ROUTES.LOGIN.href} className="btn-ghost btn-sm btn md:btn-md md:mr-5">
+          <Link to={APP_ROUTES.LOGIN.href} className="btn-ghost btn-sm btn md:btn-md md:mr-5">
             Log In
-          </Link> */}
-          <button type="button" className="btn-outline btn-accent btn-sm btn md:btn-md">
-            Join waitlist
+          </Link>
+          <button onClick={() => setSubscribeModalOpen(true)} className="btn-outline btn-accent btn-sm btn md:btn-md">
+            Get Started
           </button>
-          {/* <Link to={APP_ROUTES.JOIN.href} className="btn-outline btn-accent btn-sm btn md:btn-md">
-            Sign Up
-          </Link> */}
         </div>
       </nav>
-
       <main className="flex flex-col">
         <div className="mb-6">
           <h1 className="text-4xl font-black tracking-tight sm:text-center sm:text-6xl">
@@ -125,26 +124,23 @@ export default function Home() {
               <li>Keep standout excerpts.</li>
               <li>Refresh ideas for old podcasts.</li>
             </ul>
-            <p>
-              Want early access? Like and retweet{' '}
-              <a className="link-hover link-info link" target="_blank" rel="noreferrer" href="https://tomp3.cc/">
-                this tweet{' '}
-              </a>
-              .
-            </p>
           </ContentCardWrapper>
           <ContentCardWrapper
             className="order-first lg:order-none"
-            header={<h1 className="font-bold leading-loose">Want to help? Like & Retweet 🙏</h1>}
+            header={<h1 className="font-bold leading-loose">Get Started Today</h1>}
           >
-            <blockquote className="twitter-tweet">
-              <p lang="en" dir="ltr">
-                &quot;When you&#39;re starting out, the line between being an entrepreneur and being unemployed is kinda
-                in your head.&quot; -<a href="https://twitter.com/bchesky?ref_src=twsrc%5Etfw">@bchesky</a>
-              </p>
-              &mdash; Justin Hilliard (@jahilliar){' '}
-              <a href="https://twitter.com/jahilliar/status/1634993271964598272?ref_src=twsrc%5Etfw">March 12, 2023</a>
-            </blockquote>
+            <p>Get access to the full tool.</p>
+            <ul className="list-inside list-disc py-3">
+              <li>Unlimited file sizes.</li>
+              <li>Save your transcripts.</li>
+              <li>Schedule your tweets.</li>
+              <li>Upload via connected accounts.</li>
+              <li>Save tweets you like for later.</li>
+              <li>And much more...</li>
+            </ul>
+            <button onClick={() => setSubscribeModalOpen(true)} className={tw('btn my-2 block w-full ')}>
+              Get Started
+            </button>
           </ContentCardWrapper>
           <ContentCardWrapper header={<h1 className="font-bold leading-loose">Tips & Quickstart </h1>}>
             <p>Taking too long to generate tweets? No content, but want to see how it works? Try this</p>
@@ -175,8 +171,8 @@ export default function Home() {
         {fetcher.data &&
           (fetcher.data?.error ? fetcher.data.error.message : <TweetGrid tweets={fetcher.data.tweets} />)}
       </main>
-
       <PublicFooter />
+      <SubscribeModal isOpen={subscribeModalOpen} onClose={() => setSubscribeModalOpen(false)} />
     </div>
   )
 }
