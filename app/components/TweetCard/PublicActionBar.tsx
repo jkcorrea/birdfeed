@@ -34,21 +34,6 @@ export const PublicActionBar = ({ tweet }: { tweet: GeneratedTweet }) => {
   return (
     <div className="flex w-full items-center justify-between gap-4 pt-1 pb-2">
       <div className="inline-flex gap-3">
-        <fetcher.Form ref={zoDownvote.ref} action="/api/rate-tweet" method="post" className="inline">
-          <input readOnly name={zoDownvote.fields.tweetId()} type="hidden" value={tweet.id} />
-          <button
-            className={tw(
-              'btn-ghost btn-sm btn-circle btn !text-neutral disabled:bg-transparent',
-              isDownvoting && 'loading',
-              vote === 'upvote' && 'opacity-30 grayscale'
-            )}
-            disabled={Boolean(vote)}
-          >
-            {!isDownvoting && <HandThumbDownIcon className="h-6 w-6" />}
-            <span className="sr-only">Dislike</span>
-          </button>
-        </fetcher.Form>
-
         <fetcher.Form ref={zoUpvote.ref} action="/api/rate-tweet" method="post" className="inline">
           <input readOnly name={zoDownvote.fields.tweetId()} type="hidden" value={tweet.id} />
           <button
@@ -63,6 +48,21 @@ export const PublicActionBar = ({ tweet }: { tweet: GeneratedTweet }) => {
           >
             {!isUpvoting && <HandThumbUpIcon className="h-6 w-6" />}
             <span className="sr-only">Like</span>
+          </button>
+        </fetcher.Form>
+
+        <fetcher.Form ref={zoDownvote.ref} action="/api/rate-tweet" method="post" className="inline">
+          <input readOnly name={zoDownvote.fields.tweetId()} type="hidden" value={tweet.id} />
+          <button
+            className={tw(
+              'btn-ghost btn-sm btn-circle btn !text-neutral disabled:bg-transparent',
+              isDownvoting && 'loading',
+              vote === 'upvote' && 'opacity-30 grayscale'
+            )}
+            disabled={Boolean(vote)}
+          >
+            {!isDownvoting && <HandThumbDownIcon className="h-6 w-6" />}
+            <span className="sr-only">Dislike</span>
           </button>
         </fetcher.Form>
       </div>
