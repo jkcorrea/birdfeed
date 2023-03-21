@@ -9,7 +9,6 @@ import TweetActionBar from './TweetActionBar'
 
 interface BaseProps {
   onClick?: () => void
-  horizontal?: boolean
   showRating?: boolean
 }
 
@@ -23,12 +22,11 @@ interface TweetProps extends BaseProps {
   isPublic?: false
 }
 
-export const TweetListItem = ({ tweet, onClick, horizontal, showRating, isPublic }: PublicProps | TweetProps) => (
+export const TweetListItem = ({ tweet, onClick, showRating, isPublic }: PublicProps | TweetProps) => (
   <li
     className={tw(
-      'flex flex-col rounded-lg bg-base-100 py-2 px-4 shadow transition',
-      onClick && 'cursor-pointer hover:bg-primary/10',
-      horizontal ? 'min-w-[400px]' : 'min-w-[300px] grow'
+      'flex h-fit min-w-[300px] flex-col rounded-lg bg-base-100 py-2 px-4 shadow transition',
+      onClick && 'cursor-pointer hover:bg-primary/10'
     )}
     onClick={onClick}
   >

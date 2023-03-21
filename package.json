@@ -66,7 +66,8 @@
     "remix-utils": "^6.0.0",
     "stripe": "^11.14.0",
     "tailwind-merge": "^1.10.0",
-    "zod": "^3.21.4"
+    "zod": "^3.21.4",
+    "zodix": "^0.4.0"
   },
   "devDependencies": {
     "@ngneat/falso": "^6.4.0",

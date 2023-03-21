@@ -1,23 +1,40 @@
-import { useLoaderData, useSearchParams } from '@remix-run/react'
+import { Suspense } from 'react'
+import { XMarkIcon } from '@heroicons/react/24/outline'
+import { Await, useLoaderData, useNavigation, useSearchParams } from '@remix-run/react'
 import type { LoaderArgs } from '@remix-run/server-runtime'
+import { z } from 'zod'
+import { zx } from 'zodix'
 
 import { NativeSelectField } from '~/components/fields'
 import { TweetListItem } from '~/components/TweetList'
 import { db } from '~/database'
 import { response } from '~/lib/http.server'
+import { Logger } from '~/lib/utils'
 import { requireAuthSession } from '~/services/auth'
 import type { SerializedTweetItem } from '~/types'
+
+const FilterSchema = z.object({
+  rating: z.preprocess((v) => {
+    if (typeof v === 'undefined') return undefined
+    else if (v === 'null') return null
+    else if (typeof v === 'string') return Number(v)
+    return v
+  }, z.number().min(1).max(4).optional().nullable()),
+})
 
 export async function loader({ request }: LoaderArgs) {
   const authSession = await requireAuthSession(request)
   const { userId } = authSession
 
-  const url = new URL(request.url)
-  let rating: number | null | undefined = parseInt(url.searchParams.get('rating') as any, 10)
-  if (rating === 0) rating = null
-  else if (isNaN(rating)) rating = undefined
+  const parsed = zx.parseQuerySafe(request, FilterSchema)
+  let rating: number | null | undefined = undefined
+  if (parsed.success) {
+    rating = parsed.data.rating
+  } else {
+    Logger.error(`Invalid query params: ${parsed.error}`)
+  }
 
-  const tweets = await db.tweet.findMany({
+  const _tweets = db.tweet.findMany({
     where: {
       rating,
       archived: true,
@@ -25,31 +42,28 @@ export async function loader({ request }: LoaderArgs) {
     },
     orderBy: [{ rating: { sort: 'desc', nulls: 'last' } }, { updatedAt: 'desc' }],
   })
+  // NOTE: prisma has does something funky with promises. Wrap in a native promise
+  // see: https://github.com/remix-run/remix/issues/5153
+  const tweets = Promise.resolve(_tweets)
 
-  return response.ok({ tweets }, { authSession })
+  return response.defer({ tweets }, { authSession })
 }
 
 function IdeaBin() {
   const { tweets } = useLoaderData<typeof loader>()
-  const [left, right] = tweets.reduce<[SerializedTweetItem[], SerializedTweetItem[]]>(
-    (acc, tweet, i) => {
-      if (i % 2 === 0) acc[0].push(tweet)
-      else acc[1].push(tweet)
-      return acc
-    },
-    [[], []]
-  )
+  const nav = useNavigation()
+  const isLoading = nav.state === 'loading'
 
-  const [_, setParams] = useSearchParams()
-  const handleFilter = (e: React.ChangeEvent<HTMLSelectElement>) => {
+  const [params, setParams] = useSearchParams()
+  const isFiltered = Object.keys(FilterSchema.shape).some((key) => params.has(key))
+  const handleFilter = (e: React.ChangeEvent<HTMLSelectElement>) =>
     setParams({ rating: e.currentTarget.value }, { replace: true })
-  }
 
   return (
     <div className="mx-auto max-w-screen-lg py-4">
-      <div className="mb-4 flex w-full">
-        <div className="ml-auto space-x-2">
-          <NativeSelectField defaultValue="DEFAULT" name="rating" onChange={handleFilter}>
+      <div className="mb-4 flex w-full justify-between">
+        <div className="inline-flex items-center">
+          <NativeSelectField defaultValue={params.get('rating') ?? 'DEFAULT'} name="rating" onChange={handleFilter}>
             <option disabled value="DEFAULT">
               Filter by rating
             </option>
@@ -57,24 +71,84 @@ function IdeaBin() {
             <option value={3}>⭐️⭐️⭐️</option>
             <option value={2}>⭐️⭐️</option>
             <option value={1}>⭐️</option>
-            <option value={0}>Unrated</option>
+            <option value="null">Unrated</option>
           </NativeSelectField>
         </div>
+
+        <div className="inline-flex items-center">
+          <button
+            className="btn-ghost btn-sm btn flex items-center gap-x-1"
+            disabled={!isFiltered}
+            onClick={() => setParams({})}
+          >
+            <XMarkIcon className="h-5 w-5" />
+            Clear filters
+          </button>
+        </div>
       </div>
-      <div className="flex h-full gap-4">
-        <ul className="grid gap-4">
-          {left.map((tweet) => (
-            <TweetListItem key={tweet.id} showRating tweet={tweet} />
-          ))}
-        </ul>
-        <ul className="grid gap-4">
-          {right.map((tweet) => (
-            <TweetListItem key={tweet.id} showRating tweet={tweet} />
-          ))}
-        </ul>
-      </div>
+
+      {/* Main */}
+      <Suspense fallback={<Loading />}>
+        <Await resolve={tweets} errorElement={<Error />}>
+          {isLoading ? (
+            // Await only fallsback on initial page load, so we also fallback here for when filters are changed
+            <Loading />
+          ) : (
+            (tweets) => {
+              const [left, right] = tweets.reduce<[SerializedTweetItem[], SerializedTweetItem[]]>(
+                (acc, tweet, i) => {
+                  if (i % 2 === 0) acc[0].push(tweet)
+                  else acc[1].push(tweet)
+                  return acc
+                },
+                [[], []]
+              )
+
+              if (tweets.length === 0) return <Empty />
+
+              return (
+                <div className="flex h-full gap-4">
+                  <ul className="grid flex-1 gap-4">
+                    {left.map((tweet) => (
+                      <TweetListItem key={tweet.id} showRating tweet={tweet} />
+                    ))}
+                  </ul>
+                  <ul className="grid flex-1 gap-4">
+                    {right.map((tweet) => (
+                      <TweetListItem key={tweet.id} showRating tweet={tweet} />
+                    ))}
+                  </ul>
+                </div>
+              )
+            }
+          )}
+        </Await>
+      </Suspense>
     </div>
   )
 }
 
 export default IdeaBin
+
+const Loading = () => (
+  <div className="grid grid-cols-2 gap-4">
+    <div className="h-24 animate-pulse rounded-lg bg-base-300" />
+    <div className="h-24 animate-pulse rounded-lg bg-base-300" />
+    <div className="h-24 animate-pulse rounded-lg bg-base-300" />
+    <div className="h-24 animate-pulse rounded-lg bg-base-300" />
+    <div className="h-24 animate-pulse rounded-lg bg-base-300" />
+    <div className="h-24 animate-pulse rounded-lg bg-base-300" />
+  </div>
+)
+
+const Empty = () => (
+  <div className="mx-auto flex h-20 w-full max-w-md items-center justify-center rounded-lg bg-base-300 p-4 shadow-inner">
+    <h2 className="text-2xl font-bold">No tweets!</h2>
+  </div>
+)
+
+const Error = () => (
+  <div className="mx-auto flex h-20 w-full max-w-md items-center justify-center rounded-lg bg-base-300 p-4 shadow-inner">
+    <h2 className="text-2xl font-bold">Error loading tweets. Try refreshing.</h2>
+  </div>
+)
