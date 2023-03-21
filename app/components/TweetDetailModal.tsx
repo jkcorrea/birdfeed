@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react'
+import { createContext, useContext, useEffect, useRef, useState } from 'react'
 import { BarsArrowUpIcon, ChevronLeftIcon } from '@heroicons/react/24/outline'
 import { useFetcher } from '@remix-run/react'
 import dayjs from 'dayjs'
@@ -12,21 +12,46 @@ import FormErrorCatchall from '~/components/FormErrorCatchall'
 import FullscreenModal from '~/components/FullscreenModal'
 import { APP_ROUTES, TWEET_CHAR_LIMIT } from '~/lib/constants'
 import { useIsSubmitting } from '~/lib/hooks'
-import { tw } from '~/lib/utils'
+import { AppError, tw } from '~/lib/utils'
 import type { IHomeAction, IHomeActionIntent } from '~/routes/_app+/home/schemas'
 import { RestoreDraftSchema, UpdateTweetSchema } from '~/routes/_app+/home/schemas'
 import type { SerializedTweetItem } from '~/types'
 
-import TweetActionBar from './TweetActionBar'
+import TweetActionBar from './TweetCard/TweetActionBar'
 
 dayjs.extend(relativeTime)
+
+type TweetDetailModalState = {
+  tweet: SerializedTweetItem | null
+  setTweet: (tweet: SerializedTweetItem | null) => void
+}
+const Context = createContext<TweetDetailModalState | undefined>(undefined)
+
+export function TweetDetailModalProvider({ children }: { children: React.ReactNode }) {
+  const [tweet, setTweet] = useState<SerializedTweetItem | null>(null)
+
+  return (
+    <Context.Provider value={{ tweet, setTweet }}>
+      {children}
+      <TweetDetailModal tweet={tweet} onClose={() => setTweet(null)} />
+    </Context.Provider>
+  )
+}
+
+export function useTweetDetailModal() {
+  const ctx = useContext(Context)
+  if (ctx === undefined) {
+    throw new AppError('useTweetDetailModal must be used within a TweetDetailModalProvider')
+  }
+  return ctx
+}
 
 interface Props {
   tweet: SerializedTweetItem | null
   onClose: () => void
 }
 
-export function TweetDetailModal({ tweet, onClose: _onClose }: Props) {
+function TweetDetailModal({ tweet, onClose: _onClose }: Props) {
   const [showHistory, setShowHistory] = useState(false)
   const onClose = () => {
     setShowHistory(false)

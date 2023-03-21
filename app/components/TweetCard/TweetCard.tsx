@@ -22,7 +22,7 @@ interface TweetProps extends BaseProps {
   isPublic?: false
 }
 
-export const TweetListItem = ({ tweet, onClick, showRating, isPublic }: PublicProps | TweetProps) => (
+export const TweetCard = ({ tweet, onClick, showRating, isPublic }: PublicProps | TweetProps) => (
   <li
     className={tw(
       'flex h-fit min-w-[300px] flex-col rounded-lg bg-base-100 py-2 px-4 shadow transition',

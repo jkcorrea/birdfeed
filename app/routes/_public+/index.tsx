@@ -8,7 +8,7 @@ import type { ExternalScriptsFunction } from 'remix-utils'
 import { AnimatedWord } from '~/components/AnimatedWord'
 import { PublicFooter } from '~/components/PublicFooter'
 import TranscriptUploader from '~/components/TranscriptUploader'
-import { TweetListItem } from '~/components/TweetList'
+import { TweetCard } from '~/components/TweetCard'
 import { db } from '~/database'
 import { APP_ROUTES } from '~/lib/constants'
 import { NODE_ENV } from '~/lib/env'
@@ -209,10 +209,10 @@ function TweetGrid({ tweets }: { tweets: GeneratedTweet[] }) {
 
 function TweetColumn({ tweets, hasAd }: { tweets: GeneratedTweet[]; hasAd?: boolean }) {
   return (
-    <div className="grid h-min gap-4">
+    <div className="grid h-fit gap-4">
       {tweets.map((tweet, ix) => (
         <Fragment key={tweet.id}>
-          <TweetListItem isPublic tweet={tweet} />
+          <TweetCard isPublic tweet={tweet} />
           {hasAd && ix === Math.floor((tweets.length * 2) / 3) - 1 && (
             <div className="flex h-20 w-full flex-col items-center justify-center rounded-lg bg-base-300 text-center shadow-inner">
               <h3 className="text-lg font-bold">More, better tweets</h3>

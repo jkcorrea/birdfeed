@@ -42,7 +42,7 @@ const TranscriptHistory = ({ transcripts }: Props) => {
   }, [transcripts, topmostId])
 
   return (
-    <motion.ul layoutScroll className="mt-7 space-y-4 overflow-y-auto">
+    <motion.ul layoutScroll className="space-y-4 overflow-y-auto">
       {transcripts.map((t) => (
         <TranscriptItem
           key={t.id}

@@ -1,9 +1,11 @@
 import { Suspense } from 'react'
 import type { LoaderArgs } from '@remix-run/node'
 import { Await, useFetcher, useLoaderData } from '@remix-run/react'
+import { motion } from 'framer-motion'
 
 import TranscriptUploader from '~/components/TranscriptUploader'
-import { TweetList } from '~/components/TweetList'
+import { TweetCard } from '~/components/TweetCard'
+import { useTweetDetailModal } from '~/components/TweetDetailModal'
 import { db } from '~/database'
 import { response } from '~/lib/http.server'
 import { tw } from '~/lib/utils'
@@ -39,6 +41,8 @@ export default function HomePage() {
   const data = useLoaderData<typeof loader>()
   const fetcher = useFetcher()
 
+  const { setTweet } = useTweetDetailModal()
+
   return (
     <div className="flex h-full min-w-[1024px] gap-10 overflow-x-auto md:overflow-hidden lg:gap-12">
       <Column title="Transcripts" className="space-y-7">
@@ -55,7 +59,11 @@ export default function HomePage() {
           <Await resolve={data.recentTweets} errorElement={<Error />}>
             {(recentTweets) =>
               recentTweets.length > 0 ? (
-                <TweetList tweets={recentTweets} />
+                <motion.ul layoutScroll className="flex flex-col gap-4 overflow-y-auto p-1 md:p-5">
+                  {recentTweets.map((t) => (
+                    <TweetCard key={t.id} tweet={t} onClick={() => setTweet(t)} />
+                  ))}
+                </motion.ul>
               ) : (
                 <div className="flex h-20 items-center justify-center rounded-lg bg-base-300 p-2 px-6 text-center shadow-inner">
                   <h2 className="text-lg">

@@ -6,7 +6,8 @@ import { z } from 'zod'
 import { zx } from 'zodix'
 
 import { NativeSelectField } from '~/components/fields'
-import { TweetListItem } from '~/components/TweetList'
+import { TweetCard } from '~/components/TweetCard'
+import { useTweetDetailModal } from '~/components/TweetDetailModal'
 import { db } from '~/database'
 import { response } from '~/lib/http.server'
 import { Logger } from '~/lib/utils'
@@ -53,6 +54,8 @@ function IdeaBin() {
   const { tweets } = useLoaderData<typeof loader>()
   const nav = useNavigation()
   const isLoading = nav.state === 'loading'
+
+  const { setTweet } = useTweetDetailModal()
 
   const [params, setParams] = useSearchParams()
   const isFiltered = Object.keys(FilterSchema.shape).some((key) => params.has(key))
@@ -108,14 +111,14 @@ function IdeaBin() {
 
               return (
                 <div className="flex h-full gap-4">
-                  <ul className="grid flex-1 gap-4">
+                  <ul className="grid h-fit flex-1 gap-4">
                     {left.map((tweet) => (
-                      <TweetListItem key={tweet.id} showRating tweet={tweet} />
+                      <TweetCard key={tweet.id} showRating tweet={tweet} onClick={() => setTweet(tweet)} />
                     ))}
                   </ul>
-                  <ul className="grid flex-1 gap-4">
+                  <ul className="grid h-fit flex-1 gap-4">
                     {right.map((tweet) => (
-                      <TweetListItem key={tweet.id} showRating tweet={tweet} />
+                      <TweetCard key={tweet.id} showRating tweet={tweet} onClick={() => setTweet(tweet)} />
                     ))}
                   </ul>
                 </div>
