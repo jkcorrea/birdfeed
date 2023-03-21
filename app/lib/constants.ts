@@ -9,13 +9,18 @@ interface AppRoute {
 export const APP_ROUTES = {
   LANDING: { title: 'Birdfeed', href: '/' },
   HOME: { title: 'Home', href: '/home', showInNav: true },
+  HOME_TWEET: (tweetId: string) => ({ href: `/home/${tweetId}`, title: `Tweet ${tweetId}` }),
   IDEAS: { title: 'Idea Bin', href: '/ideas', showInNav: true },
+  IDEAS_TWEET: (tweetId: string, params?: URLSearchParams) => ({
+    href: `/ideas/${tweetId}${params ? '?' + params.toString() : ''}`,
+    title: `Tweet ${tweetId}`,
+  }),
   SETTINGS: { title: 'Settings', href: '/settings', showInNav: true },
   LOGIN: { title: 'Log In', href: '/login' },
   JOIN: { title: 'Join', href: '/join' },
   LOGOUT: { title: 'Log Out', href: '/logout' },
-} as const satisfies Record<string, AppRoute>
-export const NAV_ROUTES = Object.values(APP_ROUTES).filter((r) => 'showInNav' in r && r.showInNav)
+} as const satisfies Record<string, AppRoute | ((...args: any) => AppRoute)>
+export const NAV_ROUTES = Object.values(APP_ROUTES).filter((r) => 'showInNav' in r && r.showInNav) as AppRoute[]
 
 export const MIN_CONTENT_LENGTH = 1000
 
@@ -31,3 +36,5 @@ export const CLEANUP_WORDS = [
 export const TWEET_CHAR_LIMIT = 280
 
 export const UPLOAD_BUCKET_ID = 'birdfeed-transcription-files'
+
+export const LOADING_TOAST_ID = 'loading'

@@ -14,7 +14,8 @@ import IntentField from '../fields/IntentField'
 import SendTweetButton from './SendTweetButton'
 
 const starClassName = tw('mask mask-star-2 h-5 w-5 !bg-none text-neutral  transition duration-75')
-const btnClassName = 'btn-ghost tooltip tooltip-right btn-xs btn-circle btn flex items-center justify-center'
+const btnClassName =
+  'btn-ghost pointer-events-auto tooltip tooltip-right btn-xs btn-circle btn flex items-center justify-center'
 
 interface Props {
   tweet: SerializedTweetItem
@@ -47,7 +48,12 @@ function TweetActionBar({ tweet, onDelete, showRating }: Props) {
   return (
     <div className="inline-flex w-full justify-between gap-2 py-2">
       <div className="inline-flex items-center gap-3">
-        <fetcher.Form action={APP_ROUTES.HOME.href} method="post" ref={zoDelete.ref} className="flex items-center">
+        <fetcher.Form
+          action={APP_ROUTES.HOME.href}
+          method="post"
+          ref={zoDelete.ref}
+          className="pointer-events-none flex items-center"
+        >
           <IntentField<IHomeAction> value="delete-tweet" />
           <input name={zoDelete.fields.tweetId()} type="hidden" value={tweet.id} />
           <button className={btnClassName} data-tip="Delete">
@@ -56,7 +62,12 @@ function TweetActionBar({ tweet, onDelete, showRating }: Props) {
           </button>
         </fetcher.Form>
 
-        <fetcher.Form action={APP_ROUTES.HOME.href} method="post" ref={zoRegen.ref} className="flex items-center">
+        <fetcher.Form
+          action={APP_ROUTES.HOME.href}
+          method="post"
+          ref={zoRegen.ref}
+          className="pointer-events-none flex items-center"
+        >
           <IntentField<IHomeAction> value="regenerate-tweet" />
           <input name={zoRegen.fields.tweetId()} type="hidden" value={tweet.id} />
           <button className={btnClassName} data-tip="Re-generate" disabled={isRegenerating}>
@@ -65,7 +76,12 @@ function TweetActionBar({ tweet, onDelete, showRating }: Props) {
           </button>
         </fetcher.Form>
 
-        <fetcher.Form action={APP_ROUTES.HOME.href} method="post" ref={zoUpdate.ref} className="flex items-center">
+        <fetcher.Form
+          action={APP_ROUTES.HOME.href}
+          method="post"
+          ref={zoUpdate.ref}
+          className="pointer-events-none flex items-center"
+        >
           <IntentField<IHomeAction> value="update-tweet" />
           <input name={zoUpdate.fields.tweetId()} type="hidden" value={tweet.id} />
           <input name={zoUpdate.fields.archived()} type="hidden" value={tweet.archived ? 'unarchive' : 'archive'} />
@@ -76,48 +92,50 @@ function TweetActionBar({ tweet, onDelete, showRating }: Props) {
         </fetcher.Form>
       </div>
 
-      {showRating ? (
-        <div className="rating">
-          <input
-            type="radio"
-            data-rating={0}
-            style={{ boxShadow: 'none' }}
-            className="rating-hidden !border-none !bg-transparent !bg-none !outline-none !ring-transparent"
-            checked={!tweet.rating || tweet.rating < 0}
-            onChange={updateRating}
-          />
-          <input
-            type="radio"
-            data-rating={1}
-            className={starClassName}
-            checked={tweet.rating === 1}
-            onChange={updateRating}
-          />
-          <input
-            type="radio"
-            data-rating={2}
-            className={starClassName}
-            checked={tweet.rating === 2}
-            onChange={updateRating}
-          />
-          <input
-            type="radio"
-            data-rating={3}
-            className={starClassName}
-            checked={tweet.rating === 3}
-            onChange={updateRating}
-          />
-          <input
-            type="radio"
-            data-rating={4}
-            className={starClassName}
-            checked={tweet.rating === 4}
-            onChange={updateRating}
-          />
-        </div>
-      ) : (
-        <SendTweetButton body={tweet.drafts[0]} />
-      )}
+      <div className="pointer-events-none">
+        {showRating ? (
+          <div className="rating pointer-events-auto">
+            <input
+              type="radio"
+              data-rating={0}
+              style={{ boxShadow: 'none' }}
+              className="rating-hidden !border-none !bg-transparent !bg-none !outline-none !ring-transparent"
+              checked={!tweet.rating || tweet.rating < 0}
+              onChange={updateRating}
+            />
+            <input
+              type="radio"
+              data-rating={1}
+              className={starClassName}
+              checked={tweet.rating === 1}
+              onChange={updateRating}
+            />
+            <input
+              type="radio"
+              data-rating={2}
+              className={starClassName}
+              checked={tweet.rating === 2}
+              onChange={updateRating}
+            />
+            <input
+              type="radio"
+              data-rating={3}
+              className={starClassName}
+              checked={tweet.rating === 3}
+              onChange={updateRating}
+            />
+            <input
+              type="radio"
+              data-rating={4}
+              className={starClassName}
+              checked={tweet.rating === 4}
+              onChange={updateRating}
+            />
+          </div>
+        ) : (
+          <SendTweetButton body={tweet.drafts[0]} />
+        )}
+      </div>
     </div>
   )
 }

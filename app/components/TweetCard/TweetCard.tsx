@@ -1,5 +1,8 @@
+import { Link } from '@remix-run/react'
 import type { ReactNode } from 'react'
+import { toast } from 'react-hot-toast'
 
+import { LOADING_TOAST_ID } from '~/lib/constants'
 import { tw } from '~/lib/utils'
 import type { GeneratedTweet } from '~/services/openai'
 import type { SerializedTweetItem } from '~/types'
@@ -8,8 +11,8 @@ import { PublicActionBar } from './PublicActionBar'
 import TweetActionBar from './TweetActionBar'
 
 interface BaseProps {
-  onClick?: () => void
   showRating?: boolean
+  linkTo?: string
 }
 
 interface PublicProps extends BaseProps {
@@ -22,33 +25,46 @@ interface TweetProps extends BaseProps {
   isPublic?: false
 }
 
-export const TweetCard = ({ tweet, onClick, showRating, isPublic }: PublicProps | TweetProps) => (
-  <li
-    className={tw(
-      'flex h-fit min-w-[300px] flex-col rounded-lg bg-base-100 py-2 px-4 shadow transition',
-      onClick && 'cursor-pointer hover:bg-primary/10'
-    )}
-    onClick={onClick}
-  >
-    {isPublic && (
-      <TwitterAccountHeader
-        icon={
-          <div className="bg-opacity/60 flex w-fit items-center rounded-full bg-base-300 p-1.5 px-3 text-xl">🐣</div>
-        }
-        name="birdfeed"
-        handle="@birdfeed.ai"
-      />
-    )}
+export const TweetCard = ({ tweet, showRating, isPublic, linkTo }: PublicProps | TweetProps) => {
+  const handleLoadTweet = () => {
+    toast.loading('Loading tweet...', { id: LOADING_TOAST_ID })
+  }
 
-    {/* Tweet content */}
-    <p className="w-full p-4 ">{tweet.drafts[0]}</p>
+  const body = (
+    <li
+      className={tw(
+        'flex h-fit min-w-[300px] flex-col rounded-lg bg-base-100 py-2 px-4 shadow transition',
+        linkTo && 'cursor-pointer hover:bg-primary/10'
+      )}
+    >
+      {isPublic && (
+        <TwitterAccountHeader
+          icon={
+            <div className="bg-opacity/60 flex w-fit items-center rounded-full bg-base-300 p-1.5 px-3 text-xl">🐣</div>
+          }
+          name="birdfeed"
+          handle="@birdfeed.ai"
+        />
+      )}
 
-    <div className="divider divider-vertical mt-auto mb-0" />
-    <div className="flex  px-4" onClick={(e) => e.stopPropagation()}>
-      {isPublic ? <PublicActionBar tweet={tweet} /> : <TweetActionBar tweet={tweet} showRating={showRating} />}
-    </div>
-  </li>
-)
+      {/* Tweet content */}
+      <p className="w-full p-4 ">{tweet.drafts[0]}</p>
+
+      <div className="divider divider-vertical mt-auto mb-0" />
+      <div className="flex  px-4" onClick={(e) => e.stopPropagation()}>
+        {isPublic ? <PublicActionBar tweet={tweet} /> : <TweetActionBar tweet={tweet} showRating={showRating} />}
+      </div>
+    </li>
+  )
+
+  if (!linkTo) return body
+
+  return (
+    <Link prefetch="intent" to={linkTo} onClick={handleLoadTweet}>
+      {body}
+    </Link>
+  )
+}
 
 const TwitterAccountHeader = ({ icon, name, handle }: { icon: ReactNode; name: string; handle: string }) => (
   <>

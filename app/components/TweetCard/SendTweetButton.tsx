@@ -7,15 +7,15 @@ interface Props {
 }
 
 const SendTweetButton = ({ body }: Props) => (
-  <a
-    target="_blank"
-    rel="noreferrer"
-    href={buildSendTweetUrl(body, true)}
-    type="button"
-    className="btn-primary btn-info btn-sm btn gap-2 lowercase text-white"
+  <div
+    className="btn-primary btn-info btn-sm btn pointer-events-auto gap-2 lowercase text-white"
+    onClick={(e) => {
+      e.preventDefault()
+      window.open(buildSendTweetUrl(body, true), '_blank', 'noopener,noreferrer')
+    }}
   >
     tweet
     <PaperAirplaneIcon className="-mt-1 h-4 w-4 -rotate-45" />
-  </a>
+  </div>
 )
 export default SendTweetButton

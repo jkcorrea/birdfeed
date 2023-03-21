@@ -3,7 +3,6 @@ import { Outlet, useLoaderData, useLocation } from '@remix-run/react'
 import type { LoaderArgs, SerializeFrom } from '@remix-run/server-runtime'
 
 import { Navbar } from '~/components/AppNavbar'
-import { TweetDetailModalProvider } from '~/components/TweetDetailModal'
 import { ph } from '~/lib/analytics'
 import { response } from '~/lib/http.server'
 import { isAnonymousSession, requireAuthSession } from '~/services/auth'
@@ -45,12 +44,12 @@ export default function AppLayout() {
   }, [email])
 
   return (
-    <TweetDetailModalProvider>
+    <>
       <Navbar key={location.key} />
 
       <main className="mx-auto min-h-[500px] w-full max-w-screen-2xl grow py-4 px-8 md:px-0 lg:mt-5">
         <Outlet />
       </main>
-    </TweetDetailModalProvider>
+    </>
   )
 }

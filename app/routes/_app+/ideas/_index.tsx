@@ -1,14 +1,14 @@
 import { Suspense } from 'react'
 import { XMarkIcon } from '@heroicons/react/24/outline'
-import { Await, useLoaderData, useNavigation, useSearchParams } from '@remix-run/react'
+import { Await, Outlet, useLoaderData, useNavigation, useNavigationType, useSearchParams } from '@remix-run/react'
 import type { LoaderArgs } from '@remix-run/server-runtime'
 import { z } from 'zod'
 import { zx } from 'zodix'
 
 import { NativeSelectField } from '~/components/fields'
 import { TweetCard } from '~/components/TweetCard'
-import { useTweetDetailModal } from '~/components/TweetDetailModal'
 import { db } from '~/database'
+import { APP_ROUTES } from '~/lib/constants'
 import { response } from '~/lib/http.server'
 import { Logger } from '~/lib/utils'
 import { requireAuthSession } from '~/services/auth'
@@ -53,9 +53,8 @@ export async function loader({ request }: LoaderArgs) {
 function IdeaBin() {
   const { tweets } = useLoaderData<typeof loader>()
   const nav = useNavigation()
-  const isLoading = nav.state === 'loading'
-
-  const { setTweet } = useTweetDetailModal()
+  const navType = useNavigationType()
+  const isLoading = nav.state === 'loading' && navType === 'REPLACE' // only show loading state when changing filters
 
   const [params, setParams] = useSearchParams()
   const isFiltered = Object.keys(FilterSchema.shape).some((key) => params.has(key))
@@ -113,12 +112,22 @@ function IdeaBin() {
                 <div className="flex h-full gap-4">
                   <ul className="grid h-fit flex-1 gap-4">
                     {left.map((tweet) => (
-                      <TweetCard key={tweet.id} showRating tweet={tweet} onClick={() => setTweet(tweet)} />
+                      <TweetCard
+                        key={tweet.id}
+                        showRating
+                        tweet={tweet}
+                        linkTo={APP_ROUTES.IDEAS_TWEET(tweet.id, params).href}
+                      />
                     ))}
                   </ul>
                   <ul className="grid h-fit flex-1 gap-4">
                     {right.map((tweet) => (
-                      <TweetCard key={tweet.id} showRating tweet={tweet} onClick={() => setTweet(tweet)} />
+                      <TweetCard
+                        key={tweet.id}
+                        showRating
+                        tweet={tweet}
+                        linkTo={APP_ROUTES.IDEAS_TWEET(tweet.id).href}
+                      />
                     ))}
                   </ul>
                 </div>
@@ -127,6 +136,8 @@ function IdeaBin() {
           )}
         </Await>
       </Suspense>
+
+      <Outlet />
     </div>
   )
 }
