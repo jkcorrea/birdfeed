@@ -130,7 +130,7 @@ export async function deleteAuthAccountByEmail(email: string) {
 /**
  * Try to refresh the access token and return the new auth session or null.
  */
-export async function refreshAccessToken(refreshToken?: string) {
+export async function refreshAuthAccessToken(refreshToken?: string) {
   try {
     if (!refreshToken) {
       throw new AppError({

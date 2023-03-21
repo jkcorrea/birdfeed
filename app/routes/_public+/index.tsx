@@ -14,7 +14,7 @@ import { APP_ROUTES } from '~/lib/constants'
 import { NODE_ENV } from '~/lib/env'
 import { response } from '~/lib/http.server'
 import { parseData, tw } from '~/lib/utils'
-import { isAnonymousSession } from '~/services/auth'
+import { hasAuthSession } from '~/services/auth/session.server'
 import type { GeneratedTweet } from '~/services/openai'
 import { generateTweetsFromContent } from '~/services/openai'
 
@@ -37,9 +37,9 @@ const scripts: ExternalScriptsFunction = () =>
 export const handle = { scripts }
 
 export async function loader({ request }: LoaderArgs) {
-  const isAnonymous = await isAnonymousSession(request)
+  const isAuth = await hasAuthSession(request)
 
-  if (!isAnonymous) {
+  if (isAuth) {
     return response.redirect(APP_ROUTES.HOME.href, { authSession: null })
   }
 
