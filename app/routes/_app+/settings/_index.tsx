@@ -12,8 +12,6 @@ import { getPricingPlan, getSubscription } from '~/services/billing'
 import { getTwitterOAuthRedirectURL } from '~/services/twitter'
 import { deleteUser, getBillingInfo, getUserTier } from '~/services/user'
 
-import { PricingTable } from './PricingTable'
-
 export async function loader({ request }: LoaderArgs) {
   const authSession = await requireAuthSession(request)
   const { userId } = authSession
@@ -75,24 +73,20 @@ export default function Subscription() {
   return (
     <div className="flex flex-col gap-y-10">
       <div className="flex flex-col items-center justify-center gap-y-2">
-        <Form method="post">
+        {/* <Form method="post">
           <IntentField<SettingsReducer> value={'add-twitter'} />
           <button type="submit" className="btn-accent btn">
             Add Twitter
           </button>
-        </Form>
+        </Form> */}
         <customerPortalFetcher.Form method="post" action="/api/billing/customer-portal">
-          <button
-            type="button"
-            disabled={isSubmitting}
-            className={tw('btn', cancelAtPeriodEnd ? 'btn-warning' : 'btn-accent')}
-          >
+          <button disabled={isSubmitting} className={tw('btn', cancelAtPeriodEnd ? 'btn-warning' : 'btn-accent')}>
             {isSubmitting
               ? 'Redirecting to Customer Portal...'
               : userTier.id !== 'free'
               ? cancelAtPeriodEnd
                 ? 'Renew my subscription'
-                : 'Upgrade or cancel my subscription'
+                : 'Manage subscription'
               : 'Go to Customer Portal'}
           </button>
         </customerPortalFetcher.Form>
@@ -107,7 +101,7 @@ export default function Subscription() {
           </span>
         ) : null}
       </div>
-      <PricingTable pricingPlan={pricingPlan} userTierId={userTier.id} defaultDisplayAnnual={interval === 'year'} />
+      {/* <PricingTable pricingPlan={pricingPlan} userTierId={userTier.id} defaultDisplayAnnual={interval === 'year'} /> */}
 
       <div className="flex justify-center">
         <DeleteTestAccount />
