@@ -1,7 +1,8 @@
 import type { ActionArgs } from '@remix-run/node'
 import { z } from 'zod'
 
-import { TierId } from '@prisma/client'
+import { TierId, TokenType } from '@prisma/client'
+import { db } from '~/database'
 import { STRIPE_ENDPOINT_SECRET } from '~/lib/env'
 import { response } from '~/lib/http.server'
 import { AppError, parseData } from '~/lib/utils'
@@ -53,25 +54,62 @@ export async function action({ request }: ActionArgs) {
   try {
     switch (event.type) {
       case 'checkout.session.completed': {
-        const { id } = await parseData(
+        const { id, metadata } = await parseData(
           event.data.object,
           z
             .object({
               subscription: z.string(),
               payment_status: z.literal('paid'),
+              metadata: z.discriminatedUnion(`isAnonymous`, [
+                z.object({
+                  isAnonymous: z.literal('true'),
+                  token: z.string(),
+                }),
+                z.object({ isAnonymous: z.literal('false') }),
+              ]),
             })
-            .transform(({ subscription }) => ({ id: subscription })),
+            .transform(({ subscription, metadata }) => ({ id: subscription, metadata })),
           `${event.type} payload is malformed`
         )
 
-        const subscription = await fetchSubscription(id)
+        if (metadata.isAnonymous === 'false') {
+          const subscription = await fetchSubscription(id)
 
-        const createdSubscription = await createSubscription({
-          id,
-          ...subscription,
-        })
+          const createdSubscription = await createSubscription({
+            id,
+            ...subscription,
+          })
+          return response.ok(createdSubscription, { authSession: null })
+        } else {
+          const { token } = metadata
 
-        return response.ok(createdSubscription, { authSession: null })
+          const dbToken = await db.tokens.findUnique({
+            where: {
+              token_type: {
+                token,
+                type: TokenType.PURCHASED_COMPLETED_TOKEN,
+              },
+            },
+          })
+
+          await db.tokens.update({
+            where: {
+              token_type: {
+                token,
+                type: TokenType.PURCHASED_COMPLETED_TOKEN,
+              },
+            },
+            data: {
+              active: true,
+              metadata: {
+                ...(dbToken!.metadata as any),
+                subscriptionId: id,
+              },
+            },
+          })
+
+          return response.ok({}, { authSession: null })
+        }
       }
 
       case 'customer.subscription.updated': {

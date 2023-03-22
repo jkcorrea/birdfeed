@@ -4,13 +4,16 @@ import { Form, Link, useActionData, useNavigation, useSearchParams } from '@remi
 import { parseFormAny, useZorm } from 'react-zorm'
 import { z } from 'zod'
 
+import { TokenType } from '@prisma/client'
 import { TextField } from '~/components/fields'
+import { db } from '~/database'
 import { APP_ROUTES } from '~/lib/constants'
 import { useIsSubmitting } from '~/lib/hooks'
 import { response } from '~/lib/http.server'
 import { AppError, parseData } from '~/lib/utils'
 import { createAuthSession } from '~/services/auth'
 import { hasAuthSession } from '~/services/auth/session.server'
+import { createSubscription, fetchSubscription } from '~/services/billing'
 import { createUserAccount, getUserByEmail } from '~/services/user'
 
 export async function loader({ request }: LoaderArgs) {
@@ -33,6 +36,7 @@ const JoinFormSchema = z.object({
     .email('invalid-email')
     .transform((email) => email.toLowerCase()),
   password: z.string().min(8, 'password-too-short'),
+  checkoutToken: z.string(),
   redirectTo: z.string().optional(),
 })
 
@@ -44,9 +48,26 @@ export async function action({ request }: ActionArgs) {
       'Join form payload is invalid'
     )
 
+    const token = await db.tokens.findUnique({
+      where: {
+        token_type: {
+          token: payload.checkoutToken,
+          type: TokenType.PURCHASED_COMPLETED_TOKEN,
+        },
+      },
+    })
+
+    // @ts-expect-error this can be a string or a number, but won't be in this case
+    if (!token || !token.active || !token.metadata.subscriptionId || !token.metadata.stripeCustomerId)
+      throw new AppError({ message: 'This token is not valid', status: 403 })
+
+    // @ts-expect-error this can be a string or a number, but won't be in this case
+    const { subscriptionId, stripeCustomerId } = token.metadata
+
     const { email, password, redirectTo } = payload
 
     const existingUser = await getUserByEmail(email)
+
     if (existingUser) {
       throw new AppError({
         message: 'This email has already been used',
@@ -57,7 +78,24 @@ export async function action({ request }: ActionArgs) {
 
     const authSession = await createUserAccount({
       email,
+      customerId: stripeCustomerId,
       password,
+    })
+
+    const subscription = await fetchSubscription(subscriptionId)
+
+    await createSubscription({
+      id: subscriptionId,
+      ...subscription,
+    })
+
+    await db.tokens.update({
+      where: {
+        id: token.id,
+      },
+      data: {
+        active: false,
+      },
     })
 
     return createAuthSession({
@@ -80,35 +118,37 @@ export default function Join() {
 
   return (
     <div className="flex min-h-full flex-col justify-center">
-      <div className="mx-auto w-full max-w-md px-8">
+      <div className="mx-auto w-full max-w-md rounded-lg bg-base-100 py-6 px-8 shadow">
         <Form ref={zo.ref} method="post" className="space-y-6" replace>
-          <h1 className="text-2xl font-bold">Create an account</h1>
-          <p className="text-gray-500">
-            Access is currently invite only. For info on how to join the waitlist, see the home page.
-          </p>
+          <div>
+            <h1 className="text-2xl font-bold">Create an account</h1>
+            <div className="divider divider-vertical my-0" />
+          </div>
+          <div className="space-y-2 pb-4">
+            <TextField
+              data-test-id="email"
+              label="Email"
+              error={zo.errors.email()?.message}
+              name={zo.fields.email()}
+              type="email"
+              autoComplete="email"
+              autoFocus={true}
+              disabled={isSubmitting}
+            />
 
-          <TextField
-            data-test-id="email"
-            label="Email"
-            error={zo.errors.email()?.message}
-            name={zo.fields.email()}
-            type="email"
-            autoComplete="email"
-            autoFocus={true}
-            disabled={isSubmitting}
-          />
+            <TextField
+              data-test-id="password"
+              label="Password"
+              error={zo.errors.password()?.message}
+              name={zo.fields.password()}
+              type="password"
+              autoComplete="new-password"
+              disabled={isSubmitting}
+            />
 
-          <TextField
-            data-test-id="password"
-            label="Password"
-            error={zo.errors.password()?.message}
-            name={zo.fields.password()}
-            type="password"
-            autoComplete="new-password"
-            disabled={isSubmitting}
-          />
-
-          <input type="hidden" name={zo.fields.redirectTo()} value={redirectTo} />
+            <input type="hidden" name={zo.fields.redirectTo()} value={redirectTo} />
+            <input type="hidden" name="checkoutToken" value={searchParams.get('token') || ''} />
+          </div>
 
           <button className="btn-primary btn w-full" disabled={isSubmitting}>
             {isSubmitting ? '...' : 'Create Account'}

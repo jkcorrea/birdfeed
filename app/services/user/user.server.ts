@@ -9,7 +9,7 @@ import type { User } from './types'
 
 const tag = 'User service 🧑'
 
-type UserCreatePayload = Pick<AuthSession, 'userId' | 'email'>
+type UserCreatePayload = Pick<AuthSession, 'userId' | 'email'> & { customerId: string }
 
 export async function getUserByEmail(email: User['email']) {
   try {
@@ -29,10 +29,8 @@ export async function getUserByEmail(email: User['email']) {
   }
 }
 
-async function createUser({ email, userId }: UserCreatePayload) {
+async function createUser({ email, userId, customerId }: UserCreatePayload) {
   try {
-    const { id: customerId } = await stripe.customers.create({ email })
-
     const user = await db.user.create({
       data: {
         email,
@@ -53,13 +51,14 @@ async function createUser({ email, userId }: UserCreatePayload) {
   }
 }
 
-export async function createUserAccount(payload: { email: string; password: string }) {
-  const { email, password } = payload
+export async function createUserAccount(payload: { email: string; password: string; customerId: string }) {
+  const { email, password, customerId } = payload
 
   try {
     const { id: userId } = await createEmailAuthAccount(email, password)
     const authSession = await signInWithEmail(email, password)
     await createUser({
+      customerId,
       email,
       userId,
     })

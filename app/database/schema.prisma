@@ -127,6 +127,25 @@ model PriceCurrency {
   @@map("prices_currencies")
 }
 
+enum TokenType {
+  PURCHASED_COMPLETED_TOKEN
+}
+
+// Tokens require a type.  The schema of the metadata is dependent on the type
+model tokens {
+  id        String   @id @default(cuid())
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  active    Boolean  @default(true)
+  token     String
+  type        TokenType
+  expiresAt   DateTime?
+  metadata Json @default("{}")
+  @@unique([token, type])
+
+  @@map("tokens")
+}
+
 // Managed by Stripe webhook
 model Subscription {
   id                 String             @id // Created by Stripe

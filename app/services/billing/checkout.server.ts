@@ -5,10 +5,21 @@ import { stripe } from './stripe.server'
 
 const tag = 'Checkout service 🛒'
 
-export async function createCheckoutSession({ customerId, priceId }: { customerId: string; priceId: string }) {
+export async function createCheckoutSession({
+  customerId,
+  priceId,
+  metadata,
+  success_url,
+}: {
+  customerId: string
+  priceId: string
+  success_url: string
+  metadata?: Record<string, string | number | null>
+}) {
   try {
     const { url } = await stripe.checkout.sessions.create({
       customer: customerId,
+      metadata,
       line_items: [
         {
           price: priceId,
@@ -17,8 +28,8 @@ export async function createCheckoutSession({ customerId, priceId }: { customerI
       ],
       mode: 'subscription',
       payment_method_types: ['card'],
-      success_url: `${SERVER_URL}/checkout`,
-      cancel_url: `${SERVER_URL}/subscription`,
+      success_url,
+      cancel_url: `${SERVER_URL}/`,
     })
 
     if (!url) {
