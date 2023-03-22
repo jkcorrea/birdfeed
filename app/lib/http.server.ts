@@ -50,15 +50,15 @@ export function getDefaultCurrency(request: Request) {
 
 type ResponseOptions = ResponseInit & {
   authSession: SessionWithCookie | null
+  anonSession?: SessionWithCookie
   status?: HTTPStatusCode
 }
 
-function makeOptions({ authSession, ...options }: ResponseOptions) {
+function makeOptions({ authSession, anonSession, ...options }: ResponseOptions) {
   const headers = new Headers(options.headers)
 
-  if (authSession) {
-    headers.append('Set-Cookie', authSession.cookie)
-  }
+  if (authSession) headers.append('Set-Cookie', authSession.cookie)
+  if (anonSession) headers.append('Set-Cookie', anonSession.cookie)
 
   return { ...options, headers }
 }

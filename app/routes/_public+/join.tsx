@@ -9,14 +9,15 @@ import { APP_ROUTES } from '~/lib/constants'
 import { useIsSubmitting } from '~/lib/hooks'
 import { response } from '~/lib/http.server'
 import { AppError, parseData } from '~/lib/utils'
-import { createAuthSession, isAnonymousSession } from '~/services/auth'
+import { createAuthSession } from '~/services/auth'
+import { hasAuthSession } from '~/services/auth/session.server'
 import { createUserAccount, getUserByEmail } from '~/services/user'
 
 export async function loader({ request }: LoaderArgs) {
   try {
-    const isAnonymous = await isAnonymousSession(request)
+    const isAuth = await hasAuthSession(request)
 
-    if (!isAnonymous) {
+    if (isAuth) {
       return response.redirect(APP_ROUTES.HOME.href, { authSession: null })
     }
 

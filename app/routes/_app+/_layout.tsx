@@ -5,16 +5,17 @@ import type { LoaderArgs, SerializeFrom } from '@remix-run/server-runtime'
 import { Navbar } from '~/components/AppNavbar'
 import { ph } from '~/lib/analytics'
 import { response } from '~/lib/http.server'
-import { isAnonymousSession, requireAuthSession } from '~/services/auth'
+import { requireAuthSession } from '~/services/auth'
+import { hasAuthSession } from '~/services/auth/session.server'
 import { getUserTier } from '~/services/user'
 
 export type AppLayoutLoaderData = SerializeFrom<typeof loader>
 
 export async function loader({ request }: LoaderArgs) {
   try {
-    const isAnonymous = await isAnonymousSession(request)
+    const isAuth = await hasAuthSession(request)
 
-    if (isAnonymous) {
+    if (!isAuth) {
       return response.redirect('/', { authSession: null })
     }
 
