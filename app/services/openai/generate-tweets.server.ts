@@ -17,7 +17,7 @@ const RESULT_REGEX = /(?:\d\W*)\s*"?(.*)"?$/gm
 const UNNECESSARY_QUOTES_REGEX = /(^"|"$)/g
 const HASHTAGS_REGEX = /#\w+(?:\s+|$)/g
 
-const CHUNK_SIZE = 11250 // 15min * 150wpm * 5char/word => 2250
+const CHUNK_SIZE = 8000 // 10min * 150wpm * 5char/word
 
 const cleanup = (str: string) => str.replaceAll(UNNECESSARY_QUOTES_REGEX, '').replaceAll(HASHTAGS_REGEX, '').trim()
 
@@ -42,25 +42,35 @@ export async function generateTweetsFromContent(content: string, settings?: Prom
 
   const chunks = await splitter.createDocuments([content])
   if (chunks.length > 1) Logger.info('Split transcript into chunks', chunks.length)
+  Logger.info('OpenAI prompt', chunks[0].pageContent.length)
 
   let completions = FIXTURES['good']
   if (!__skip_openai) {
-    const prompts = chunks.map((chunk) =>
-      makeGenPrompt({
-        transcript: chunk.pageContent,
-        // Try to get ~10 tweets, but don't go over 15
-        numTweets: Math.round(clamp(maxTweets / chunks.length, 1, 15)),
-        tone,
-        topics,
-      })
-    )
+    const prompts = chunks
+      //  if it's too short, we'll get an error from openai
+      .filter((chunk) => chunk.pageContent.length > 400)
+      .map((chunk) =>
+        makeGenPrompt({
+          transcript: chunk.pageContent,
+          // Try to get ~10 tweets, but don't go over 15
+          numTweets: Math.round(clamp(maxTweets / chunks.length, 1, 15)),
+          tone,
+          topics,
+        })
+      )
+
+    if (prompts.length < 1)
+      throw new Error('No prompts generated.  Either transcript is too short or some other issue generating prompts.')
 
     Logger.info('OpenAI prompt', prompts[0])
     // Langchain calls to openai with 1 request w/ mutliple messages (aka prompts)
     // This structure makes multiple called to openai with 1 message each
     const responsesPromises = prompts.map((prompt) => model.generate([prompt]))
     const responses = await Promise.all(responsesPromises)
-    completions = responses.reduce((acc, res) => [...acc, ...res.generations.map((gen) => gen[0].text)], [] as string[])
+    completions = (responses || []).reduce(
+      (acc, res) => [...acc, ...res.generations.map((gen) => gen[0].text)],
+      [] as string[]
+    )
     Logger.info('OpenAI raw response', completions.join('\n'))
   }
 

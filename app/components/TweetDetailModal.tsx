@@ -4,13 +4,14 @@ import { useFetcher } from '@remix-run/react'
 import dayjs from 'dayjs'
 import relativeTime from 'dayjs/plugin/relativeTime'
 import { transform } from 'framer-motion'
+import { toast } from 'react-hot-toast'
 import { useZorm, Value } from 'react-zorm'
 
 import { TextAreaField } from '~/components/fields'
 import IntentField from '~/components/fields/IntentField'
 import FormErrorCatchall from '~/components/FormErrorCatchall'
 import FullscreenModal from '~/components/FullscreenModal'
-import { APP_ROUTES, TWEET_CHAR_LIMIT } from '~/lib/constants'
+import { APP_ROUTES, LOADING_TWEET_TOAST_ID, TWEET_CHAR_LIMIT } from '~/lib/constants'
 import { useIsSubmitting } from '~/lib/hooks'
 import { tw } from '~/lib/utils'
 import type { IHomeAction, IHomeActionIntent } from '~/routes/_app+/home/schemas'
@@ -52,6 +53,11 @@ export function TweetDetailModal({ tweet, onClose: _onClose }: Props) {
     }, 0)
   }
   useEffect(expandTextArea, [tweet, showHistory])
+
+  // Dismiss tweet detail modal
+  useEffect(() => {
+    toast.dismiss(LOADING_TWEET_TOAST_ID)
+  }, [])
 
   return (
     <FullscreenModal
