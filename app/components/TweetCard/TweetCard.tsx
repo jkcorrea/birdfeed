@@ -2,7 +2,7 @@ import { Link } from '@remix-run/react'
 import type { ReactNode } from 'react'
 import { toast } from 'react-hot-toast'
 
-import { LOADING_TOAST_ID } from '~/lib/constants'
+import { LOADING_TWEET_TOAST_ID } from '~/lib/constants'
 import { tw } from '~/lib/utils'
 import type { GeneratedTweet } from '~/services/openai'
 import type { SerializedTweetItem } from '~/types'
@@ -27,7 +27,7 @@ interface TweetProps extends BaseProps {
 
 export const TweetCard = ({ tweet, showRating, isPublic, linkTo }: PublicProps | TweetProps) => {
   const handleLoadTweet = () => {
-    toast.loading('Loading tweet...', { id: LOADING_TOAST_ID })
+    toast.loading('Loading tweet...', { id: LOADING_TWEET_TOAST_ID })
   }
 
   const body = (

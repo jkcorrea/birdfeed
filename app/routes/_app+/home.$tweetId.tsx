@@ -1,13 +1,10 @@
-import { Suspense, useEffect } from 'react'
+import { Suspense } from 'react'
 import { Await, useLoaderData, useLocation, useNavigate } from '@remix-run/react'
-import type { LoaderArgs, SerializeFrom } from '@remix-run/server-runtime'
-import { toast } from 'react-hot-toast'
+import type { LoaderArgs } from '@remix-run/server-runtime'
 
-import type { Tweet } from '@prisma/client'
 import { TweetDetailModal } from '~/components/TweetDetailModal'
 import { db } from '~/database'
-import { APP_ROUTES, LOADING_TOAST_ID } from '~/lib/constants'
-import { SERVER_URL } from '~/lib/env'
+import { APP_ROUTES } from '~/lib/constants'
 import { response } from '~/lib/http.server'
 import { requireAuthSession } from '~/services/auth'
 
@@ -17,7 +14,9 @@ export async function loader({ request, params }: LoaderArgs) {
 
   // check if referrer is on our domain
   const referrer = request.headers.get('Referer')
-  const canGoBack = Boolean(referrer && referrer.startsWith(SERVER_URL))
+  // get our domain from request
+  const host = request.headers.get('Host')
+  const canGoBack = Boolean(referrer && referrer.match(new RegExp(`^https?://${host}`)))
 
   try {
     const _tweet = db.tweet.findUnique({
@@ -36,35 +35,23 @@ export async function loader({ request, params }: LoaderArgs) {
 
 export default function TweetCard() {
   const data = useLoaderData<typeof loader>()
-
-  return (
-    <Suspense>
-      <Await resolve={data.tweet}>{(tweet) => <Page canGoBack={data.canGoBack} tweet={tweet} />}</Await>
-    </Suspense>
-  )
-}
-
-interface Props {
-  canGoBack: boolean
-  tweet: SerializeFrom<Tweet> | null
-}
-
-function Page({ tweet, canGoBack }: Props) {
-  // check referrer url
-
   const navigate = useNavigate()
   const { pathname } = useLocation()
 
   // When done loading, dismiss any loading toast
-  useEffect(() => () => toast.dismiss(LOADING_TOAST_ID), [])
   const handleClose = () => {
-    // If we came from home page, go back there
-    if (canGoBack) navigate(-1)
+    // If we came from home/ideas page, go back there
+    if (data.canGoBack) navigate(-1)
     // Otherwise, go back up a level or fallback to home
     const to = pathname.match(HOME_OR_IDEAS_SUBPATH_REGEX)?.[1] ?? '/home'
     navigate(to)
   }
-  return <TweetDetailModal tweet={tweet} onClose={handleClose} />
+
+  return (
+    <Suspense>
+      <Await resolve={data.tweet}>{(tweet) => <TweetDetailModal tweet={tweet} onClose={handleClose} />}</Await>
+    </Suspense>
+  )
 }
 
 const HOME_OR_IDEAS_SUBPATH_REGEX = /^(\/home|ideas)\/.*/i
