@@ -21,20 +21,25 @@ model User {
   id        String   @id
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
-
   email      String @unique
-  customerId String @unique // Created by Stripe
 
   twitterOAuthToken       String?
   twitterOAuthTokenSecret String?
 
-  currency     Currency?
-  tierId       TierId
-  tier         Tier          @relation(fields: [tierId], references: [id])
   transcript   Transcript[]
-  subscription Subscription?
+
+  stripeCustomerId String @unique // Created by Stripe
+  stripeSubscriptionId  String // Created by Stripe
 
   @@map("users")
+}
+
+model Price {
+  stripePriceId String @id
+  stripeProductId String
+  stripeInterval String
+
+  @@map("prices")
 }
 
 model Transcript {
@@ -73,116 +78,23 @@ model Tweet {
 }
 
 // #region BILLING
-model Tier {
-  id            TierId         @id // Used to create Stripe product ID
-  name          String
-  active        Boolean        @default(true)
-  description   String?
-  featuresList  String[]
-  subscriptions Subscription[]
-  subscribers   User[]
-  prices        Price[]
-  tierLimitId   TierId         @unique
-  tierLimit     TierLimit      @relation(fields: [tierLimitId], references: [id])
-  createdAt     DateTime       @default(now())
-  updatedAt     DateTime       @updatedAt
 
-  @@map("tiers")
+
+enum TokenType {
+  ANON_CHECKOUT_TOKEN
+  AUTH_CHECKOUT_TOKEN
 }
 
-model TierLimit {
-  id        TierId   @id
-  tier      Tier?
-  maxUsage  Int?
+// Tokens require a type.  The schema of the metadata is dependent on the type
+model Token {
+  id        String   @id @default(cuid())
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
-
-  @@map("tiers_limit")
+  active    Boolean  @default(true)
+  token     String
+  type        TokenType
+  expiresAt   DateTime?
+  metadata Json @default("{}")
+  @@map("tokens")
+  @@unique([token, type])
 }
-
-model Price {
-  id            String          @id // Created by Stripe
-  active        Boolean?        @default(true)
-  interval      Interval
-  tierId        TierId
-  tier          Tier            @relation(fields: [tierId], references: [id])
-  createdAt     DateTime        @default(now())
-  updatedAt     DateTime        @updatedAt
-  subscriptions Subscription[]
-  currencies    PriceCurrency[]
-
-  @@unique([tierId, interval, active]) // We should only have one active price per tier and interval
-  @@map("prices")
-}
-
-// In Stripe, Price has a unique ID even if they have multiple currencies.
-// By supporting multiple currencies in our app, we need to create a new model to store the price per currency.
-model PriceCurrency {
-  amount   Int
-  currency Currency
-  priceId  String
-  price    Price    @relation(fields: [priceId], references: [id])
-
-  @@id([priceId, currency]) // We should only have one amount per currency and price
-  @@map("prices_currencies")
-}
-
-// Managed by Stripe webhook
-model Subscription {
-  id                 String             @id // Created by Stripe
-  userId             String             @unique
-  user               User               @relation(fields: [userId], references: [id], onDelete: Cascade, onUpdate: Cascade)
-  tierId             TierId
-  tier               Tier               @relation(fields: [tierId], references: [id])
-  itemId             String
-  priceId            String
-  price              Price              @relation(fields: [priceId], references: [id])
-  status             SubscriptionStatus
-  currentPeriodStart DateTime?
-  currentPeriodEnd   DateTime?
-  cancelAtPeriodEnd  Boolean?           @default(false)
-  createdAt          DateTime           @default(now())
-  updatedAt          DateTime           @updatedAt
-
-  @@map("subscriptions")
-}
-
-// Tier Ids are used to identify tiers (products) in Stripe. They must be predictable in our model.
-// Add more tiers if needed
-enum TierId {
-  free
-  tier_1
-  tier_2
-}
-
-// Supported currencies in our app
-// Add more currencies if needed
-// https://stripe.com/docs/currencies
-enum Currency {
-  usd
-  eur
-}
-
-// Supported interval in our app
-// Add more intervals if needed
-// https://stripe.com/docs/api/prices/object#price_object-recurring-interval
-enum Interval {
-  month
-  year
-}
-
-// Base on Stripe API version 2022-11-15
-// https://stripe.com/docs/api/subscriptions/list#list_subscriptions-status
-enum SubscriptionStatus {
-  active
-  past_due
-  unpaid
-  canceled
-  incomplete
-  incomplete_expired
-  trialing
-  all
-  ended
-}
-
-// #endregion

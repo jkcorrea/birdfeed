@@ -5,9 +5,10 @@ import path from 'path'
 import { rand, randBoolean, randNumber, randPhrase, randSoonDate } from '@ngneat/falso'
 import { capitalCase, snakeCase } from 'change-case'
 import fg from 'fast-glob'
+import type Stripe from 'stripe'
 
 import { db } from '~/database'
-import { supabaseAdmin } from '~/services/supabase'
+import { stripe } from '~/services/billing'
 import { createUserAccount } from '~/services/user'
 
 const env = process.env.NODE_ENV ?? 'development'
@@ -22,11 +23,11 @@ const transcripts = fg.sync('notebooks/data/transcripts/*.txt').reduce((acc, fil
 }, [] as { name: string; content: string }[])
 
 // Grab all the resource keys
-const resources = ['users', 'tweets', 'transcripts'] as const
+const resources = ['users', 'tweets', 'transcripts', 'tokens'] as const
 
 export const resetDB = async () => {
   // Reset supabase auth users
-  await supabaseAdmin().from('auth.users').delete()
+  await db.$executeRawUnsafe(`delete from auth.users`)
 
   // Reset the tables we generate fake data for
   for (const res of resources) {
@@ -35,8 +36,53 @@ export const resetDB = async () => {
     await db.$executeRawUnsafe(`TRUNCATE TABLE "${tableName}" RESTART IDENTITY CASCADE`)
   }
 
+  const price = await db.price.findFirst({})
+  if (!price) throw new Error('No price found.  Make sure you have seeded Stripe')
+
   // Create a default user
-  const user = await createUserAccount({ email: DEFAULT_USER, password: DEFAULT_PASSWORD })
+  const customerSearch = await stripe.customers.search({ query: `email:"${DEFAULT_USER}"` })
+  let customerId: string
+  let stripeSubscriptionId: string
+  if (customerSearch.data.length === 0) {
+    const customer = await stripe.customers.create({ email: DEFAULT_USER })
+    customerId = customer.id
+
+    const paymentMethod = await stripe.paymentMethods.create({
+      type: 'card',
+      card: {
+        number: '4242424242424242',
+        exp_month: 12,
+        exp_year: 2030,
+        cvc: '314',
+      },
+    })
+
+    await stripe.paymentMethods.attach(paymentMethod.id, { customer: customerId })
+
+    const subscription = await await stripe.subscriptions.create({
+      customer: customerId,
+      default_payment_method: paymentMethod.id,
+      items: [{ price: price.stripePriceId }],
+    })
+
+    stripeSubscriptionId = subscription.id
+  } else {
+    const customer = (await stripe.customers.retrieve(customerSearch.data[0].id, {
+      expand: ['subscriptions'],
+    })) as Stripe.Customer & { subscriptions: Stripe.ApiList<Stripe.Subscription> }
+
+    customerId = customer.id
+
+    stripeSubscriptionId = customer.subscriptions!.data[0].id
+  }
+
+  const user = await createUserAccount({
+    email: DEFAULT_USER,
+    password: DEFAULT_PASSWORD,
+    stripeCustomerId: customerId,
+    stripeSubscriptionId,
+  })
+
   console.log(`Created default user: ${user.email} with password: ${DEFAULT_PASSWORD}`)
   return user
 }
@@ -44,7 +90,6 @@ export const resetDB = async () => {
 async function main() {
   const { userId } = await resetDB()
 
-  console.log()
   console.log('Creating Transcripts...')
   const { count: trsCount } = await db.transcript.createMany({
     data: Array.from(Array(10).keys()).map(() => {

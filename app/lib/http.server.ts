@@ -1,13 +1,7 @@
 import type { ResponseInit } from '@remix-run/node'
 import { defer, json, redirect } from '@remix-run/node'
-import countryToCurrency from 'country-to-currency'
-import { getClientLocales } from 'remix-utils'
-import { z } from 'zod'
-
-import { Currency } from '@prisma/client'
 
 import { Logger } from './utils/logger'
-import { DEFAULT_CURRENCY } from './env'
 import type { HTTPStatusCode } from './utils'
 import { AppError } from './utils'
 
@@ -32,20 +26,6 @@ export function safeRedirect(to: FormDataEntryValue | string | null | undefined,
   }
 
   return to
-}
-
-export function getDefaultCurrency(request: Request) {
-  const locales = getClientLocales(request)
-
-  if (!locales) return DEFAULT_CURRENCY
-
-  const country = locales[0].split('-')[0].toUpperCase() as keyof typeof countryToCurrency
-
-  const foundCurrency = z.nativeEnum(Currency).safeParse(countryToCurrency[country]?.toLowerCase())
-
-  if (!foundCurrency.success) return DEFAULT_CURRENCY
-
-  return foundCurrency.data
 }
 
 type ResponseOptions = ResponseInit & {

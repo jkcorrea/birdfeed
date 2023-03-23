@@ -38,3 +38,6 @@ export const TWEET_CHAR_LIMIT = 280
 export const UPLOAD_BUCKET_ID = 'birdfeed-transcription-files'
 
 export const LOADING_TWEET_TOAST_ID = 'loading-tweet'
+
+// this is static
+export const STRIPE_PRODUCT_ID = 'dwsckm5c6y8sszu4v73sra08'

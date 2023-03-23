@@ -1,169 +1,84 @@
-import type { Prisma, TierId } from '@prisma/client'
-import { Currency, Interval } from '@prisma/client'
+/* eslint-disable no-console */
 import { db } from '~/database'
-import { DEFAULT_CURRENCY, SERVER_URL } from '~/lib/env'
+import { STRIPE_PRODUCT_ID } from '~/lib/constants'
+import { SERVER_URL } from '~/lib/env'
 import { stripe } from '~/services/billing'
 
-import type { PriceByInterval } from './config/pricing-plan'
-import { pricingPlan } from './config/pricing-plan'
-
-type PriceCreatePayload = {
-  currency: Currency
-  product: TierId
-  unit_amount: number
-  nickname: string
-  tax_behavior: 'inclusive'
-  recurring: {
-    interval: Interval
-  }
-  currency_options: {
-    [Key in Currency]?: {
-      unit_amount: number
-      tax_behavior: 'inclusive'
-    }
-  }
-}
-
-function makeStripeCreatePricePayloads(price: PriceByInterval, name: string, id: TierId) {
-  const intervals = Object.keys(Interval) as Interval[]
-  const currencies = Object.keys(Currency) as Currency[]
-
-  return intervals.map((interval) =>
-    currencies.reduce((acc, currency) => {
-      if (currency === DEFAULT_CURRENCY) {
-        return {
-          ...acc,
-          product: id,
-          unit_amount: price[interval][currency],
-          currency,
-          nickname: `${name} ${interval}ly`,
-          tax_behavior: 'inclusive',
-          recurring: {
-            interval: interval as Interval,
-          },
-        } satisfies PriceCreatePayload
-      }
-
-      return {
-        ...acc,
-        currency_options: {
-          ...acc.currency_options,
-          [currency as Currency]: {
-            unit_amount: price[interval][currency],
-            tax_behavior: 'inclusive',
-          },
-        },
-      } satisfies PriceCreatePayload
-    }, {} as PriceCreatePayload)
-  )
-}
-
 async function seed() {
-  const seedTiers = Object.values(pricingPlan).map(
-    async ({ name, tierId, price: priceData, description, featuresList, limits: { maxUsage } }) => {
-      try {
-        await stripe.products.create({
-          id: tierId,
-          name,
-          description: description || undefined,
-        })
-      } catch (error) {
-        await stripe.products.update(tierId, {
-          name,
-          description: description || undefined,
-        })
-      }
+  console.log('Seeding Stripe...')
 
-      const tierData = {
-        name,
-        description,
-        featuresList,
-      } satisfies Prisma.TierUpdateInput
-      await db.tier.upsert({
-        where: { id: tierId },
-        update: {
-          ...tierData,
-          tierLimit: {
-            update: {
-              where: { id: tierId },
-              data: { maxUsage },
-            },
-          },
-        },
-        create: {
-          ...tierData,
-          id: tierId,
-          tierLimit: { create: { id: tierId, maxUsage } },
+  const products = await stripe.products.list()
+
+  if (products.data.length > 1) {
+    throw new Error('More than one product exists in Stripe')
+  }
+
+  if (products.data.length === 0) {
+    products.data.push(
+      await stripe.products.create({
+        id: STRIPE_PRODUCT_ID,
+        name: 'Birdfeed Pro',
+        description: 'Birdfeed Pro Subscription Plan',
+      })
+    )
+  }
+
+  const prices = await stripe.prices.list()
+
+  if (prices.data.length > 2 || prices.data.length === 1) {
+    throw new Error('Wrong number of prices exist in Stripe')
+  }
+
+  if (prices.data.length === 0) {
+    prices.data.push(
+      await stripe.prices.create({
+        product: STRIPE_PRODUCT_ID,
+        currency: 'usd',
+        unit_amount: 1699,
+        tax_behavior: 'inclusive',
+        recurring: {
+          interval: 'month',
+          interval_count: 1,
         },
       })
+    )
 
-      const existingPrices = await stripe.prices.list({
-        product: tierId,
-        active: true,
+    prices.data.push(
+      await stripe.prices.create({
+        product: STRIPE_PRODUCT_ID,
+        currency: 'usd',
+        unit_amount: 8999,
+        tax_behavior: 'inclusive',
+        recurring: {
+          interval: 'year',
+          interval_count: 1,
+        },
       })
-      const prices = await Promise.all(
-        makeStripeCreatePricePayloads(priceData, name, tierId).map(async (payload) => {
-          // Create or retrieve default price and all other currencies variants in Stripe
-          const existingPrice = existingPrices.data.find((price) => price.nickname === payload.nickname)
-          let priceId = existingPrice?.id
-          if (!priceId) ({ id: priceId } = await stripe.prices.create(payload))
-          if (!priceId)
-            throw new Error(`Price not found and could not be created:\n${JSON.stringify(payload, null, 2)}`)
+    )
+  }
 
-          const {
-            unit_amount: amount,
-            currency,
-            recurring: { interval },
-            currency_options,
-          } = payload
+  const monthlyPrice = prices.data.filter((price) => price.recurring!.interval === 'month')[0]
+  const yearlyPrice = prices.data.filter((price) => price.recurring!.interval === 'year')[0]
 
-          // With the Stripe price id, create price and all currency options in Prisma
-          const currencies: Prisma.PriceUpdateInput['currencies'] = {
-            createMany: {
-              data: [
-                // Price for default currency
-                { amount, currency },
-                // Prices for other currencies
-                ...Object.entries(currency_options).map(([currency, { unit_amount: amount }]) => ({
-                  amount,
-                  currency: currency as Currency,
-                })),
-              ],
-            },
-          }
-          const priceData = {
-            tierId,
-            interval,
-            currencies,
-          } satisfies Prisma.PriceUncheckedUpdateInput
-          const dbPrice = await db.price.findUnique({ where: { id: priceId } })
-          if (dbPrice) {
-            // Old price found, update it & re-create currencies
-            await db.priceCurrency.deleteMany({ where: { priceId } })
-            await db.price.update({
-              where: { id: priceId },
-              data: priceData,
-            })
-          } else {
-            await db.price.create({
-              data: {
-                id: priceId,
-                ...priceData,
-              },
-            })
-          }
+  await db.price.deleteMany({})
 
-          return priceId
-        })
-      )
-      return { product: tierId, prices }
-    }
-  )
+  await db.price.createMany({
+    data: [
+      {
+        stripePriceId: monthlyPrice.id,
+        stripeProductId: STRIPE_PRODUCT_ID,
+        stripeInterval: 'month',
+      },
+      {
+        stripePriceId: yearlyPrice.id,
+        stripeProductId: STRIPE_PRODUCT_ID,
+        stripeInterval: 'year',
+      },
+    ],
+  })
 
-  const seededTiers = await Promise.all(seedTiers)
-
-  // create customer portal configuration
   const portals = await stripe.billingPortal.configurations.list()
+
   if (portals.data.length === 0) {
     await stripe.billingPortal.configurations.create({
       business_profile: {
@@ -185,7 +100,7 @@ async function seed() {
           enabled: true,
           default_allowed_updates: ['price'],
           proration_behavior: 'always_invoice',
-          products: seededTiers.filter(({ product }) => product !== 'free'),
+          products: [{ product: STRIPE_PRODUCT_ID, prices: [monthlyPrice!.id, yearlyPrice!.id] }],
         },
       },
     })

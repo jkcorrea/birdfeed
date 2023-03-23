@@ -1,7 +1,3 @@
-import { z } from 'zod'
-
-import { Currency } from '@prisma/client'
-
 import { AppError } from './utils'
 
 declare global {
@@ -9,7 +5,6 @@ declare global {
     env: {
       SUPABASE_URL: string
       SUPABASE_ANON_PUBLIC: string
-      DEFAULT_CURRENCY: Currency
     }
   }
 }
@@ -25,7 +20,6 @@ declare global {
       SESSION_SECRET: string
       STRIPE_SECRET_KEY: string
       STRIPE_ENDPOINT_SECRET: string
-      DEFAULT_CURRENCY: Currency
       OPENAI_API_KEY: string
       DEEPGRAM_API_KEY: string
     }
@@ -79,7 +73,6 @@ export const SUPABASE_URL = getEnv('SUPABASE_URL', { isSecret: false })
 export const SUPABASE_ANON_PUBLIC = getEnv('SUPABASE_ANON_PUBLIC', {
   isSecret: false,
 })
-export const DEFAULT_CURRENCY = z.nativeEnum(Currency).parse(getEnv('DEFAULT_CURRENCY', { isSecret: false }))
 
 export function getBrowserEnv() {
   return {
@@ -87,6 +80,5 @@ export function getBrowserEnv() {
     SERVER_URL,
     SUPABASE_URL,
     SUPABASE_ANON_PUBLIC,
-    DEFAULT_CURRENCY,
   }
 }

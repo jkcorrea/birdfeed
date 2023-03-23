@@ -16,11 +16,12 @@ fi
 DUMP_FILE="${TMP_DIR}"/db.dump
 
 # dump schema only from supabase's db
-pg_dump -Fc --schema-only  --no-acl postgresql://postgres:postgres@localhost:${2:-54322}/postgres > ${DUMP_FILE}
+pg_dump --schema-only  --no-acl postgresql://postgres:postgres@localhost:${2:-54322}/postgres > ${DUMP_FILE}
 
 # (re)create the database
-dropdb "$1"
-createdb "$1"
+dropdb "birdfeed_shadow"
+createdb "birdfeed_shadow"
 
 # restore the schema
-pg_restore --create --clean --if-exists --no-owner -d "$1" ${DUMP_FILE}
+# pg_restore --create --clean --if-exists --no-owner -d "birdfeed_shadow" 
+psql birdfeed_shadow < ${DUMP_FILE}

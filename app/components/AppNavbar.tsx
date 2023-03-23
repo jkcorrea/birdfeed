@@ -11,7 +11,7 @@ import type { AppLayoutLoaderData } from '~/routes/_app+/_layout'
 import birdfeedIcon from '~/assets/birdfeed-icon.png'
 
 export function Navbar() {
-  const { email, userTier } = useLoaderData<AppLayoutLoaderData>()
+  const { email } = useLoaderData<AppLayoutLoaderData>()
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
 
   return (
@@ -54,8 +54,6 @@ export function Navbar() {
         <div className="hidden lg:flex lg:min-w-0 lg:flex-1 lg:items-center lg:justify-end lg:space-x-4">
           {email ? (
             <>
-              <span className="text-base">{userTier ? `${email} (${userTier.name})` : email}</span>
-
               <Form action={APP_ROUTES.LOGOUT.href} method="post">
                 <button
                   onClick={() => posthog.reset()}

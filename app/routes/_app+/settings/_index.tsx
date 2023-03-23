@@ -3,35 +3,28 @@ import { Form, useFetcher, useLoaderData, useNavigation } from '@remix-run/react
 import { parseFormAny } from 'react-zorm'
 
 import IntentField from '~/components/fields/IntentField'
+import { db } from '~/database'
 import { useIsSubmitting } from '~/lib/hooks'
-import { getDefaultCurrency, response } from '~/lib/http.server'
+import { response } from '~/lib/http.server'
 import { useLocales } from '~/lib/locale-provider'
 import { tw } from '~/lib/utils'
 import { destroyAuthSession, requireAuthSession } from '~/services/auth'
-import { getPricingPlan, getSubscription } from '~/services/billing'
 import { getTwitterOAuthRedirectURL } from '~/services/twitter'
-import { deleteUser, getBillingInfo, getUserTier } from '~/services/user'
-
-import { PricingTable } from './PricingTable'
+import { deleteUser } from '~/services/user'
 
 export async function loader({ request }: LoaderArgs) {
   const authSession = await requireAuthSession(request)
   const { userId } = authSession
 
   try {
-    const [subscription, userTier, { currency }] = await Promise.all([
-      getSubscription(userId),
-      getUserTier(userId),
-      getBillingInfo(userId),
-    ])
-
-    const pricingPlan = await getPricingPlan(currency || getDefaultCurrency(request))
+    const { cancelAtPeriodEnd, currentPeriodEnd } = await db.user.findUniqueOrThrow({
+      where: { id: userId },
+    })
 
     return response.ok(
       {
-        pricingPlan,
-        userTier,
-        subscription,
+        cancelAtPeriodEnd,
+        currentPeriodEnd,
       },
       { authSession }
     )
@@ -66,39 +59,31 @@ export async function action({ request }: ActionArgs) {
 }
 
 export default function Subscription() {
-  const { pricingPlan, userTier, subscription } = useLoaderData<typeof loader>()
+  const { cancelAtPeriodEnd, currentPeriodEnd } = useLoaderData<typeof loader>()
   const customerPortalFetcher = useFetcher()
   const isSubmitting = useIsSubmitting(customerPortalFetcher)
-
-  const { cancelAtPeriodEnd, currentPeriodEnd, interval } = subscription || {}
 
   return (
     <div className="flex flex-col gap-y-10">
       <div className="flex flex-col items-center justify-center gap-y-2">
-        <Form method="post">
+        {/* <Form method="post">
           <IntentField<SettingsReducer> value={'add-twitter'} />
           <button type="submit" className="btn-accent btn">
             Add Twitter
           </button>
-        </Form>
+        </Form> */}
         <customerPortalFetcher.Form method="post" action="/api/billing/customer-portal">
-          <button
-            type="button"
-            disabled={isSubmitting}
-            className={tw('btn', cancelAtPeriodEnd ? 'btn-warning' : 'btn-accent')}
-          >
+          <button disabled={isSubmitting} className={tw('btn', cancelAtPeriodEnd ? 'btn-warning' : 'btn-accent')}>
             {isSubmitting
               ? 'Redirecting to Customer Portal...'
-              : userTier.id !== 'free'
-              ? cancelAtPeriodEnd
-                ? 'Renew my subscription'
-                : 'Upgrade or cancel my subscription'
-              : 'Go to Customer Portal'}
+              : cancelAtPeriodEnd
+              ? 'Renew my subscription'
+              : 'Manage subscription'}
           </button>
         </customerPortalFetcher.Form>
         {currentPeriodEnd ? (
           <span>
-            Your <Highlight important={cancelAtPeriodEnd}>{userTier.name}</Highlight> subscription
+            Your <Highlight important={cancelAtPeriodEnd}>Birdfeed Pro</Highlight> subscription
             <Highlight important={cancelAtPeriodEnd}>{cancelAtPeriodEnd ? ' ends ' : ' renews '}</Highlight>
             on{' '}
             <Highlight important={cancelAtPeriodEnd}>
@@ -107,8 +92,6 @@ export default function Subscription() {
           </span>
         ) : null}
       </div>
-      <PricingTable pricingPlan={pricingPlan} userTierId={userTier.id} defaultDisplayAnnual={interval === 'year'} />
-
       <div className="flex justify-center">
         <DeleteTestAccount />
       </div>

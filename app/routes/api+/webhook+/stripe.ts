@@ -1,18 +1,12 @@
 import type { ActionArgs } from '@remix-run/node'
 import { z } from 'zod'
 
-import { TierId } from '@prisma/client'
+import { TokenType } from '@prisma/client'
+import { db } from '~/database'
 import { STRIPE_ENDPOINT_SECRET } from '~/lib/env'
 import { response } from '~/lib/http.server'
-import { AppError, parseData } from '~/lib/utils'
-import {
-  createSubscription,
-  deleteSubscription,
-  fetchSubscription,
-  stripe,
-  updateSubscription,
-  updateTier,
-} from '~/services/billing'
+import { AppError, getGuardedToken, parseData } from '~/lib/utils'
+import { stripe } from '~/services/billing'
 
 const tag = 'Stripe webhook 🎣'
 
@@ -52,88 +46,42 @@ export async function action({ request }: ActionArgs) {
 
   try {
     switch (event.type) {
-      case 'checkout.session.completed': {
-        const { id } = await parseData(
-          event.data.object,
-          z
-            .object({
-              subscription: z.string(),
-              payment_status: z.literal('paid'),
-            })
-            .transform(({ subscription }) => ({ id: subscription })),
-          `${event.type} payload is malformed`
-        )
-
-        const subscription = await fetchSubscription(id)
-
-        const createdSubscription = await createSubscription({
-          id,
-          ...subscription,
-        })
-
-        return response.ok(createdSubscription, { authSession: null })
-      }
-
-      case 'customer.subscription.updated': {
-        const { id } = await parseData(
+      case 'customer.subscription.created': {
+        const { id: stripeId, metadata: stripeMetadata } = await parseData(
           event.data.object,
           z.object({
             id: z.string(),
+            metadata: z.object({
+              token: z.string(),
+              tokenType: z.nativeEnum(TokenType),
+            }),
           }),
           `${event.type} payload is malformed`
         )
 
-        const subscription = await fetchSubscription(id)
+        const { token, tokenType } = stripeMetadata
 
-        const updatedSubscription = await updateSubscription(subscription)
-
-        return response.ok(updatedSubscription, { authSession: null })
-      }
-
-      case 'customer.subscription.deleted': {
-        const { id, customer: customerId } = await parseData(
-          event.data.object,
-          z.object({
-            id: z.string(),
-            customer: z.string(),
-          }),
-          `${event.type} payload is malformed`
-        )
-
-        const deletedSubscription = await deleteSubscription({
-          id,
-          customerId,
+        const { metadata, id } = await getGuardedToken({
+          token_type: {
+            token,
+            type: tokenType,
+          },
         })
 
-        return response.ok(deletedSubscription, { authSession: null })
-      }
-
-      case 'product.updated': {
-        const { tierId, active, description, name } = await parseData(
-          event.data.object,
-          z
-            .object({
-              id: z.nativeEnum(TierId),
-              active: z.boolean(),
-              name: z.string(),
-              description: z.string().nullable(),
-            })
-            .transform(({ id: tierId, active, name, description }) => ({
-              tierId,
-              active,
-              name,
-              description,
-            })),
-          `${event.type} payload is malformed`
-        )
-
-        const updatedTier = await updateTier(tierId, {
-          active,
-          description,
-          name,
+        await db.token.update({
+          where: {
+            id,
+          },
+          data: {
+            active: true,
+            metadata: {
+              ...metadata,
+              stripeSubscriptionId: stripeId,
+            },
+          },
         })
 
-        return response.ok(updatedTier, { authSession: null })
+        return response.ok({}, { authSession: null })
       }
     }
 
