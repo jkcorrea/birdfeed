@@ -44,9 +44,13 @@ export async function loader({ request }: LoaderArgs) {
     return response.redirect(APP_ROUTES.HOME.href, { authSession: null })
   }
 
+  const headers = new Headers({
+    'cache-control': 'max-age=60, s-maxage=120, stale-while-revalidate',
+  })
+
   try {
     // const pricingPlan = await getPricingPlan(getDefaultCurrency(request))
-    return response.ok({}, { authSession: null })
+    return response.ok({}, { authSession: null, headers })
   } catch (cause) {
     throw response.error(cause, { authSession: null })
   }
