@@ -1,4 +1,4 @@
-import _ from 'lodash-es'
+import _ from 'lodash'
 import type { ZodSchema } from 'zod'
 
 import type { Prisma, Token } from '@prisma/client'
