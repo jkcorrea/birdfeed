@@ -7,6 +7,7 @@ import { capitalCase, snakeCase } from 'change-case'
 import fg from 'fast-glob'
 
 import { db } from '~/database'
+import { stripe } from '~/services/billing'
 import { supabaseAdmin } from '~/services/supabase'
 import { createUserAccount } from '~/services/user'
 
@@ -36,7 +37,16 @@ export const resetDB = async () => {
   }
 
   // Create a default user
-  const user = await createUserAccount({ email: DEFAULT_USER, password: DEFAULT_PASSWORD })
+  const customer = await stripe.customers.search({ query: `email:"${DEFAULT_USER}"` })
+  let customerId: string
+  if (customer.data.length === 0) {
+    customerId = customer.data[0].id
+  } else {
+    const customer = await stripe.customers.create({ email: DEFAULT_USER })
+    customerId = customer.id
+  }
+  const user = await createUserAccount({ email: DEFAULT_USER, password: DEFAULT_PASSWORD, customerId })
+
   console.log(`Created default user: ${user.email} with password: ${DEFAULT_PASSWORD}`)
   return user
 }

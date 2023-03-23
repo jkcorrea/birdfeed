@@ -9,7 +9,7 @@ import type { User } from './types'
 
 const tag = 'User service 🧑'
 
-type UserCreatePayload = Pick<AuthSession, 'userId' | 'email'> & { customerId: string }
+type UserCreatePayload = Pick<AuthSession, 'userId' | 'email'> & { stripeCustomerId: string }
 
 export async function getUserByEmail(email: User['email']) {
   try {
@@ -29,14 +29,13 @@ export async function getUserByEmail(email: User['email']) {
   }
 }
 
-async function createUser({ email, userId, customerId }: UserCreatePayload) {
+async function createUser({ email, userId, stripeCustomerId }: UserCreatePayload) {
   try {
     const user = await db.user.create({
       data: {
         email,
         id: userId,
-        customerId,
-        tierId: 'free',
+        stripeCustomerId,
       },
     })
 
@@ -75,52 +74,6 @@ export async function createUserAccount(payload: { email: string; password: stri
       cause,
       message: 'Unable to create user account',
       metadata: { email },
-      tag,
-    })
-  }
-}
-
-export async function getUserTierLimit(id: User['id']) {
-  try {
-    const {
-      tier: { tierLimit },
-    } = await db.user.findUniqueOrThrow({
-      where: { id },
-      select: {
-        tier: {
-          include: { tierLimit: { select: { maxUsage: true } } },
-        },
-      },
-    })
-
-    return tierLimit
-  } catch (cause) {
-    throw new AppError({
-      cause,
-      message: 'Unable to find user tier limit',
-      status: 404,
-      metadata: { id },
-      tag,
-    })
-  }
-}
-
-export async function getUserTier(id: User['id']) {
-  try {
-    const { tier } = await db.user.findUniqueOrThrow({
-      where: { id },
-      select: {
-        tier: { select: { id: true, name: true } },
-      },
-    })
-
-    return tier
-  } catch (cause) {
-    throw new AppError({
-      cause,
-      message: 'Unable to find user tier',
-      status: 404,
-      metadata: { id },
       tag,
     })
   }

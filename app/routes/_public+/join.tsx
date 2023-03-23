@@ -48,11 +48,11 @@ export async function action({ request }: ActionArgs) {
       'Join form payload is invalid'
     )
 
-    const token = await db.tokens.findUnique({
+    const token = await db.token.findUnique({
       where: {
         token_type: {
           token: payload.checkoutToken,
-          type: TokenType.PURCHASED_COMPLETED_TOKEN,
+          type: TokenType.ANON_CHECKOUT_TOKEN,
         },
       },
     })
@@ -89,7 +89,7 @@ export async function action({ request }: ActionArgs) {
       ...subscription,
     })
 
-    await db.tokens.update({
+    await db.token.update({
       where: {
         id: token.id,
       },
