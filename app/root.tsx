@@ -1,6 +1,5 @@
 import { useEffect, useMemo } from 'react'
 import { XCircleIcon } from '@heroicons/react/24/outline'
-import { createId } from '@paralleldrive/cuid2'
 import type { LinksFunction, LoaderArgs, MetaFunction } from '@remix-run/node'
 import {
   Links,
@@ -22,10 +21,7 @@ import { APP_THEME } from './lib/constants'
 import { getBrowserEnv, NODE_ENV } from './lib/env'
 import type { CatchResponse } from './lib/http.server'
 import { response } from './lib/http.server'
-import { ANON_SESSION_KEY, anonSessionStorage, commitSession, hasAnonSession } from './lib/session.server'
-import { getAnonId } from './lib/utils/cookies'
-import { requireAuthSession } from './services/auth'
-import { hasAuthSession } from './services/auth/session.server'
+import { isAnonymousSession, requireAuthSession } from './services/auth'
 
 import tailwindStylesheetUrl from './assets/tailwind.css'
 
@@ -53,22 +49,10 @@ export const meta: MetaFunction = () => ({
 })
 
 export async function loader({ request }: LoaderArgs) {
-  const anonSessionSet = await hasAnonSession(request)
+  const isAnonymous = await isAnonymousSession(request)
 
-  let anonSessionCookie: false | { anonSession: { cookie: string } } = false
-  if (!anonSessionSet)
-    anonSessionCookie = {
-      anonSession: {
-        cookie: await commitSession(request, { anonId: createId() }, ANON_SESSION_KEY, anonSessionStorage, {
-          hasExpiry: false,
-        }),
-      },
-    }
-
-  const isAuthed = await hasAuthSession(request)
-
-  if (!isAuthed) {
-    return response.ok({ env: getBrowserEnv(), isLoggedIn: false }, { authSession: null, ...anonSessionCookie })
+  if (isAnonymous) {
+    return response.ok({ env: getBrowserEnv(), isLoggedIn: false }, { authSession: null })
   }
 
   const authSession = await requireAuthSession(request)
@@ -80,10 +64,10 @@ export async function loader({ request }: LoaderArgs) {
         // TODO - UX improvement: we can use this to change the topbar to say e.g. "Go to app ->"
         isLoggedIn: true,
       },
-      { authSession, ...anonSessionCookie }
+      { authSession }
     )
   } catch (cause) {
-    throw response.error(cause, { authSession, ...anonSessionCookie })
+    throw response.error(cause, { authSession })
   }
 }
 
@@ -92,15 +76,7 @@ export default function App() {
 
   const { key } = useLocation()
   const { capture } = useAnalytics()
-
-  useEffect(
-    () =>
-      initAnalytics((posthog) => {
-        const anonymousId = getAnonId()
-        posthog.identify(anonymousId)
-      }),
-    []
-  )
+  useEffect(initAnalytics, [])
   useEffect(() => {
     capture('$pageview')
   }, [key, capture])

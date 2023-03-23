@@ -6,24 +6,22 @@ import type { LoaderArgs } from '@remix-run/server-runtime'
 import posthog from 'posthog-js'
 import { toast } from 'react-hot-toast'
 
-import { Navbar } from '~/components/AppNavbar'
 import { SubscribeModal } from '~/components/SubscribeModal'
 import { ph } from '~/lib/analytics'
 import { APP_ROUTES, NAV_ROUTES } from '~/lib/constants'
 import { useIsSubmitting } from '~/lib/hooks'
 import { response } from '~/lib/http.server'
 import { tw } from '~/lib/utils'
-import { requireAuthSession } from '~/services/auth'
-import { hasAuthSession } from '~/services/auth/session.server'
+import { isAnonymousSession, requireAuthSession } from '~/services/auth'
 import { userSubscriptionStatus } from '~/services/user'
 
 import birdfeedIcon from '~/assets/birdfeed-icon.png'
 
 export async function loader({ request }: LoaderArgs) {
   try {
-    const isAuth = await hasAuthSession(request)
+    const isAnonymous = await isAnonymousSession(request)
 
-    if (!isAuth) {
+    if (isAnonymous) {
       return response.redirect('/', { authSession: null })
     }
 

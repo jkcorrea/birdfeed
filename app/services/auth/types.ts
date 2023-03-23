@@ -8,7 +8,3 @@ export type AuthSession = {
   expiresIn: number
   expiresAt: number
 }
-
-export type AnonSession = {
-  anonId: string
-}

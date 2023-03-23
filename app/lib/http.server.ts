@@ -30,15 +30,15 @@ export function safeRedirect(to: FormDataEntryValue | string | null | undefined,
 
 type ResponseOptions = ResponseInit & {
   authSession: SessionWithCookie | null
-  anonSession?: SessionWithCookie
   status?: HTTPStatusCode
 }
 
-function makeOptions({ authSession, anonSession, ...options }: ResponseOptions) {
+function makeOptions({ authSession, ...options }: ResponseOptions) {
   const headers = new Headers(options.headers)
 
-  if (authSession) headers.append('Set-Cookie', authSession.cookie)
-  if (anonSession) headers.append('Set-Cookie', anonSession.cookie)
+  if (authSession) {
+    headers.append('Set-Cookie', authSession.cookie)
+  }
 
   return { ...options, headers }
 }

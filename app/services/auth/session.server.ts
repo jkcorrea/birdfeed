@@ -3,23 +3,22 @@ import { createCookieSessionStorage } from '@remix-run/node'
 import { NODE_ENV, SESSION_SECRET } from '~/lib/env'
 import type { SessionWithCookie } from '~/lib/http.server'
 import { makeRedirectToFromHere, response, safeRedirect } from '~/lib/http.server'
-import { commitSession, destroySession, getSessionData } from '~/lib/session.server'
 import { Logger } from '~/lib/utils'
 
-import { refreshAuthAccessToken, verifyAuthSession } from './auth.server'
+import { refreshAccessToken, verifyAuthSession } from './auth.server'
 import type { AuthSession } from './types'
 
-const REFRESH_ACCESS_TOKEN_THRESHOLD = 60 * 1 // 1 minute left before token expires
+const SESSION_KEY = 'authenticated'
+const SESSION_ERROR_KEY = 'error'
+const SESSION_MAX_AGE = 60 * 60 * 24 * 7 // 7 days;
 const LOGIN_URL = '/login'
-const AUTH_SESSION_KEY = 'authenticated'
+const REFRESH_ACCESS_TOKEN_THRESHOLD = 60 * 1 // 1 minute left before token expires
 
-export async function hasAuthSession(request: Request): Promise<boolean> {
-  const authSession = await getSessionData(request, AUTH_SESSION_KEY, authSessionStorage)
+/**
+ * Session storage CRUD
+ */
 
-  return !!authSession
-}
-
-export const authSessionStorage = createCookieSessionStorage({
+const sessionStorage = createCookieSessionStorage({
   cookie: {
     name: '__authSession',
     httpOnly: true,
@@ -42,25 +41,73 @@ export async function createAuthSession({
   return response.redirect(safeRedirect(redirectTo), {
     authSession: {
       ...authSession,
-      cookie: await commitSession(request, authSession, AUTH_SESSION_KEY, authSessionStorage, {
+      cookie: await commitAuthSession(request, authSession, {
         flashErrorMessage: null,
       }),
     },
   })
 }
 
-export async function destroyAuthSession(request: Request) {
-  return response.redirect('/', {
-    authSession: null,
-    headers: [['Set-Cookie', await destroySession(request, authSessionStorage)]],
+async function getSession(request: Request) {
+  const cookie = request.headers.get('Cookie')
+  const session = await sessionStorage.getSession(cookie)
+
+  return session
+}
+
+async function getAuthSession(request: Request): Promise<AuthSession | null> {
+  const session = await getSession(request)
+  const authSession = session.get(SESSION_KEY)
+
+  if (!authSession) {
+    return null
+  }
+
+  return authSession
+}
+
+export async function isAnonymousSession(request: Request): Promise<boolean> {
+  const authSession = await getAuthSession(request)
+
+  return Boolean(!authSession)
+}
+
+async function commitAuthSession(
+  request: Request,
+  authSession: AuthSession | null,
+  options: {
+    flashErrorMessage?: string | null
+  } = {}
+) {
+  const session = await getSession(request)
+
+  // allow user session to be null.
+  // useful you want to clear session and display a message explaining why
+  if (authSession !== undefined) {
+    session.set(SESSION_KEY, authSession)
+  }
+
+  session.flash(SESSION_ERROR_KEY, options.flashErrorMessage)
+
+  return sessionStorage.commitSession(session, {
+    maxAge: SESSION_MAX_AGE,
   })
 }
 
-export async function assertAuthSession(request: Request, { onFailRedirectTo }: { onFailRedirectTo?: string } = {}) {
-  const sessionData = await getSessionData(request, AUTH_SESSION_KEY, authSessionStorage)
+export async function destroyAuthSession(request: Request) {
+  const session = await getSession(request)
+
+  return response.redirect('/', {
+    authSession: null,
+    headers: [['Set-Cookie', await sessionStorage.destroySession(session)]],
+  })
+}
+
+async function assertAuthSession(request: Request, { onFailRedirectTo }: { onFailRedirectTo?: string } = {}) {
+  const authSession = await getAuthSession(request)
 
   // If there is no user session: Fly, You Fools! 🧙‍♂️
-  if (sessionData === null || 'anonId' in sessionData) {
+  if (!authSession) {
     Logger.dev('No user session found')
 
     throw response.redirect(`${onFailRedirectTo || LOGIN_URL}?${makeRedirectToFromHere(request)}`, {
@@ -68,7 +115,7 @@ export async function assertAuthSession(request: Request, { onFailRedirectTo }: 
       headers: [
         [
           'Set-Cookie',
-          await commitSession(request, null, AUTH_SESSION_KEY, authSessionStorage, {
+          await commitAuthSession(request, null, {
             flashErrorMessage: 'no-user-session',
           }),
         ],
@@ -76,7 +123,7 @@ export async function assertAuthSession(request: Request, { onFailRedirectTo }: 
     })
   }
 
-  return sessionData
+  return authSession
 }
 
 /**
@@ -100,12 +147,12 @@ export async function requireAuthSession(
   { onFailRedirectTo, verify }: { onFailRedirectTo?: string; verify: boolean } = { verify: false }
 ): Promise<SessionWithCookie<AuthSession>> {
   // hello there
-  const session = await assertAuthSession(request, {
+  const authSession = await assertAuthSession(request, {
     onFailRedirectTo,
   })
 
   // ok, let's challenge its access token.
-  const validation = await verifyAuthSession(session, {
+  const validation = await verifyAuthSession(authSession, {
     // by default, we don't verify the access token from supabase auth api to save some time
     // this is still safe because we verify the refresh token on expires and all of this comes from a secure signed cookie
     skip: !verify,
@@ -113,15 +160,15 @@ export async function requireAuthSession(
 
   // damn, access token is not valid or expires soon
   // let's try to refresh, in case of 🧐
-  if (!validation.success || isExpiringSoon(session.expiresAt)) {
+  if (!validation.success || isExpiringSoon(authSession.expiresAt)) {
     return refreshAuthSession(request)
   }
 
   // finally, we have a valid session, let's return it
   return {
-    ...session,
+    ...authSession,
     // the cookie to set in the response
-    cookie: await commitSession(request, session, AUTH_SESSION_KEY, authSessionStorage),
+    cookie: await commitAuthSession(request, authSession),
   }
 }
 
@@ -130,11 +177,9 @@ function isExpiringSoon(expiresAt: number) {
 }
 
 async function refreshAuthSession(request: Request): Promise<SessionWithCookie<AuthSession>> {
-  const sessionData = await getSessionData(request, AUTH_SESSION_KEY, authSessionStorage)
+  const authSession = await getAuthSession(request)
 
-  if (sessionData === null || 'anonId' in sessionData) throw new Error('No Authentication user session found')
-
-  const refreshedAuthSession = await refreshAuthAccessToken(sessionData.refreshToken)
+  const refreshedAuthSession = await refreshAccessToken(authSession?.refreshToken)
 
   // 👾 game over, log in again
   // yes, arbitrary, but it's a good way to don't let an illegal user here with an expired token
@@ -148,7 +193,7 @@ async function refreshAuthSession(request: Request): Promise<SessionWithCookie<A
       headers: [
         [
           'Set-Cookie',
-          await commitSession(request, null, AUTH_SESSION_KEY, authSessionStorage, {
+          await commitAuthSession(request, null, {
             flashErrorMessage: 'fail-refresh-auth-session',
           }),
         ],
@@ -159,6 +204,6 @@ async function refreshAuthSession(request: Request): Promise<SessionWithCookie<A
   return {
     ...refreshedAuthSession,
     // the cookie to set in the response
-    cookie: await commitSession(request, refreshedAuthSession, AUTH_SESSION_KEY, authSessionStorage),
+    cookie: await commitAuthSession(request, refreshedAuthSession),
   }
 }
