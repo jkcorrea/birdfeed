@@ -73,7 +73,7 @@ export const DEEPGRAM_API_KEY = getEnv('DEEPGRAM_API_KEY')
 export const NODE_ENV = getEnv('NODE_ENV', {
   isSecret: false,
   isRequired: false,
-})
+}) as 'development' | 'production' | 'test'
 export const SERVER_URL = getEnv('SERVER_URL', { isSecret: false })
 export const SUPABASE_URL = getEnv('SUPABASE_URL', { isSecret: false })
 export const SUPABASE_ANON_PUBLIC = getEnv('SUPABASE_ANON_PUBLIC', {
