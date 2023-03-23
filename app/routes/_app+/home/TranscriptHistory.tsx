@@ -110,7 +110,6 @@ const TranscriptItem = ({ transcript, isOpen, onClick }: TranscriptItemProps) =>
 
   return (
     <motion.li
-      layout
       className={tw(
         'group relative cursor-pointer rounded-lg bg-base-100 p-4 shadow transition hover:bg-primary/10',
         isOpen && 'bg-primary/10'
@@ -119,7 +118,6 @@ const TranscriptItem = ({ transcript, isOpen, onClick }: TranscriptItemProps) =>
     >
       {/* Header */}
       <motion.div
-        layout
         className="flex cursor-pointer items-center justify-between text-left focus:outline-none"
         aria-controls={`transcript-${transcript.id}`}
         aria-expanded={isOpen}

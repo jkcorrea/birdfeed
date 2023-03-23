@@ -15,7 +15,6 @@ export const APP_ROUTES = {
     href: `/ideas/${tweetId}${params ? '?' + params.toString() : ''}`,
     title: `Tweet ${tweetId}`,
   }),
-  SETTINGS: { title: 'Settings', href: '/settings', showInNav: true },
   LOGIN: { title: 'Log In', href: '/login' },
   JOIN: { title: 'Join', href: '/join' },
   LOGOUT: { title: 'Log Out', href: '/logout' },

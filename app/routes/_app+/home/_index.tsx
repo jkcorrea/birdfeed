@@ -1,4 +1,4 @@
-import { Suspense } from 'react'
+import { Suspense, useState } from 'react'
 import type { LoaderArgs } from '@remix-run/node'
 import { Await, Outlet, useFetcher, useLoaderData } from '@remix-run/react'
 import { motion } from 'framer-motion'
@@ -41,10 +41,31 @@ export default function HomePage() {
   const data = useLoaderData<typeof loader>()
   const fetcher = useFetcher()
 
+  const [activeTab, setActiveTab] = useState<'transcripts' | 'tweets'>('tweets')
+
   return (
-    <div className="flex h-full min-w-[1024px] gap-10 overflow-x-auto md:overflow-hidden lg:gap-12">
-      <Column title="Transcripts" className="space-y-7">
-        <TranscriptUploader isAuthed fetcher={fetcher} />
+    <div className="flex h-full flex-col gap-4 overflow-x-auto md:flex-row md:overflow-hidden lg:gap-8">
+      <div className="tabs block md:hidden">
+        <button
+          type="button"
+          onClick={() => setActiveTab('tweets')}
+          className={tw('tab text-lg font-bold', activeTab === 'tweets' && 'tab-active')}
+        >
+          Tweets
+        </button>
+        <button
+          type="button"
+          onClick={() => setActiveTab('transcripts')}
+          className={tw('tab text-lg font-bold', activeTab === 'transcripts' && 'tab-active')}
+        >
+          Transcripts
+        </button>
+      </div>
+
+      <Column hideOnMobile={activeTab !== 'transcripts'} title="Transcripts">
+        <div className="mb-7">
+          <TranscriptUploader isAuthed fetcher={fetcher} />
+        </div>
         <Suspense fallback={<LoadingColumn />}>
           <Await resolve={data.recentTranscripts} errorElement={<Error />}>
             {(recentTranscripts) => <TranscriptHistory transcripts={recentTranscripts} />}
@@ -52,12 +73,12 @@ export default function HomePage() {
         </Suspense>
       </Column>
 
-      <Column title="On Deck" className="flex-[2]">
+      <Column hideOnMobile={activeTab !== 'tweets'} title="Tweets" className="flex-[2]">
         <Suspense fallback={<LoadingColumn />}>
           <Await resolve={data.recentTweets} errorElement={<Error />}>
             {(recentTweets) =>
               recentTweets.length > 0 ? (
-                <motion.ul layoutScroll className="flex flex-col gap-4 overflow-y-auto p-1 md:p-5">
+                <motion.ul layoutScroll className="flex flex-col gap-4 overflow-y-auto px-1">
                   {recentTweets.map((t) => (
                     <TweetCard key={t.id} tweet={t} linkTo={APP_ROUTES.HOME_TWEET(t.id).href} />
                   ))}
@@ -87,9 +108,19 @@ export default function HomePage() {
   )
 }
 
-const Column = ({ title, className, children }: { title: string; className?: string; children: React.ReactNode }) => (
-  <div className={tw('flex min-w-[300px] flex-[1] flex-col', className)}>
-    <h1 className="mb-7 text-2xl font-bold">{title}</h1>
+const Column = ({
+  title,
+  hideOnMobile,
+  className,
+  children,
+}: {
+  title: string
+  hideOnMobile?: boolean
+  className?: string
+  children: React.ReactNode
+}) => (
+  <div className={tw('flex-[1] flex-col md:flex', className, hideOnMobile && 'hidden md:flex')}>
+    <h1 className="hidden text-2xl font-bold md:mb-7 md:block">{title}</h1>
     {children}
   </div>
 )
