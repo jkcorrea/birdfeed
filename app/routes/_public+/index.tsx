@@ -172,7 +172,7 @@ export default function Home() {
           (fetcher.data?.error ? fetcher.data.error.message : <TweetGrid tweets={fetcher.data.tweets} />)}
       </main>
       <PublicFooter />
-      <SubscribeModal isOpen={subscribeModalOpen} onClose={() => setSubscribeModalOpen(false)} />
+      <SubscribeModal title={''} isOpen={true} onClose={() => setSubscribeModalOpen(false)} />
     </div>
   )
 }

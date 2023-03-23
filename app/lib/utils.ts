@@ -1,5 +1,6 @@
 import _ from 'lodash'
 import type { ZodSchema } from 'zod'
+import { z } from 'zod'
 
 import type { Prisma, Token } from '@prisma/client'
 import { db } from '~/database'
@@ -41,3 +42,5 @@ export async function getGuardedToken<T = Record<string, any>>(
 
   return token as Omit<Token, 'metadata'> & { metadata: T }
 }
+
+export const IntervalSchema = z.object({ interval: z.enum(['year', 'month']) })

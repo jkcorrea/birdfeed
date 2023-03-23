@@ -39,6 +39,9 @@ model Price {
   stripeProductId String
   stripeInterval String
 
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt @default(now())
+
   @@map("prices")
 }
 
