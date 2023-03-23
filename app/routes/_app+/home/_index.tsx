@@ -27,7 +27,7 @@ export async function loader({ request }: LoaderArgs) {
     where: { transcript: { userId }, archived: false },
     orderBy: [{ sendAt: 'asc' }, { createdAt: 'desc' }],
   })
-  // NOTE: prisma has does something funky with promises. Wrap in a native promise
+  // NOTE: prisma does something funky with promises. Wrap in a native promise
   // see: https://github.com/remix-run/remix/issues/5153
   const recentTranscripts = Promise.resolve(_recentTranscripts)
   const recentTweets = Promise.resolve(_recentTweets)
