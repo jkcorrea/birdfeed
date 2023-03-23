@@ -60,6 +60,8 @@ export async function action({ request }: ActionArgs) {
       })
     )
 
+    if (!token.active) throw new AppError('token is not active')
+
     const { stripeSubscriptionId, stripeCustomerId } = token.metadata
 
     const { email, password, redirectTo } = payload

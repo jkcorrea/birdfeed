@@ -54,7 +54,7 @@ export default function AppLayout() {
         {status === 'active' || status === 'trialing' ? (
           <Outlet />
         ) : (
-          <SubscribeModal isOpen={true} onClose={() => undefined} />
+          <SubscribeModal isOpen={true} isAuthenticated onClose={() => undefined} />
         )}
       </main>
     </>

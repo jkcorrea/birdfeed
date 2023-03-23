@@ -13,16 +13,18 @@ export async function createCheckoutSession({
   customerId,
   priceId,
   baseSuccessUrl,
+  tokenType,
 }: {
   customerId: string
   priceId: string
   baseSuccessUrl: string
+  tokenType: TokenType
 }) {
   try {
     const { token } = await db.token.create({
       data: {
         token: createId(),
-        type: TokenType.ANON_CHECKOUT_TOKEN,
+        type: tokenType,
         active: false,
         metadata: {
           stripeCustomerId: customerId,
@@ -34,6 +36,7 @@ export async function createCheckoutSession({
       customer: customerId,
       metadata: {
         token,
+        tokenType,
       },
       line_items: [
         {
@@ -43,9 +46,10 @@ export async function createCheckoutSession({
       ],
       mode: 'subscription',
       subscription_data: {
-        trial_period_days: 7,
+        ...(tokenType === TokenType.ANON_CHECKOUT_TOKEN && { trial_period_days: 7 }),
         metadata: {
           token,
+          tokenType,
         },
       },
       payment_method_types: ['card'],

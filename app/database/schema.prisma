@@ -82,6 +82,7 @@ model Tweet {
 
 enum TokenType {
   ANON_CHECKOUT_TOKEN
+  AUTH_CHECKOUT_TOKEN
 }
 
 // Tokens require a type.  The schema of the metadata is dependent on the type

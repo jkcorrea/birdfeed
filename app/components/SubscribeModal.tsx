@@ -5,13 +5,24 @@ import { tw } from '~/lib/utils'
 
 import FullscreenModal from './FullscreenModal'
 
-export const SubscribeModal = ({ isOpen, onClose }: { isOpen: boolean; onClose: () => void }) => {
+export const SubscribeModal = ({
+  isOpen,
+  onClose,
+  isAuthenticated = false,
+}: {
+  isAuthenticated?: boolean
+  isOpen: boolean
+  onClose: () => void
+}) => {
   const subscribefetcher = useFetcher()
   const isRedirectingToStripe = useIsSubmitting(subscribefetcher)
 
   return (
     <FullscreenModal isOpen={isOpen} onClose={onClose}>
-      <subscribefetcher.Form method="post" action="/api/billing/public-subscribe">
+      <subscribefetcher.Form
+        method="post"
+        action={isAuthenticated ? '/api/billing/subscribe' : '/api/billing/public-subscribe'}
+      >
         {/* TODO: figure out something better solution for Price Id for this */}
         <input type="hidden" name="priceId" value={'price_1MojTFGDDGEniiee3rMDfFtT'} />
         <button

@@ -53,17 +53,18 @@ export async function action({ request }: ActionArgs) {
             id: z.string(),
             metadata: z.object({
               token: z.string(),
+              tokenType: z.nativeEnum(TokenType),
             }),
           }),
           `${event.type} payload is malformed`
         )
 
-        const { token } = stripeMetadata
+        const { token, tokenType } = stripeMetadata
 
         const { metadata, id } = await getGuardedToken({
           token_type: {
             token,
-            type: TokenType.ANON_CHECKOUT_TOKEN,
+            type: tokenType,
           },
         })
 
