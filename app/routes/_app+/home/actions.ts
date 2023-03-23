@@ -10,6 +10,7 @@ import { requireAuthSession } from '~/services/auth'
 import { generateTweetsFromContent, regenerateTweetFromSelf } from '~/services/openai'
 import { supabaseAdmin } from '~/services/supabase'
 import { transcribeMedia } from '~/services/transcription'
+import { assertUserIsSubscribed } from '~/services/user'
 
 import type {
   ICreateTranscript,
@@ -54,9 +55,10 @@ export async function actionReducer(request: Request, userId?: string) {
 
 export async function action({ request }: ActionArgs) {
   const authSession = await requireAuthSession(request)
-  assertPost(request)
-
   try {
+    assertPost(request)
+    await assertUserIsSubscribed(authSession.userId)
+
     await actionReducer(request, authSession.userId)
   } catch (cause) {
     return response.error(cause, { authSession })

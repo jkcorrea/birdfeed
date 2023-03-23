@@ -35,6 +35,20 @@ export async function userSubscriptionStatus(id: User['id']) {
   }
 }
 
+export async function assertUserIsSubscribed(id: User['id']) {
+  const status = await userSubscriptionStatus(id)
+
+  if (status !== 'active' && status !== 'trialing') {
+    throw new AppError({
+      message: 'User is not subscribed',
+      status: 403,
+      tag,
+    })
+  }
+
+  return status
+}
+
 export async function getUserByEmail(email: User['email']) {
   try {
     const user = await db.user.findUnique({
