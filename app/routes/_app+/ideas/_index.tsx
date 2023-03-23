@@ -109,7 +109,7 @@ function IdeaBin() {
               if (tweets.length === 0) return <Empty />
 
               return (
-                <div className="flex h-full gap-4">
+                <div className="flex h-full flex-col gap-4 md:flex-row">
                   <ul className="grid h-fit flex-1 gap-4">
                     {left.map((tweet) => (
                       <TweetCard
@@ -145,7 +145,7 @@ function IdeaBin() {
 export default IdeaBin
 
 const Loading = () => (
-  <div className="grid grid-cols-2 gap-4">
+  <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
     <div className="h-24 animate-pulse rounded-lg bg-base-300" />
     <div className="h-24 animate-pulse rounded-lg bg-base-300" />
     <div className="h-24 animate-pulse rounded-lg bg-base-300" />

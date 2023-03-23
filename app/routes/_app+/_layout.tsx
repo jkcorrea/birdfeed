@@ -57,7 +57,7 @@ export default function AppLayout() {
     <>
       <Navbar key={location.key} />
 
-      <main className="mx-auto min-h-[500px] w-full max-w-screen-2xl grow py-4 px-8 md:px-0 lg:mt-5">
+      <main className="mx-auto min-h-[500px] w-full min-w-[300px] max-w-screen-2xl grow py-4 px-8 md:px-0 lg:mt-5">
         {status === 'active' || status === 'trialing' ? (
           <Outlet />
         ) : (
@@ -71,9 +71,6 @@ export default function AppLayout() {
 function Navbar() {
   const { email } = useLoaderData<typeof loader>()
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
-
-  const portalFetcher = useFetcher()
-  const isFetchingPortal = useIsSubmitting(portalFetcher)
 
   return (
     <div>
@@ -95,22 +92,20 @@ function Navbar() {
           </button>
         </div>
 
-        {email ? (
-          <div className="hidden lg:flex lg:min-w-0 lg:flex-1 lg:justify-center lg:gap-x-12">
-            {NAV_ROUTES.map(({ title, href }) => (
-              <NavLink
-                prefetch="intent"
-                key={title}
-                to={href}
-                className={({ isActive }) =>
-                  tw('font-bold text-gray-900 transition hover:text-primary', isActive && 'text-primary')
-                }
-              >
-                {title}
-              </NavLink>
-            ))}
-          </div>
-        ) : null}
+        <div className="hidden lg:flex lg:min-w-0 lg:flex-1 lg:justify-center lg:gap-x-12">
+          {NAV_ROUTES.map(({ title, href }) => (
+            <NavLink
+              prefetch="intent"
+              key={title}
+              to={href}
+              className={({ isActive }) =>
+                tw('font-bold text-gray-900 transition hover:text-primary', isActive && 'text-primary')
+              }
+            >
+              {title}
+            </NavLink>
+          ))}
+        </div>
 
         <div className="hidden lg:flex lg:min-w-0 lg:flex-1 lg:items-center lg:justify-end lg:space-x-4">
           <div className="dropdown-end dropdown">
@@ -118,45 +113,12 @@ function Navbar() {
               <span className="text-base ">{email}</span>
               <ChevronDownIcon className="h-4 w-4" />
             </label>
-            <ul
-              tabIndex={0}
-              className="dropdown-content menu rounded-box menu-compact mt-3 w-64 bg-base-100 p-2 shadow"
-            >
-              <li>
-                <portalFetcher.Form method="post" action="/api/billing/customer-portal">
-                  <button
-                    disabled={isFetchingPortal}
-                    className="text-left"
-                    onClick={() => toast.loading('Redirecting...')}
-                  >
-                    💳 Manage my subscription
-                  </button>
-                </portalFetcher.Form>
-              </li>
-              <li>
-                <Form
-                  action="/api/delete-account"
-                  method="post"
-                  onSubmit={(e) => {
-                    if (!confirm('Are you sure you want to delete your account?\n\nThis action is PERMANENT!')) {
-                      e.preventDefault()
-                    }
-                  }}
-                >
-                  <button type="submit">🥲 Delete my account</button>
-                </Form>
-              </li>
-              <li className="mt-3">
-                <Form action={APP_ROUTES.LOGOUT.href} method="post">
-                  <button onClick={() => posthog.reset()} data-test-id="logout" className="text-error">
-                    {APP_ROUTES.LOGOUT.title}
-                  </button>
-                </Form>
-              </li>
-            </ul>
+            <DropdownActions />
           </div>
         </div>
       </nav>
+
+      {/* Mobile dialog */}
       <Dialog as="div" open={mobileMenuOpen} onClose={setMobileMenuOpen}>
         <Dialog.Panel className="fixed inset-0 z-10 overflow-y-auto bg-white p-6 lg:hidden">
           <div className="flex h-9 items-center justify-between">
@@ -177,54 +139,74 @@ function Navbar() {
             </div>
           </div>
           <div className="mt-6 flow-root">
-            <div className="-my-6 divide-y divide-gray-500/10">
-              {email ? (
-                <div className="space-y-2 py-6">
-                  {NAV_ROUTES.map((item) => (
-                    <NavLink
-                      key={item.title}
-                      to={item.href}
-                      className={({ isActive }) =>
-                        tw(
-                          '-mx-3 block rounded-lg py-2 px-3 text-base font-semibold leading-7 text-gray-900 hover:bg-gray-400/10',
-                          isActive && 'text-primary'
-                        )
-                      }
-                    >
-                      {item.title}
-                    </NavLink>
-                  ))}
-                </div>
-              ) : null}
-              <div className="py-6">
-                {email ? (
-                  <>
-                    <span className="text-base font-light">{email}</span>
-
-                    <Form action="/logout" method="post">
-                      <button
-                        onClick={() => posthog.reset()}
-                        data-test-id="logout"
-                        type="submit"
-                        className="-mx-3 block rounded-lg py-2.5 px-3 text-base font-semibold leading-6 text-error"
-                      >
-                        Log out
-                      </button>
-                    </Form>
-                  </>
-                ) : (
-                  <Link
-                    to="/login"
-                    className="-mx-3 block rounded-lg py-2.5 px-3 text-base font-semibold leading-6 text-gray-900 hover:bg-gray-400/10"
-                  >
-                    Log in
-                  </Link>
-                )}
-              </div>
+            <div className="space-y-3 py-6">
+              {NAV_ROUTES.map((item) => (
+                <NavLink
+                  key={item.title}
+                  to={item.href}
+                  className={({ isActive }) =>
+                    tw('block text-xl font-bold text-gray-900 transition', isActive && 'text-primary')
+                  }
+                >
+                  {item.title}
+                </NavLink>
+              ))}
             </div>
+
+            <div className="divider" />
+
+            <>
+              <span className="text-xl font-light opacity-75">{email}</span>
+
+              <DropdownActions isMobile />
+            </>
           </div>
         </Dialog.Panel>
       </Dialog>
     </div>
+  )
+}
+
+function DropdownActions({ isMobile }: { isMobile?: boolean }) {
+  const portalFetcher = useFetcher()
+  const isFetchingPortal = useIsSubmitting(portalFetcher)
+
+  return (
+    <ul
+      tabIndex={0}
+      className={tw(
+        isMobile
+          ? 'my-4 flex flex-col gap-4 text-xl'
+          : 'dropdown-content menu rounded-box menu-compact mt-3 w-64 bg-base-100 p-2 shadow'
+      )}
+    >
+      <li>
+        <portalFetcher.Form method="post" action="/api/billing/customer-portal">
+          <button disabled={isFetchingPortal} className="text-left" onClick={() => toast.loading('Redirecting...')}>
+            💳 Manage subscription
+          </button>
+        </portalFetcher.Form>
+      </li>
+      <li>
+        <Form
+          action="/api/delete-account"
+          method="post"
+          onSubmit={(e) => {
+            if (!confirm('Are you sure you want to delete your account?\n\nThis action is PERMANENT!')) {
+              e.preventDefault()
+            }
+          }}
+        >
+          <button type="submit">🥲 Delete my account</button>
+        </Form>
+      </li>
+      <li className={tw(isMobile ? 'mt-8 text-center' : 'mt-3')}>
+        <Form action={APP_ROUTES.LOGOUT.href} method="post">
+          <button onClick={() => posthog.reset()} data-test-id="logout" className="text-error">
+            {APP_ROUTES.LOGOUT.title}
+          </button>
+        </Form>
+      </li>
+    </ul>
   )
 }
