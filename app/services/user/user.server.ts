@@ -15,6 +15,26 @@ type UserCreatePayload = {
   email: string
 }
 
+export async function isUserSubsribed(id: User['id']) {
+  try {
+    const { stripeSubscriptionId } = await db.user.findUniqueOrThrow({
+      where: { id },
+      select: { stripeSubscriptionId: true },
+    })
+
+    const subscription = await stripe.subscriptions.retrieve(stripeSubscriptionId)
+
+    return subscription.status === 'active' || subscription.status === 'trialing'
+  } catch (cause) {
+    throw new AppError({
+      cause,
+      message: 'Unable to determine if user is subscribed.  Maybe stripe subscription is missing?',
+      status: 404,
+      tag,
+    })
+  }
+}
+
 export async function getUserByEmail(email: User['email']) {
   try {
     const user = await db.user.findUnique({
@@ -40,13 +60,14 @@ export async function createUserAccount(payload: UserCreatePayload) {
     const { id: userId } = await createEmailAuthAccount(email, password)
     const authSession = await signInWithEmail(email, password)
 
+    await stripe.customers.update(stripeCustomerId, { email })
+
     await db.user.create({
       data: {
         email,
         id: userId,
         stripeCustomerId,
         stripeSubscriptionId,
-        stripeSubscriptionStatus: 'active',
       },
     })
 

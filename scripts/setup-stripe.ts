@@ -95,7 +95,7 @@ async function seed() {
         invoice_history: { enabled: true },
         payment_method_update: { enabled: true },
         subscription_cancel: { enabled: true },
-        subscription_pause: { enabled: true },
+        subscription_pause: { enabled: false },
         subscription_update: {
           enabled: true,
           default_allowed_updates: ['price'],

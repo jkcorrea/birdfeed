@@ -12,7 +12,8 @@ export const SubscribeModal = ({ isOpen, onClose }: { isOpen: boolean; onClose: 
   return (
     <FullscreenModal isOpen={isOpen} onClose={onClose}>
       <subscribefetcher.Form method="post" action="/api/billing/public-subscribe">
-        <input type="hidden" name="priceId" value={'price_1MoDeuGDDGEniieeBfnpfTxT'} />
+        {/* TODO: figure out something better solution for Price Id for this */}
+        <input type="hidden" name="priceId" value={'price_1MohVQGDDGEniieeytLko4Ok'} />
         <button
           disabled={isRedirectingToStripe}
           className={tw('btn-secondary btn mt-8 block w-full', isRedirectingToStripe && 'opacity-50')}

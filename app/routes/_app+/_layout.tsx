@@ -3,11 +3,12 @@ import { Outlet, useLoaderData, useLocation } from '@remix-run/react'
 import type { LoaderArgs, SerializeFrom } from '@remix-run/server-runtime'
 
 import { Navbar } from '~/components/AppNavbar'
-import { db } from '~/database'
 import { ph } from '~/lib/analytics'
 import { response } from '~/lib/http.server'
 import { requireAuthSession } from '~/services/auth'
 import { hasAuthSession } from '~/services/auth/session.server'
+import { createBillingPortalSession } from '~/services/billing'
+import { isUserSubsribed } from '~/services/user'
 
 export type AppLayoutLoaderData = SerializeFrom<typeof loader>
 
@@ -22,14 +23,16 @@ export async function loader({ request }: LoaderArgs) {
     const authSession = await requireAuthSession(request)
     const { userId, email } = authSession
 
-    const { stripeSubscriptionStatus } = await db.user.findUniqueOrThrow({
-      where: { id: userId },
-    })
+    const isSubscribed = await isUserSubsribed(userId)
+
+    if (!isSubscribed) {
+      const { url } = await createBillingPortalSession(userId)
+      return response.redirect(url, { authSession })
+    }
 
     return response.ok(
       {
         email,
-        stripeSubscriptionStatus,
       },
       { authSession }
     )

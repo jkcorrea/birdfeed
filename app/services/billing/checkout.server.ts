@@ -27,6 +27,10 @@ export async function createCheckoutSession({
         },
       ],
       mode: 'subscription',
+      subscription_data: {
+        trial_period_days: 7,
+        metadata,
+      },
       payment_method_types: ['card'],
       success_url,
       cancel_url: `${SERVER_URL}/`,

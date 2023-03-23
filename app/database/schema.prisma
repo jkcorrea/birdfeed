@@ -30,10 +30,6 @@ model User {
 
   stripeCustomerId String @unique // Created by Stripe
   stripeSubscriptionId  String // Created by Stripe
-  stripeSubscriptionStatus  SubscriptionStatus
-  currentPeriodStart DateTime?
-  currentPeriodEnd   DateTime?
-  cancelAtPeriodEnd  Boolean?           @default(false)
 
   @@map("users")
 }
@@ -101,21 +97,3 @@ model Token {
   @@map("tokens")
   @@unique([token, type])
 }
-
-
-
-// Base on Stripe API version 2022-11-15
-// https://stripe.com/docs/api/subscriptions/list#list_subscriptions-status
-enum SubscriptionStatus {
-  active
-  past_due
-  unpaid
-  canceled
-  incomplete
-  incomplete_expired
-  trialing
-  all
-  ended
-}
-
-// #endregion

@@ -54,7 +54,10 @@ export async function action({ request }: ActionArgs) {
           type: TokenType.ANON_CHECKOUT_TOKEN,
         },
       },
-      z.object({ stripeSubscriptionId: z.string(), stripeCustomerId: z.string() })
+      z.object({
+        stripeSubscriptionId: z.string(),
+        stripeCustomerId: z.string(),
+      })
     )
 
     const { stripeSubscriptionId, stripeCustomerId } = token.metadata
@@ -78,12 +81,9 @@ export async function action({ request }: ActionArgs) {
       password,
     })
 
-    await db.token.update({
+    await db.token.delete({
       where: {
         id: token.id,
-      },
-      data: {
-        active: false,
       },
     })
 
