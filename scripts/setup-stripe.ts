@@ -1,12 +1,8 @@
+/* eslint-disable no-console */
 import { db } from '~/database'
+import { STRIPE_PRODUCT_ID } from '~/lib/constants'
 import { SERVER_URL } from '~/lib/env'
 import { stripe } from '~/services/billing'
-
-// this is static
-export const STRIPE_PRODUCT_ID = 'dwsckm5c6y8sszu4v73sra08'
-// This needs to be updated if the prices change
-export const STRIPE_MONTHLY_PRICE = 'price_1MoekuGDDGEniieeTGrVe1vC'
-export const STRIPE_YEARLY_PRICE = 'price_1MoekuGDDGEniieeDwIK16hz'
 
 async function seed() {
   console.log('Seeding Stripe...')
@@ -26,8 +22,6 @@ async function seed() {
       })
     )
   }
-
-  // const product = products.data[0]
 
   const prices = await stripe.prices.list()
 
@@ -65,6 +59,23 @@ async function seed() {
 
   const monthlyPrice = prices.data.filter((price) => price.recurring!.interval === 'month')[0]
   const yearlyPrice = prices.data.filter((price) => price.recurring!.interval === 'year')[0]
+
+  await db.price.deleteMany({})
+
+  await db.price.createMany({
+    data: [
+      {
+        stripePriceId: monthlyPrice.id,
+        stripeProductId: STRIPE_PRODUCT_ID,
+        stripeInterval: 'month',
+      },
+      {
+        stripePriceId: yearlyPrice.id,
+        stripeProductId: STRIPE_PRODUCT_ID,
+        stripeInterval: 'year',
+      },
+    ],
+  })
 
   const portals = await stripe.billingPortal.configurations.list()
 

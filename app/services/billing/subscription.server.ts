@@ -1,7 +1,7 @@
-import { STRIPE_PRODUCT_ID } from 'scripts/setup-stripe'
 import { z } from 'zod'
 
 import { SubscriptionStatus } from '@prisma/client'
+import { STRIPE_PRODUCT_ID } from '~/lib/constants'
 import { AppError, parseData, toDate } from '~/lib/utils'
 
 import { stripe } from './stripe.server'

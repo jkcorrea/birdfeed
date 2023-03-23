@@ -38,6 +38,14 @@ model User {
   @@map("users")
 }
 
+model Price {
+  stripePriceId String @id
+  stripeProductId String
+  stripeInterval String
+
+  @@map("prices")
+}
+
 model Transcript {
   id        String   @id @default(cuid())
   createdAt DateTime @default(now())
@@ -93,6 +101,8 @@ model Token {
   @@map("tokens")
   @@unique([token, type])
 }
+
+
 
 // Base on Stripe API version 2022-11-15
 // https://stripe.com/docs/api/subscriptions/list#list_subscriptions-status
