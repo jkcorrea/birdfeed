@@ -49,14 +49,12 @@ export async function action({ request }: ActionArgs) {
       case 'customer.subscription.created': {
         const { id: stripeId, metadata: stripeMetadata } = await parseData(
           event.data.object,
-          z
-            .object({
-              subscription: z.string(),
-              metadata: z.object({
-                token: z.string(),
-              }),
-            })
-            .transform(({ subscription, metadata }) => ({ id: subscription, metadata })),
+          z.object({
+            id: z.string(),
+            metadata: z.object({
+              token: z.string(),
+            }),
+          }),
           `${event.type} payload is malformed`
         )
 

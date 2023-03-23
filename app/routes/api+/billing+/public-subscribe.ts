@@ -1,10 +1,7 @@
-import { createId } from '@paralleldrive/cuid2'
 import type { ActionArgs } from '@remix-run/node'
 import { parseFormAny } from 'react-zorm'
 import { z } from 'zod'
 
-import { TokenType } from '@prisma/client'
-import { db } from '~/database'
 import { SERVER_URL } from '~/lib/env'
 import { response } from '~/lib/http.server'
 import { parseData } from '~/lib/utils'
@@ -22,17 +19,6 @@ export async function action({ request }: ActionArgs) {
 
     const { id: customerId } = await stripe.customers.create()
 
-    const { token } = await db.token.create({
-      data: {
-        token: createId(),
-        type: TokenType.ANON_CHECKOUT_TOKEN,
-        active: false,
-        metadata: {
-          stripeCustomerId: customerId,
-        },
-      },
-    })
-
     // Once a customer has subscribed, we can't change their currency.
     // Be sure to be consistent with the currency you use for your prices.
     // If there is a mismatch, the customer will be unable to checkout again.
@@ -40,8 +26,7 @@ export async function action({ request }: ActionArgs) {
     const { url } = await createCheckoutSession({
       priceId,
       customerId,
-      success_url: `${SERVER_URL}/join?token=${token}`,
-      metadata: { token },
+      baseSuccessUrl: `${SERVER_URL}/join`,
     })
 
     return response.redirect(url, { authSession: null })

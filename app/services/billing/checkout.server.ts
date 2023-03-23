@@ -1,3 +1,7 @@
+import { createId } from '@paralleldrive/cuid2'
+
+import { TokenType } from '@prisma/client'
+import { db } from '~/database'
 import { SERVER_URL } from '~/lib/env'
 import { AppError } from '~/lib/utils'
 
@@ -8,18 +12,29 @@ const tag = 'Checkout service 🛒'
 export async function createCheckoutSession({
   customerId,
   priceId,
-  metadata,
-  success_url,
+  baseSuccessUrl,
 }: {
   customerId: string
   priceId: string
-  success_url: string
-  metadata?: Record<string, string | number | null>
+  baseSuccessUrl: string
 }) {
   try {
+    const { token } = await db.token.create({
+      data: {
+        token: createId(),
+        type: TokenType.ANON_CHECKOUT_TOKEN,
+        active: false,
+        metadata: {
+          stripeCustomerId: customerId,
+        },
+      },
+    })
+
     const { url } = await stripe.checkout.sessions.create({
       customer: customerId,
-      metadata,
+      metadata: {
+        token,
+      },
       line_items: [
         {
           price: priceId,
@@ -29,10 +44,12 @@ export async function createCheckoutSession({
       mode: 'subscription',
       subscription_data: {
         trial_period_days: 7,
-        metadata,
+        metadata: {
+          token,
+        },
       },
       payment_method_types: ['card'],
-      success_url,
+      success_url: baseSuccessUrl + `?token=${token}`,
       cancel_url: `${SERVER_URL}/`,
     })
 

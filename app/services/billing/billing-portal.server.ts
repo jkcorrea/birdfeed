@@ -6,11 +6,14 @@ import { stripe } from './stripe.server'
 
 const tag = 'Billing portal service 📊'
 
-export async function createBillingPortalSession(customerId: string) {
+export async function createBillingPortalSession(
+  customerId: string,
+  redirectUrl = `${SERVER_URL}${APP_ROUTES.HOME.href}`
+) {
   try {
     const { url } = await stripe.billingPortal.sessions.create({
       customer: customerId,
-      return_url: `${SERVER_URL}${APP_ROUTES.HOME.href}`,
+      return_url: redirectUrl,
     })
 
     return { url }

@@ -15,7 +15,7 @@ type UserCreatePayload = {
   email: string
 }
 
-export async function isUserSubsribed(id: User['id']) {
+export async function userSubscriptionStatus(id: User['id']) {
   try {
     const { stripeSubscriptionId } = await db.user.findUniqueOrThrow({
       where: { id },
@@ -24,7 +24,7 @@ export async function isUserSubsribed(id: User['id']) {
 
     const subscription = await stripe.subscriptions.retrieve(stripeSubscriptionId)
 
-    return subscription.status === 'active' || subscription.status === 'trialing'
+    return subscription.status
   } catch (cause) {
     throw new AppError({
       cause,
