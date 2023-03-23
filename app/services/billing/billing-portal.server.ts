@@ -1,3 +1,4 @@
+import { APP_ROUTES } from '~/lib/constants'
 import { SERVER_URL } from '~/lib/env'
 import { AppError } from '~/lib/utils'
 
@@ -9,7 +10,7 @@ export async function createBillingPortalSession(customerId: string) {
   try {
     const { url } = await stripe.billingPortal.sessions.create({
       customer: customerId,
-      return_url: `${SERVER_URL}/subscription`,
+      return_url: `${SERVER_URL}${APP_ROUTES.HOME.href}`,
     })
 
     return { url }

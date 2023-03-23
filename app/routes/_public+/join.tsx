@@ -10,10 +10,9 @@ import { db } from '~/database'
 import { APP_ROUTES } from '~/lib/constants'
 import { useIsSubmitting } from '~/lib/hooks'
 import { response } from '~/lib/http.server'
-import { AppError, parseData } from '~/lib/utils'
+import { AppError, getGuardedToken, parseData } from '~/lib/utils'
 import { createAuthSession } from '~/services/auth'
 import { hasAuthSession } from '~/services/auth/session.server'
-import { createSubscription, fetchSubscription } from '~/services/billing'
 import { createUserAccount, getUserByEmail } from '~/services/user'
 
 export async function loader({ request }: LoaderArgs) {
@@ -48,21 +47,17 @@ export async function action({ request }: ActionArgs) {
       'Join form payload is invalid'
     )
 
-    const token = await db.token.findUnique({
-      where: {
+    const token = await getGuardedToken(
+      {
         token_type: {
           token: payload.checkoutToken,
           type: TokenType.ANON_CHECKOUT_TOKEN,
         },
       },
-    })
+      z.object({ stripeSubscriptionId: z.string(), stripeCustomerId: z.string() })
+    )
 
-    // @ts-expect-error this can be a string or a number, but won't be in this case
-    if (!token || !token.active || !token.metadata.subscriptionId || !token.metadata.stripeCustomerId)
-      throw new AppError({ message: 'This token is not valid', status: 403 })
-
-    // @ts-expect-error this can be a string or a number, but won't be in this case
-    const { subscriptionId, stripeCustomerId } = token.metadata
+    const { stripeSubscriptionId, stripeCustomerId } = token.metadata
 
     const { email, password, redirectTo } = payload
 
@@ -78,15 +73,9 @@ export async function action({ request }: ActionArgs) {
 
     const authSession = await createUserAccount({
       email,
-      customerId: stripeCustomerId,
+      stripeCustomerId,
+      stripeSubscriptionId,
       password,
-    })
-
-    const subscription = await fetchSubscription(subscriptionId)
-
-    await createSubscription({
-      id: subscriptionId,
-      ...subscription,
     })
 
     await db.token.update({

@@ -3,11 +3,11 @@ import { Outlet, useLoaderData, useLocation } from '@remix-run/react'
 import type { LoaderArgs, SerializeFrom } from '@remix-run/server-runtime'
 
 import { Navbar } from '~/components/AppNavbar'
+import { db } from '~/database'
 import { ph } from '~/lib/analytics'
 import { response } from '~/lib/http.server'
 import { requireAuthSession } from '~/services/auth'
 import { hasAuthSession } from '~/services/auth/session.server'
-import { getUserTier } from '~/services/user'
 
 export type AppLayoutLoaderData = SerializeFrom<typeof loader>
 
@@ -21,12 +21,15 @@ export async function loader({ request }: LoaderArgs) {
 
     const authSession = await requireAuthSession(request)
     const { userId, email } = authSession
-    const userTier = await getUserTier(userId)
+
+    const { stripeSubscriptionStatus } = await db.user.findUniqueOrThrow({
+      where: { id: userId },
+    })
 
     return response.ok(
       {
         email,
-        userTier,
+        stripeSubscriptionStatus,
       },
       { authSession }
     )

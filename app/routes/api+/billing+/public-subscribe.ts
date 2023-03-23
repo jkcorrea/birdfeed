@@ -7,20 +7,12 @@ import { TokenType } from '@prisma/client'
 import { db } from '~/database'
 import { SERVER_URL } from '~/lib/env'
 import { response } from '~/lib/http.server'
-import { ANON_SESSION_KEY, anonSessionStorage, getSessionData } from '~/lib/session.server'
 import { parseData } from '~/lib/utils'
-import type { AnonSession } from '~/services/auth'
 import { createCheckoutSession, stripe } from '~/services/billing'
 
 export type SubscribePublicApiAction = typeof action
 
 export async function action({ request }: ActionArgs) {
-  const anonSession = (await getSessionData(request, ANON_SESSION_KEY, anonSessionStorage)) as AnonSession | null
-
-  if (!anonSession) {
-    throw response.error('Cannot find anonymous session Id.  Please enable cookies.', { authSession: null })
-  }
-
   try {
     const { priceId } = await parseData(
       parseFormAny(await request.formData()),
@@ -30,10 +22,10 @@ export async function action({ request }: ActionArgs) {
 
     const { id: customerId } = await stripe.customers.create()
 
-    const { token } = await db.tokens.create({
+    const { token } = await db.token.create({
       data: {
         token: createId(),
-        type: TokenType.PURCHASED_COMPLETED_TOKEN,
+        type: TokenType.ANON_CHECKOUT_TOKEN,
         active: false,
         metadata: {
           stripeCustomerId: customerId,
@@ -49,7 +41,7 @@ export async function action({ request }: ActionArgs) {
       priceId,
       customerId,
       success_url: `${SERVER_URL}/join?token=${token}`,
-      metadata: { token, isAnonymous: 'true' },
+      metadata: { token },
     })
 
     return response.redirect(url, { authSession: null })

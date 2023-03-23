@@ -11,6 +11,8 @@ import { stripe } from '~/services/billing'
 import { supabaseAdmin } from '~/services/supabase'
 import { createUserAccount } from '~/services/user'
 
+import { STRIPE_MONTHLY_PRICE } from './setup-stripe'
+
 const env = process.env.NODE_ENV ?? 'development'
 
 const DEFAULT_USER = 'admin@birdfeed.ai'
@@ -45,7 +47,25 @@ export const resetDB = async () => {
     const customer = await stripe.customers.create({ email: DEFAULT_USER })
     customerId = customer.id
   }
-  const user = await createUserAccount({ email: DEFAULT_USER, password: DEFAULT_PASSWORD, customerId })
+
+  const subscriptionSearch = await stripe.subscriptions.search({ query: `customer:"${customerId}"` })
+  let stripeSubscriptionId: string
+  if (subscriptionSearch.data.length === 0) {
+    const subscription = await await stripe.subscriptions.create({
+      customer: customerId,
+      items: [{ price: STRIPE_MONTHLY_PRICE }],
+    })
+    stripeSubscriptionId = subscription.id
+  } else {
+    stripeSubscriptionId = subscriptionSearch.data[0].id
+  }
+
+  const user = await createUserAccount({
+    email: DEFAULT_USER,
+    password: DEFAULT_PASSWORD,
+    stripeCustomerId: customerId,
+    stripeSubscriptionId,
+  })
 
   console.log(`Created default user: ${user.email} with password: ${DEFAULT_PASSWORD}`)
   return user

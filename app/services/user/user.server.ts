@@ -1,6 +1,5 @@
 import { db } from '~/database'
 import { AppError } from '~/lib/utils'
-import type { AuthSession } from '~/services/auth'
 import { createEmailAuthAccount, deleteAuthAccount, signInWithEmail } from '~/services/auth'
 import { stripe } from '~/services/billing'
 
@@ -9,7 +8,12 @@ import type { User } from './types'
 
 const tag = 'User service 🧑'
 
-type UserCreatePayload = Pick<AuthSession, 'userId' | 'email'> & { stripeCustomerId: string }
+type UserCreatePayload = {
+  stripeCustomerId: string
+  stripeSubscriptionId: string
+  password: string
+  email: string
+}
 
 export async function getUserByEmail(email: User['email']) {
   try {
@@ -29,37 +33,21 @@ export async function getUserByEmail(email: User['email']) {
   }
 }
 
-async function createUser({ email, userId, stripeCustomerId }: UserCreatePayload) {
-  try {
-    const user = await db.user.create({
-      data: {
-        email,
-        id: userId,
-        stripeCustomerId,
-      },
-    })
-
-    return user
-  } catch (cause) {
-    throw new AppError({
-      cause,
-      message: 'Unable to create user in database or stripe',
-      metadata: { email, userId },
-      tag,
-    })
-  }
-}
-
-export async function createUserAccount(payload: { email: string; password: string; customerId: string }) {
-  const { email, password, customerId } = payload
+export async function createUserAccount(payload: UserCreatePayload) {
+  const { email, password, stripeCustomerId, stripeSubscriptionId } = payload
 
   try {
     const { id: userId } = await createEmailAuthAccount(email, password)
     const authSession = await signInWithEmail(email, password)
-    await createUser({
-      customerId,
-      email,
-      userId,
+
+    await db.user.create({
+      data: {
+        email,
+        id: userId,
+        stripeCustomerId,
+        stripeSubscriptionId,
+        stripeSubscriptionStatus: 'active',
+      },
     })
 
     return authSession
@@ -98,33 +86,11 @@ export async function updateUser(
   }
 }
 
-export async function getBillingInfo(id: User['id']) {
-  try {
-    const { customerId, currency } = await db.user.findUniqueOrThrow({
-      where: { id },
-      select: {
-        customerId: true,
-        currency: true,
-      },
-    })
-
-    return { customerId, currency }
-  } catch (cause) {
-    throw new AppError({
-      cause,
-      message: 'Unable to get billing info',
-      status: 404,
-      metadata: { id },
-      tag,
-    })
-  }
-}
-
 export async function deleteUser(id: User['id']) {
   try {
-    const { customerId } = await getBillingInfo(id)
+    const { stripeCustomerId } = await db.user.findUniqueOrThrow({ where: { id }, select: { stripeCustomerId: true } })
 
-    await stripe.customers.del(customerId)
+    await stripe.customers.del(stripeCustomerId)
     await deleteAuthAccount(id)
     await db.user.delete({ where: { id } })
 
