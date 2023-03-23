@@ -45,7 +45,7 @@ export default function HomePage() {
 
   return (
     <div className="flex h-full flex-col gap-4 overflow-x-auto md:flex-row md:overflow-hidden lg:gap-8">
-      <div className="tabs">
+      <div className="tabs block md:hidden">
         <button
           type="button"
           onClick={() => setActiveTab('tweets')}
