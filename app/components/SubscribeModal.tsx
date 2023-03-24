@@ -69,14 +69,14 @@ const SubscribeModal = ({ mode, onClose }: SubscribeModalProps) => {
               onChange={(e) => setPlan(e.currentTarget.checked ? 'year' : 'month')}
             />
             <span className="label-text text-lg">
-              Annual billing <span className="badge badge-success">60% OFF</span>
+              Annual billing <span className={tw('badge-success badge', plan === 'month' && 'invisible')}>60% OFF</span>
             </span>
           </label>
         </div>
 
         <div className="mx-auto mt-3 w-4/6 ">
           <p>
-            <span className="text-5xl font-bold tracking-tight">{plan === 'year' ? '$7.99' : '$18.99'}</span>{' '}
+            <span className="text-5xl font-bold tracking-tight">{plan === 'year' ? '$7.49' : '$18.99'}</span>{' '}
             <span className="text-lg font-medium opacity-80">/ month</span>
           </p>
         </div>
