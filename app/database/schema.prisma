@@ -21,23 +21,26 @@ model User {
   id        String   @id
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
-  email      String @unique
+  email     String   @unique
 
   twitterOAuthToken       String?
   twitterOAuthTokenSecret String?
 
-  transcript   Transcript[]
+  transcript Transcript[]
 
-  stripeCustomerId String @unique // Created by Stripe
-  stripeSubscriptionId  String // Created by Stripe
+  stripeCustomerId     String @unique // Created by Stripe
+  stripeSubscriptionId String // Created by Stripe
 
   @@map("users")
 }
 
 model Price {
-  stripePriceId String @id
+  stripePriceId   String @id
   stripeProductId String
-  stripeInterval String
+  stripeInterval  String
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @default(now()) @updatedAt
 
   @@map("prices")
 }
@@ -79,7 +82,6 @@ model Tweet {
 
 // #region BILLING
 
-
 enum TokenType {
   ANON_CHECKOUT_TOKEN
   AUTH_CHECKOUT_TOKEN
@@ -90,11 +92,13 @@ model Token {
   id        String   @id @default(cuid())
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
-  active    Boolean  @default(true)
+
+  active    Boolean   @default(true)
   token     String
-  type        TokenType
-  expiresAt   DateTime?
-  metadata Json @default("{}")
-  @@map("tokens")
+  type      TokenType
+  expiresAt DateTime?
+  metadata  Json      @default("{}")
+
   @@unique([token, type])
+  @@map("tokens")
 }
