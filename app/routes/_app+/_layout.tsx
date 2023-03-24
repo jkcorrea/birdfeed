@@ -49,7 +49,7 @@ export default function AppLayout() {
   const { open: openSubscribeModal } = useSubscribeModal()
   const [hasClosedModal, setHasClosedModal] = useState(false) // dont be annoying with the modal popups..
   useEffect(() => {
-    if ((!hasClosedModal && status === 'active') || status === 'trialing') {
+    if (!hasClosedModal && status !== 'active' && status !== 'trialing') {
       openSubscribeModal('resubscribe', () => {
         setHasClosedModal(true)
       })

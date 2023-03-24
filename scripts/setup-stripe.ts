@@ -34,7 +34,7 @@ async function seed() {
       await stripe.prices.create({
         product: STRIPE_PRODUCT_ID,
         currency: 'usd',
-        unit_amount: 1699,
+        unit_amount: 1899,
         tax_behavior: 'inclusive',
         recurring: {
           interval: 'month',
