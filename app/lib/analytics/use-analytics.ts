@@ -14,5 +14,7 @@ export function useAnalytics() {
     userPropertiesToSetOnce?: Properties | undefined
   ) => posthog.identify(new_distinct_id, userPropertiesToSet, userPropertiesToSetOnce)
 
-  return { capture, identify }
+  const reset = () => posthog.reset()
+
+  return { capture, identify, reset }
 }

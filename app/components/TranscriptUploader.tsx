@@ -6,7 +6,7 @@ import { AnimatePresence, motion } from 'framer-motion'
 
 import { useAnalytics } from '~/lib/analytics/use-analytics'
 import { UPLOAD_BUCKET_ID } from '~/lib/constants'
-import { useIsSubmitting, useMockProgress } from '~/lib/hooks'
+import { useIsSubmitting, useMockProgress, useTrailingEdgeTrigger } from '~/lib/hooks'
 import { tw } from '~/lib/utils'
 import { getSupabase } from '~/services/supabase'
 
@@ -35,6 +35,8 @@ function TranscriptUploader({ isAuthed, fetcher }: Props) {
   const [isUploading, setIsUploading] = useState(false)
   const isTranscribing = useIsSubmitting(fetcher)
 
+  useTrailingEdgeTrigger(fetcher, () => capture('transcript_finish'))
+
   const { start: startProgress, finish: finishProgress, progress } = useMockProgress(3000)
   useEffect(() => {
     if (isTranscribing || isUploading) startProgress()
@@ -42,7 +44,7 @@ function TranscriptUploader({ isAuthed, fetcher }: Props) {
   }, [isUploading, isTranscribing, startProgress, finishProgress])
 
   const handleFileUpload = async (file: File) => {
-    capture('transcript_upload', { file_name: file.name })
+    capture('transcript_start', { file_name: file.name })
 
     const limits = isAuthed ? fileSizeLimits.authed : fileSizeLimits.unauthed
     if (file.size > limits.size) {
