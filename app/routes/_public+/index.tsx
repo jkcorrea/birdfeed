@@ -88,17 +88,16 @@ export default function Home() {
   return (
     <div className="container mx-auto max-w-screen-lg px-10 py-8 lg:px-0">
       <nav className="mb-8 flex items-center justify-between" aria-label="Global">
-        <div className="flex items-center space-x-2 lg:min-w-0 lg:flex-1" aria-label="Global">
-          <Link to="/" className="-m-1.5 flex items-center whitespace-nowrap p-1.5 text-2xl font-black">
-            <img src={birdfeedIcon} alt="Birdfeed AI" className="inline h-10 w-10" /> Birdfeed
+        <Link to="/" className="-m-1.5 flex items-center whitespace-nowrap p-1.5 text-2xl font-black">
+          <img src={birdfeedIcon} alt="Birdfeed AI" className="inline h-10 w-10" /> Birdfeed
+        </Link>
+
+        <div className="inline-flex items-center md:gap-2">
+          <Link to={APP_ROUTES.LOGIN.href} className="btn-ghost btn-xs btn-sm btn md:btn-md">
+            Login
           </Link>
-        </div>
-        <div className="inline-flex items-center">
-          <Link to={APP_ROUTES.LOGIN.href} className="btn-ghost btn-sm btn md:btn-md md:mr-5">
-            Log In
-          </Link>
-          <button onClick={openSignupModal} className="btn-outline btn-primary btn-sm btn md:btn-md">
-            Get Started
+          <button onClick={openSignupModal} className="btn-outline btn-accent btn-xs btn md:btn-md">
+            Sign Up
           </button>
         </div>
       </nav>
