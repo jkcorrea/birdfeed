@@ -6,7 +6,7 @@ import type { LoaderArgs } from '@remix-run/server-runtime'
 import posthog from 'posthog-js'
 import { toast } from 'react-hot-toast'
 
-import { SubscribeModal } from '~/components/SubscribeModal'
+import { useSubscribeModal } from '~/components/SubscribeModal'
 import { ph } from '~/lib/analytics'
 import { APP_ROUTES, NAV_ROUTES } from '~/lib/constants'
 import { useIsSubmitting } from '~/lib/hooks'
@@ -46,6 +46,16 @@ export default function AppLayout() {
   const location = useLocation()
   const { email, status } = useLoaderData<typeof loader>()
 
+  const { open: openSubscribeModal } = useSubscribeModal()
+  const [hasClosedModal, setHasClosedModal] = useState(false) // dont be annoying with the modal popups..
+  useEffect(() => {
+    if ((!hasClosedModal && status === 'active') || status === 'trialing') {
+      openSubscribeModal('resubscribe', () => {
+        setHasClosedModal(true)
+      })
+    }
+  }, [status, hasClosedModal, openSubscribeModal])
+
   // TODO - see if there's a race condition btwn this and the useEffect in root.tsx
   useEffect(() => {
     if (ph) ph.identify(email)
@@ -56,11 +66,7 @@ export default function AppLayout() {
       <Navbar key={location.key} />
 
       <main className="mx-auto min-h-[500px] w-full min-w-[300px] max-w-screen-2xl grow py-4 px-8 md:px-0 lg:mt-5">
-        {status === 'active' || status === 'trialing' ? (
-          <Outlet />
-        ) : (
-          <SubscribeModal isOpen={true} isAuthenticated onClose={() => undefined} />
-        )}
+        <Outlet />
       </main>
     </>
   )

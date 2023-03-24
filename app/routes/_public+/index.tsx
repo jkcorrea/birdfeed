@@ -1,4 +1,4 @@
-import { Fragment, useState } from 'react'
+import { Fragment } from 'react'
 import type { ActionArgs, LoaderArgs } from '@remix-run/node'
 import { Link, useFetcher } from '@remix-run/react'
 import type { HTMLAttributes, ReactNode } from 'react'
@@ -7,7 +7,7 @@ import type { ExternalScriptsFunction } from 'remix-utils'
 
 import { AnimatedWord } from '~/components/AnimatedWord'
 import { PublicFooter } from '~/components/PublicFooter'
-import { SubscribeModal } from '~/components/SubscribeModal'
+import { useSubscribeModal } from '~/components/SubscribeModal'
 import TranscriptUploader from '~/components/TranscriptUploader'
 import { TweetCard } from '~/components/TweetCard'
 import { db } from '~/database'
@@ -82,7 +82,8 @@ export async function action({ request }: ActionArgs) {
 export default function Home() {
   const fetcher = useFetcher<typeof action>()
 
-  const [subscribeModalOpen, setSubscribeModalOpen] = useState(false)
+  const { open: openSubscribeModal } = useSubscribeModal()
+  const openSignupModal = () => openSubscribeModal('signup')
 
   return (
     <div className="container mx-auto max-w-screen-lg px-10 py-8 lg:px-0">
@@ -96,7 +97,7 @@ export default function Home() {
           <Link to={APP_ROUTES.LOGIN.href} className="btn-ghost btn-sm btn md:btn-md md:mr-5">
             Log In
           </Link>
-          <button onClick={() => setSubscribeModalOpen(true)} className="btn-outline btn-accent btn-sm btn md:btn-md">
+          <button onClick={openSignupModal} className="btn-outline btn-primary btn-sm btn md:btn-md">
             Get Started
           </button>
         </div>
@@ -142,8 +143,12 @@ export default function Home() {
               <li>Save tweets you like for later.</li>
               <li>And much more...</li>
             </ul>
-            <button onClick={() => setSubscribeModalOpen(true)} className={tw('btn my-2 block w-full ')}>
-              Get Started
+
+            <button
+              onClick={openSignupModal}
+              className="btn-primary btn-sm btn my-5 w-fit self-center text-lg font-bold normal-case"
+            >
+              Unlock more features!
             </button>
           </ContentCardWrapper>
           <ContentCardWrapper header={<h1 className="font-bold leading-loose">Tips & Quickstart </h1>}>
@@ -176,7 +181,6 @@ export default function Home() {
           (fetcher.data?.error ? fetcher.data.error.message : <TweetGrid tweets={fetcher.data.tweets} />)}
       </main>
       <PublicFooter />
-      <SubscribeModal isOpen={subscribeModalOpen} onClose={() => setSubscribeModalOpen(false)} />
     </div>
   )
 }
@@ -208,6 +212,9 @@ function TweetGrid({ tweets }: { tweets: GeneratedTweet[] }) {
 }
 
 function TweetColumn({ tweets, hasAd }: { tweets: GeneratedTweet[]; hasAd?: boolean }) {
+  const { open } = useSubscribeModal()
+  const openSignupModal = () => open('signup')
+
   return (
     <div className="grid h-fit gap-4">
       {tweets.map((tweet, ix) => (
@@ -216,9 +223,9 @@ function TweetColumn({ tweets, hasAd }: { tweets: GeneratedTweet[]; hasAd?: bool
           {hasAd && ix === Math.floor((tweets.length * 2) / 3) - 1 && (
             <div className="flex h-20 w-full flex-col items-center justify-center rounded-lg bg-base-300 text-center shadow-inner">
               <h3 className="text-lg font-bold">More, better tweets</h3>
-              <Link to={APP_ROUTES.JOIN.href} className="link-info link no-underline">
+              <button className="link-info link no-underline" onClick={openSignupModal}>
                 Sign up here!
-              </Link>
+              </button>
             </div>
           )}
         </Fragment>
