@@ -52,3 +52,6 @@ export const UPSELL_FEATURES = [
   'Direct support & feature requests',
   'And much more...',
 ]
+
+export const UPLOAD_LIMIT_FREE_MB = 20
+export const UPLOAD_LIMIT_PRO_MB = 1000

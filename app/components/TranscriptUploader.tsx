@@ -5,12 +5,13 @@ import type { FetcherWithComponents } from '@remix-run/react'
 import { AnimatePresence, motion } from 'framer-motion'
 
 import { useAnalytics } from '~/lib/analytics/use-analytics'
-import { UPLOAD_BUCKET_ID } from '~/lib/constants'
+import { UPLOAD_BUCKET_ID, UPLOAD_LIMIT_FREE_MB, UPLOAD_LIMIT_PRO_MB } from '~/lib/constants'
 import { useIsSubmitting, useMockProgress } from '~/lib/hooks'
 import { tw } from '~/lib/utils'
 import { getSupabase } from '~/services/supabase'
 
 import type { ICreateTranscript } from '../routes/_app+/home/schemas'
+import { useSubscribeModal } from './SubscribeModal'
 
 interface Props {
   isAuthed?: boolean
@@ -19,12 +20,12 @@ interface Props {
 
 const fileSizeLimits = {
   unauthed: {
-    size: 500_000_000, // 500mb
-    label: '500 MB',
+    size: UPLOAD_LIMIT_FREE_MB * 1_000_000,
+    label: `${UPLOAD_LIMIT_FREE_MB} MB`,
   },
   authed: {
-    size: 10_000_000_000, // 10gb
-    label: '10 GB',
+    size: UPLOAD_LIMIT_PRO_MB * 1_000_000,
+    label: `${UPLOAD_LIMIT_PRO_MB} GB`,
   },
 }
 
@@ -34,6 +35,7 @@ function TranscriptUploader({ isAuthed, fetcher }: Props) {
   const [error, setError] = useState<string | null>(null)
   const [isUploading, setIsUploading] = useState(false)
   const isTranscribing = useIsSubmitting(fetcher)
+  const { open: openSubscribeModal } = useSubscribeModal()
 
   const { start: startProgress, finish: finishProgress, progress } = useMockProgress(3000)
   useEffect(() => {
@@ -43,14 +45,14 @@ function TranscriptUploader({ isAuthed, fetcher }: Props) {
 
   const handleFileUpload = async (file: File) => {
     capture('transcript_upload', { file_name: file.name })
+    setIsUploading(true)
 
     const limits = isAuthed ? fileSizeLimits.authed : fileSizeLimits.unauthed
     if (file.size > limits.size) {
+      openSubscribeModal('signup')
       setError(`File size is too large. Please upload a file smaller than ${limits.label}.`)
       return
     }
-
-    setIsUploading(true)
 
     const id = createId()
     const fileSuffix = file.name.split('.').pop()

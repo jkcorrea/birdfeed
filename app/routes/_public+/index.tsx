@@ -11,7 +11,7 @@ import { useSubscribeModal } from '~/components/SubscribeModal'
 import TranscriptUploader from '~/components/TranscriptUploader'
 import { TweetCard } from '~/components/TweetCard'
 import { db } from '~/database'
-import { APP_ROUTES, UPSELL_FEATURES } from '~/lib/constants'
+import { APP_ROUTES, UPLOAD_LIMIT_FREE_MB, UPSELL_FEATURES } from '~/lib/constants'
 import { NODE_ENV } from '~/lib/env'
 import { response } from '~/lib/http.server'
 import { parseData, tw } from '~/lib/utils'
@@ -110,7 +110,7 @@ export default function Home() {
           <p className="mx-auto mt-6 text-lg leading-snug text-gray-600 sm:text-center">
             Birdfeed listens to hours of content and crafts tweets in your words.
             <br />
-            Upload hours of audio and get tweets in seconds, delivered to your inbox or tweeted automatically.
+            Upload hours of audio and get tweets in seconds.
           </p>
         </div>
 
@@ -134,7 +134,9 @@ export default function Home() {
             className="order-first lg:order-none"
             header={<h1 className="font-bold leading-loose">Get Started Today</h1>}
           >
-            <p>With an account, you'll get access to:</p>
+            <p>
+              Upload up to {UPLOAD_LIMIT_FREE_MB}mb <em>for free</em>! With an account, you'll get access to:
+            </p>
             <ul className="list-inside list-disc py-3">
               {UPSELL_FEATURES.map((feature) => (
                 <li key={feature}>{feature}</li>
