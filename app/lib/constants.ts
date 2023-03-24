@@ -40,3 +40,15 @@ export const LOADING_TWEET_TOAST_ID = 'loading-tweet'
 
 // this is static
 export const STRIPE_PRODUCT_ID = 'dwsckm5c6y8sszu4v73sra08'
+
+export const UPSELL_FEATURES = [
+  'Unlimited file sizes.',
+  'Save your transcripts & regenerate',
+  // 'Schedule your tweets.',
+  // 'Upload via connected accounts.',
+  'Save tweets you like for later',
+  'More advanced tweet-crafting tools',
+  'Re-generate tweet based on your drafts',
+  'Direct support & feature requests',
+  'And much more...',
+]
