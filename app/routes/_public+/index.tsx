@@ -121,7 +121,7 @@ export default function Home() {
             <p className="mb-1">
               Whether you&#39;re a <span className="font-black">brand marketer</span> aiming to enhance audience
               interaction, a <span className="font-black">content creator</span> striving to broaden your impact, or an{' '}
-              <span className="font-black">influencer</span> eager to make an impression. Birdfeed helps with:
+              <span className="font-black">influencer</span> eager to make an impression, Birdfeed can help with:
             </p>
             <div>
               <p>🪄 Generate tweets from your content</p>
