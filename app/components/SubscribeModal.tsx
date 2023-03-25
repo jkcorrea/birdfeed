@@ -66,18 +66,18 @@ const SubscribeModal = ({ mode, referer, onClose }: SubscribeModalProps) => {
 
   return (
     <FullscreenModal isOpen={mode !== null} leftAction={<></>} onClose={onClose}>
-      <div className="flex flex-col rounded-lg p-6">
-        <h2 className="text-3xl font-bold">Upgrade to Birdfeed Pro 🐣</h2>
+      <div className="flex flex-col rounded-lg p-4 sm:p-6">
+        <h2 className="text-xl font-bold sm:text-3xl">Upgrade to Birdfeed Pro 🐣</h2>
 
         <div className="form-control mt-5">
           <label className="label cursor-pointer justify-center gap-2">
             <input
               type="checkbox"
-              className="toggle toggle-lg focus-within:outline-none"
+              className="toggle toggle-sm sm:toggle-lg focus-within:outline-none"
               defaultChecked
               onChange={(e) => setPlan(e.currentTarget.checked ? 'year' : 'month')}
             />
-            <span className="label-text text-lg">
+            <span className="label-text text-sm sm:text-lg">
               Annual billing <span className={tw('badge-success badge', plan === 'month' && 'invisible')}>60% OFF</span>
             </span>
           </label>
@@ -85,12 +85,14 @@ const SubscribeModal = ({ mode, referer, onClose }: SubscribeModalProps) => {
 
         <div className="mx-auto mt-3 w-4/6 ">
           <p>
-            <span className="text-5xl font-bold tracking-tight">{plan === 'year' ? '$7.49' : '$18.99'}</span>{' '}
+            <span className="text-3xl font-bold  tracking-tight sm:text-5xl">
+              {plan === 'year' ? '$7.49' : '$18.99'}
+            </span>{' '}
             <span className="text-lg font-medium opacity-80">/ month</span>
           </p>
         </div>
 
-        <ul className="mx-auto my-10 max-w-xs list-disc text-left text-lg font-medium">
+        <ul className="text mx-auto my-6 max-w-xs list-disc text-left font-medium sm:my-10 sm:text-lg">
           {UPSELL_FEATURES.map((f) => (
             <li key={f}>{f}</li>
           ))}
