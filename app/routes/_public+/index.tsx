@@ -1,4 +1,4 @@
-import { Fragment, useEffect } from 'react'
+import { Fragment, useEffect, useRef } from 'react'
 import type { ActionArgs, LoaderArgs } from '@remix-run/node'
 import { Link, useFetcher } from '@remix-run/react'
 import type { HTMLAttributes, ReactNode } from 'react'
@@ -8,6 +8,7 @@ import type { ExternalScriptsFunction } from 'remix-utils'
 import { AnimatedWord } from '~/components/AnimatedWord'
 import { PublicFooter } from '~/components/PublicFooter'
 import { useSubscribeModal } from '~/components/SubscribeModal'
+import type { TranscriptUploaderHandle } from '~/components/TranscriptUploader'
 import TranscriptUploader from '~/components/TranscriptUploader'
 import { TweetCard } from '~/components/TweetCard'
 import { db } from '~/database'
@@ -92,6 +93,14 @@ export default function Home() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
+  const uploaderHandle = useRef<TranscriptUploaderHandle>(null)
+  const runDemo = async () => {
+    // fetch from /demo.txt as File
+    const demoFile = await fetch('/demo.txt').then((res) => res.blob())
+    const demoFileAsFile = new File([demoFile], 'demo.txt', { type: 'text/plain' })
+    uploaderHandle.current?.handleFileUpload(demoFileAsFile)
+  }
+
   return (
     <div className="container mx-auto max-w-screen-lg px-10 py-8 lg:px-0">
       <nav className="mb-8 flex items-center justify-between" aria-label="Global">
@@ -123,18 +132,19 @@ export default function Home() {
           </p>
         </div>
 
-        <TranscriptUploader fetcher={fetcher} />
+        <TranscriptUploader ref={uploaderHandle} fetcher={fetcher} />
 
         <div className="grid-col-1 mt-8 grid gap-4 leading-relaxed lg:grid-cols-3">
           <ContentCardWrapper header={<h1 className="font-bold leading-loose">Use Cases</h1>}>
             <p className="mb-1">
-              Whether you&#39;re a <span className="font-black">brand marketer</span> aiming to enhance audience
-              interaction, a <span className="font-black">content creator</span> striving to broaden your impact, or an{' '}
-              <span className="font-black">influencer</span> eager to make an impression, Birdfeed can help with:
+              Whether you&#39;re a <span className="font-black">marketer</span>,
+              <span className="font-black">content creator</span>, or <span className="font-black">influencer</span>,
+              Birdfeed empowers you to:
             </p>
             <div>
               <p>🪄 Generate tweets from your content</p>
-              <p>📝 Refine existing tweet ideas</p>
+              <p>📝 Refine the content you create</p>
+              <p>🚀 Create content faster</p>
               <p>🧠 Manage & organize your thoughts</p>
               <p>🤖 More personalized content over time</p>
             </div>
@@ -164,20 +174,27 @@ export default function Home() {
             header={<h1 className="font-bold leading-loose">Tips & Quickstart</h1>}
           >
             <p>
-              No content, but want to see how it works? Try it out with{' '}
+              No file on hand? Click below to watch Birdfeed transform{' '}
               <a
-                className="link-hover link-primary link"
-                href="/planet-money-svb-64kb.mp3"
+                href="https://www.joshterryplays.com/how-to-be-smarter/"
                 target="_blank"
                 rel="noreferrer"
+                className="link-secondary link"
               >
-                this short Planet Money episode
-              </a>
-              !
+                this blog post
+              </a>{' '}
+              into instantly usable ideas.
+              <button
+                type="button"
+                className="btn-outline btn-secondary btn-xs btn my-4 mx-auto block font-bold"
+                onClick={runDemo}
+              >
+                Run demo 💫
+              </button>
             </p>
-            <p className="mt-2">
-              Unlock the potential of content repurposing with Birdfeed and easily connect with your audience while
-              growing your online presence.
+            <p className="mt-4">
+              Unlock content repurposing potential with Birdfeed and effortlessly connect with your audience using your
+              existing work.
             </p>
           </ContentCardWrapper>
         </div>

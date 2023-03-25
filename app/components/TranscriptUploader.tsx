@@ -1,8 +1,9 @@
-import { useCallback, useEffect, useRef, useState } from 'react'
+import { forwardRef, useCallback, useEffect, useImperativeHandle, useRef, useState } from 'react'
 import { CloudArrowUpIcon, InboxArrowDownIcon, SignalSlashIcon } from '@heroicons/react/24/outline'
 import { createId } from '@paralleldrive/cuid2'
 import type { FetcherWithComponents } from '@remix-run/react'
 import { AnimatePresence, motion } from 'framer-motion'
+import type { ForwardedRef } from 'react'
 
 import { useAnalytics } from '~/lib/analytics/use-analytics'
 import { UPLOAD_BUCKET_ID, UPLOAD_LIMIT_FREE_MB, UPLOAD_LIMIT_PRO_MB } from '~/lib/constants'
@@ -12,6 +13,10 @@ import { getSupabase } from '~/services/supabase'
 
 import type { ICreateTranscript } from '../routes/_app+/home/schemas'
 import { useSubscribeModal } from './SubscribeModal'
+
+export interface TranscriptUploaderHandle {
+  handleFileUpload: (file: File) => Promise<void>
+}
 
 interface Props {
   isAuthed?: boolean
@@ -29,8 +34,9 @@ const fileSizeLimits = {
   },
 }
 
-function TranscriptUploader({ isAuthed, fetcher }: Props) {
+function TranscriptUploader({ isAuthed, fetcher }: Props, ref: ForwardedRef<Handle>) {
   const { capture } = useAnalytics()
+
   const fileInputRef = useRef<HTMLInputElement>(null)
   const [error, setError] = useState<string | null>(null)
   const [isUploading, setIsUploading] = useState(false)
@@ -81,6 +87,8 @@ function TranscriptUploader({ isAuthed, fetcher }: Props) {
       )
     }
   }
+
+  useImperativeHandle(ref, () => ({ handleFileUpload }))
 
   return (
     <div
@@ -148,7 +156,7 @@ function TranscriptUploader({ isAuthed, fetcher }: Props) {
   )
 }
 
-export default TranscriptUploader
+export default forwardRef(TranscriptUploader)
 
 function Dropzone({ onFile }: { onFile: (file: File) => void }) {
   const [isDragging, setIsDragging] = useState(false)
