@@ -6,7 +6,7 @@ import { AnimatePresence, motion } from 'framer-motion'
 
 import { useAnalytics } from '~/lib/analytics/use-analytics'
 import { UPLOAD_BUCKET_ID, UPLOAD_LIMIT_FREE_MB, UPLOAD_LIMIT_PRO_MB } from '~/lib/constants'
-import { useIsSubmitting, useMockProgress } from '~/lib/hooks'
+import { useIsSubmitting, useMockProgress, useTrailingEdgeTrigger } from '~/lib/hooks'
 import { tw } from '~/lib/utils'
 import { getSupabase } from '~/services/supabase'
 
@@ -37,6 +37,8 @@ function TranscriptUploader({ isAuthed, fetcher }: Props) {
   const isTranscribing = useIsSubmitting(fetcher)
   const { open: openSubscribeModal } = useSubscribeModal()
 
+  useTrailingEdgeTrigger(fetcher, () => capture('transcript_finish'))
+
   const { start: startProgress, finish: finishProgress, progress } = useMockProgress(3000)
   useEffect(() => {
     if (isTranscribing || isUploading) startProgress()
@@ -44,15 +46,17 @@ function TranscriptUploader({ isAuthed, fetcher }: Props) {
   }, [isUploading, isTranscribing, startProgress, finishProgress])
 
   const handleFileUpload = async (file: File) => {
-    capture('transcript_upload', { file_name: file.name })
-    setIsUploading(true)
+    capture('transcript_start', { file_name: file.name })
 
     const limits = isAuthed ? fileSizeLimits.authed : fileSizeLimits.unauthed
     if (file.size > limits.size) {
-      openSubscribeModal('signup')
       setError(`File size is too large. Please upload a file smaller than ${limits.label}.`)
+      openSubscribeModal('signup', 'fileUploadlimit_exceeded')
+      capture('transcript_fail', { reason: 'too_large', file_name: file.name })
       return
     }
+
+    setIsUploading(true)
 
     const id = createId()
     const fileSuffix = file.name.split('.').pop()

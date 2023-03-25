@@ -1,23 +1,37 @@
-import type { ActionArgs, LoaderArgs } from '@remix-run/node'
-import { Form, Link, useActionData, useNavigation, useSearchParams } from '@remix-run/react'
+import { useEffect, useState } from 'react'
+import type { ActionArgs } from '@remix-run/node'
+import { Form, Link, useActionData, useNavigation } from '@remix-run/react'
+import { toast } from 'react-hot-toast'
 import { parseFormAny, useZorm } from 'react-zorm'
 import { z } from 'zod'
 
 import { TextField } from '~/components/fields'
 import { useSubscribeModal } from '~/components/SubscribeModal'
 import { APP_ROUTES } from '~/lib/constants'
+import { SERVER_URL } from '~/lib/env'
 import { useIsSubmitting } from '~/lib/hooks'
 import { response } from '~/lib/http.server'
 import { parseData, tw } from '~/lib/utils'
-import { createAuthSession, isAnonymousSession, signInWithEmail } from '~/services/auth'
+import { supabaseAdmin } from '~/services/supabase'
 
-export async function loader({ request }: LoaderArgs) {
+const ForgotFormSchema = z.object({
+  email: z
+    .string()
+    .email('invalid-email')
+    .transform((email) => email.toLowerCase()),
+})
+
+export async function action({ request }: ActionArgs) {
   try {
-    const isAnonymous = await isAnonymousSession(request)
+    const payload = await parseData(
+      parseFormAny(await request.formData()),
+      ForgotFormSchema,
+      'Login form payload is invalid'
+    )
 
-    if (!isAnonymous) {
-      return response.redirect('/home', { authSession: null })
-    }
+    const { email } = payload
+
+    await supabaseAdmin().auth.resetPasswordForEmail(email, { redirectTo: `${SERVER_URL}/reset-password` })
 
     return response.ok({}, { authSession: null })
   } catch (cause) {
@@ -25,50 +39,25 @@ export async function loader({ request }: LoaderArgs) {
   }
 }
 
-const LoginFormSchema = z.object({
-  email: z
-    .string()
-    .email('invalid-email')
-    .transform((email) => email.toLowerCase()),
-  password: z.string().min(8, 'password-too-short'),
-  redirectTo: z.string().optional(),
-})
-
-export async function action({ request }: ActionArgs) {
-  try {
-    const payload = await parseData(
-      parseFormAny(await request.formData()),
-      LoginFormSchema,
-      'Login form payload is invalid'
-    )
-
-    const { email, password, redirectTo } = payload
-
-    const authSession = await signInWithEmail(email, password)
-
-    return createAuthSession({
-      request,
-      authSession,
-      redirectTo: redirectTo || APP_ROUTES.HOME.href,
-    })
-  } catch (cause) {
-    return response.error(cause, { authSession: null })
-  }
-}
-
 export default function LoginPage() {
-  const zo = useZorm('login', LoginFormSchema)
-  const actionResponse = useActionData<typeof action>()
-  const [searchParams] = useSearchParams()
-  const redirectTo = searchParams.get('redirectTo') ?? undefined
+  const zo = useZorm('forgot-password', ForgotFormSchema)
+  const actionData = useActionData<typeof action>()
   const nav = useNavigation()
   const isSubmitting = useIsSubmitting(nav)
 
   const { open: openSubscribeModal } = useSubscribeModal()
 
+  const [notified, setNotified] = useState(false)
+  useEffect(() => {
+    if (!notified && actionData) {
+      setNotified(true)
+      toast.success('Email sent! Check your inbox for a link to reset your password.')
+    }
+  }, [actionData, notified])
+
   return (
     <Form ref={zo.ref} method="post" className="space-y-6" replace>
-      <h1 className="text-2xl font-bold">Log in</h1>
+      <h1 className="text-2xl font-bold">Forgot password</h1>
       <div className="space-y-2 pb-4">
         <TextField
           data-test-id="email"
@@ -80,34 +69,26 @@ export default function LoginPage() {
           autoFocus={true}
           disabled={isSubmitting}
         />
-
-        <TextField
-          data-test-id="password"
-          label="Password"
-          error={zo.errors.password()?.message}
-          name={zo.fields.password()}
-          type="password"
-          autoComplete="password"
-          disabled={isSubmitting}
-        />
-
-        <input type="hidden" name={zo.fields.redirectTo()} value={redirectTo} />
       </div>
 
-      {actionResponse?.error ? (
+      {actionData?.error ? (
         <div className="pt-1 text-error" id="name-error">
-          {actionResponse.error.message}
+          {actionData.error.message}
         </div>
       ) : null}
 
       <button className={tw('btn-primary btn w-full font-bold', isSubmitting && 'loading')} disabled={isSubmitting}>
-        Log in
+        Send email
       </button>
 
       <div className="flex flex-col justify-center gap-1 text-center text-sm text-gray-500">
-        <Link className="link-info link" to={APP_ROUTES.FORGOT.href}>
-          Forgot password?
-        </Link>
+        <span>
+          Suddenly remember?{' '}
+          <Link className="link-info link" to={APP_ROUTES.LOGIN.href}>
+            Log in
+          </Link>
+        </span>
+
         <span>
           Don't have an account?{' '}
           <button

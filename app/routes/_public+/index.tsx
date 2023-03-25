@@ -1,4 +1,4 @@
-import { Fragment } from 'react'
+import { Fragment, useEffect } from 'react'
 import type { ActionArgs, LoaderArgs } from '@remix-run/node'
 import { Link, useFetcher } from '@remix-run/react'
 import type { HTMLAttributes, ReactNode } from 'react'
@@ -11,6 +11,7 @@ import { useSubscribeModal } from '~/components/SubscribeModal'
 import TranscriptUploader from '~/components/TranscriptUploader'
 import { TweetCard } from '~/components/TweetCard'
 import { db } from '~/database'
+import { useAnalytics } from '~/lib/analytics'
 import { APP_ROUTES, UPLOAD_LIMIT_FREE_MB, UPSELL_FEATURES } from '~/lib/constants'
 import { NODE_ENV } from '~/lib/env'
 import { response } from '~/lib/http.server'
@@ -83,7 +84,12 @@ export default function Home() {
   const fetcher = useFetcher<typeof action>()
 
   const { open: openSubscribeModal } = useSubscribeModal()
-  const openSignupModal = () => openSubscribeModal('signup')
+
+  const { capture } = useAnalytics()
+
+  useEffect(() => {
+    capture('$pageview')
+  }, [])
 
   return (
     <div className="container mx-auto max-w-screen-lg px-10 py-8 lg:px-0">
@@ -93,18 +99,21 @@ export default function Home() {
         </Link>
 
         <div className="inline-flex items-center md:gap-2">
-          <Link to={APP_ROUTES.LOGIN.href} className="btn-ghost btn-xs btn-sm btn md:btn-md">
+          <Link to={APP_ROUTES.LOGIN.href} className="btn-ghost btn-xs btn md:btn-md">
             Login
           </Link>
-          <button onClick={openSignupModal} className="btn-outline btn-accent btn-xs btn md:btn-md">
-            Sign Up
+          <button
+            onClick={() => openSubscribeModal('signup', 'getStarted_button')}
+            className="btn-outline btn-primary btn-sm btn md:btn-md"
+          >
+            Get Started
           </button>
         </div>
       </nav>
       <main className="flex flex-col">
         <div className="mb-6">
           <h1 className="text-4xl font-black tracking-tight sm:text-center sm:text-6xl">
-            Turn your <AnimatedWord words={['podcasts', 'meetings', 'content']} /> into tweets.
+            Turn your <AnimatedWord words={['blog posts', 'podcasts', 'meetings', 'content']} /> into tweets.
           </h1>
           <p className="mx-auto mt-6 text-lg leading-snug text-gray-600 sm:text-center">
             Birdfeed listens to hours of content and crafts tweets in your words.
@@ -143,7 +152,7 @@ export default function Home() {
             </ul>
 
             <button
-              onClick={openSignupModal}
+              onClick={() => openSubscribeModal('signup', 'unlockFeatures_button')}
               className="btn-primary btn-sm btn my-5 w-fit self-center text-lg font-bold normal-case"
             >
               Unlock more features!
@@ -168,13 +177,6 @@ export default function Home() {
             </p>
           </ContentCardWrapper>
         </div>
-
-        {/* Leaving this here incase we need to work on generated tweets */}
-        {/* {NODE_ENV === 'development' && (
-          <TweetGrid tweets={_pregenTweets.map((t, i) => ({ id: `${i}`, document: '', drafts: [t] }))} />
-        )} */}
-
-        {/* Tweet results */}
         {fetcher.data &&
           (fetcher.data?.error ? fetcher.data.error.message : <TweetGrid tweets={fetcher.data.tweets} />)}
       </main>
@@ -211,7 +213,7 @@ function TweetGrid({ tweets }: { tweets: GeneratedTweet[] }) {
 
 function TweetColumn({ tweets, hasAd }: { tweets: GeneratedTweet[]; hasAd?: boolean }) {
   const { open } = useSubscribeModal()
-  const openSignupModal = () => open('signup')
+  const openSignupModal = () => open('signup', 'tweetGrid_ad')
 
   return (
     <div className="grid h-fit gap-4">

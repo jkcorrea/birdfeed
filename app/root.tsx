@@ -10,14 +10,13 @@ import {
   ScrollRestoration,
   useFetchers,
   useLoaderData,
-  useLocation,
 } from '@remix-run/react'
 import { toast, Toaster } from 'react-hot-toast'
 import { ExternalScripts } from 'remix-utils'
 
 import { NotificationToast } from './components/NotificationToast'
 import { SubscribeModalProvider } from './components/SubscribeModal'
-import { initAnalytics, useAnalytics } from './lib/analytics'
+import { initAnalytics } from './lib/analytics'
 import { APP_THEME } from './lib/constants'
 import { getBrowserEnv, NODE_ENV } from './lib/env'
 import type { CatchResponse } from './lib/http.server'
@@ -53,7 +52,7 @@ export async function loader({ request }: LoaderArgs) {
   const isAnonymous = await isAnonymousSession(request)
 
   if (isAnonymous) {
-    return response.ok({ env: getBrowserEnv(), isLoggedIn: false }, { authSession: null })
+    return response.ok({ env: getBrowserEnv(), email: null, isLoggedIn: false }, { authSession: null })
   }
 
   const authSession = await requireAuthSession(request)
@@ -62,6 +61,7 @@ export async function loader({ request }: LoaderArgs) {
     return response.ok(
       {
         env: getBrowserEnv(),
+        email: authSession.email,
         // TODO - UX improvement: we can use this to change the topbar to say e.g. "Go to app ->"
         isLoggedIn: true,
       },
@@ -73,14 +73,15 @@ export async function loader({ request }: LoaderArgs) {
 }
 
 export default function App() {
-  const { env } = useLoaderData<typeof loader>()
+  const { env, email } = useLoaderData<typeof loader>()
 
-  const { key } = useLocation()
-  const { capture } = useAnalytics()
-  useEffect(initAnalytics, [])
-  useEffect(() => {
-    capture('$pageview')
-  }, [key, capture])
+  useEffect(
+    () =>
+      initAnalytics((posthog) => {
+        email && posthog.identify(email)
+      }),
+    []
+  )
 
   // Notify any errors from server
   const fetchers = useFetchers()
