@@ -12,7 +12,7 @@ import TranscriptUploader from '~/components/TranscriptUploader'
 import { TweetCard } from '~/components/TweetCard'
 import { db } from '~/database'
 import { useAnalytics } from '~/lib/analytics'
-import { APP_ROUTES } from '~/lib/constants'
+import { APP_ROUTES, UPLOAD_LIMIT_FREE_MB, UPSELL_FEATURES } from '~/lib/constants'
 import { NODE_ENV } from '~/lib/env'
 import { response } from '~/lib/http.server'
 import { parseData, tw } from '~/lib/utils'
@@ -94,13 +94,17 @@ export default function Home() {
   return (
     <div className="container mx-auto max-w-screen-lg px-10 py-8 lg:px-0">
       <nav className="mb-8 flex items-center justify-between" aria-label="Global">
-        <div className="flex items-center space-x-2 lg:min-w-0 lg:flex-1" aria-label="Global">
-          <Link to="/" className="-m-1.5 flex items-center whitespace-nowrap p-1.5 text-2xl font-black">
-            <img src={birdfeedIcon} alt="Birdfeed AI" className="inline h-10 w-10" /> Birdfeed
+        <Link to="/" className="-m-1.5 flex items-center whitespace-nowrap p-1.5 text-2xl font-black">
+          <img src={birdfeedIcon} alt="Birdfeed AI" className="inline h-10 w-10" /> Birdfeed
+        </Link>
+
+        <div className="inline-flex items-center md:gap-2">
+          <Link to={APP_ROUTES.LOGIN.href} className="btn-ghost btn-xs  btn md:btn-md">
+            Login
           </Link>
         </div>
         <div className="inline-flex items-center">
-          <Link to={APP_ROUTES.LOGIN.href} className="btn-ghost btn-sm btn md:btn-md md:mr-5">
+          <Link to={APP_ROUTES.LOGIN.href} className="btn-outline btn-accent btn-xs btn md:btn-md">
             Log In
           </Link>
           <button
@@ -119,7 +123,7 @@ export default function Home() {
           <p className="mx-auto mt-6 text-lg leading-snug text-gray-600 sm:text-center">
             Birdfeed listens to hours of content and crafts tweets in your words.
             <br />
-            Upload hours of audio and get tweets in seconds, delivered to your inbox or tweeted automatically.
+            Upload hours of audio and get tweets in seconds.
           </p>
         </div>
 
@@ -127,30 +131,29 @@ export default function Home() {
 
         <div className="grid-col-1 mt-8 grid gap-4 leading-relaxed lg:grid-cols-3">
           <ContentCardWrapper header={<h1 className="font-bold leading-loose">Use Cases</h1>}>
-            <p>
+            <p className="mb-1">
               Whether you&#39;re a <span className="font-black">brand marketer</span> aiming to enhance audience
               interaction, a <span className="font-black">content creator</span> striving to broaden your impact, or an{' '}
-              <span className="font-black">influencer</span> eager to make an impression. Birdfeed helps with
+              <span className="font-black">influencer</span> eager to make an impression, Birdfeed can help with:
             </p>
-            <ul className="list-inside list-disc py-3">
-              <li>Generate and schedule tweets.</li>
-              <li>Inspire new content.</li>
-              <li>Keep standout excerpts.</li>
-              <li>Refresh ideas for old podcasts.</li>
-            </ul>
+            <div>
+              <p>🪄 Generate tweets from your content</p>
+              <p>📝 Refine existing tweet ideas</p>
+              <p>🧠 Manage & organize your thoughts</p>
+              <p>🤖 More personalized content over time</p>
+            </div>
           </ContentCardWrapper>
           <ContentCardWrapper
             className="order-first lg:order-none"
             header={<h1 className="font-bold leading-loose">Get Started Today</h1>}
           >
-            <p>Get access to the full tool.</p>
+            <p>
+              Upload up to {UPLOAD_LIMIT_FREE_MB}mb <em>for free</em>! With an account, you'll get access to:
+            </p>
             <ul className="list-inside list-disc py-3">
-              <li>Unlimited file sizes.</li>
-              <li>Save your transcripts.</li>
-              <li>Schedule your tweets.</li>
-              <li>Upload via connected accounts.</li>
-              <li>Save tweets you like for later.</li>
-              <li>And much more...</li>
+              {UPSELL_FEATURES.map((feature) => (
+                <li key={feature}>{feature}</li>
+              ))}
             </ul>
 
             <button
@@ -160,22 +163,22 @@ export default function Home() {
               Unlock more features!
             </button>
           </ContentCardWrapper>
-          <ContentCardWrapper header={<h1 className="font-bold leading-loose">Tips & Quickstart </h1>}>
-            <p>Taking too long to generate tweets? No content, but want to see how it works? Try this</p>
-            <p className="py-2">
-              {' '}
-              Find your favorite podcast on youtube. Keep it short. We like{' '}
-              <a target="_blank" rel="noreferrer" href="https://www.youtube.com/watch?v=XFIoi6vkpXo">
-                this Planet Money episode.{' '}
+          <ContentCardWrapper header={<h1 className="font-bold leading-loose">Tips & Quickstart</h1>}>
+            <p>
+              No content, but want to see how it works? Try it out with{' '}
+              <a
+                className="link-hover link-primary link"
+                href="/planet-money-svb-64kb.mp3"
+                target="_blank"
+                rel="noreferrer"
+              >
+                this short Planet Money episode
               </a>
+              !
             </p>
-            <p className="py-2">
-              {' '}
-              Convert the youtube link to a low resolution mp3. Use{' '}
-              <a className="link-hover link-info link" target="_blank" rel="noreferrer" href="https://tomp3.cc/">
-                this tool{' '}
-              </a>
-              and set the quality to 64kbps then upload.
+            <p className="mt-2">
+              Unlock the potential of content repurposing with Birdfeed and easily connect with your audience while
+              growing your online presence.
             </p>
           </ContentCardWrapper>
         </div>

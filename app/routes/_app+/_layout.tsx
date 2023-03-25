@@ -65,7 +65,7 @@ export default function AppLayout() {
     <>
       <Navbar key={location.key} />
 
-      <main className="mx-auto min-h-[500px] w-full min-w-[300px] max-w-screen-2xl grow py-4 px-8 md:px-0 lg:mt-5">
+      <main className="mx-auto min-h-[500px] w-full min-w-[300px] max-w-screen-2xl grow py-4 px-8 md:px-4 lg:mt-5 2xl:px-0">
         <Outlet />
       </main>
     </>

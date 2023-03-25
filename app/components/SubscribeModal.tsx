@@ -5,6 +5,7 @@ import { useZorm } from 'react-zorm'
 import type { z } from 'zod'
 
 import { useAnalytics } from '~/lib/analytics'
+import { UPSELL_FEATURES } from '~/lib/constants'
 import { useIsSubmitting } from '~/lib/hooks'
 import { tw } from '~/lib/utils'
 import type { SubscriptionInterval } from '~/routes/api+/billing+/subscribe'
@@ -90,12 +91,9 @@ const SubscribeModal = ({ mode, referer, onClose }: SubscribeModalProps) => {
         </div>
 
         <ul className="mx-auto my-10 max-w-xs list-disc text-left text-lg font-medium">
-          <li>Unlimited file sizes.</li>
-          <li>Save your transcripts.</li>
-          <li>Schedule your tweets.</li>
-          <li>Upload via connected accounts.</li>
-          <li>Save tweets you like for later.</li>
-          <li>And much more...</li>
+          {UPSELL_FEATURES.map((f) => (
+            <li key={f}>{f}</li>
+          ))}
         </ul>
 
         <fetcher.Form ref={zo.ref} method="post" action="/api/billing/subscribe">
