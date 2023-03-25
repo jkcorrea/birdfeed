@@ -4,6 +4,7 @@ import { useFetcher } from '@remix-run/react'
 import dayjs from 'dayjs'
 import relativeTime from 'dayjs/plugin/relativeTime'
 import { transform } from 'framer-motion'
+import { toast } from 'react-hot-toast'
 import { useZorm, Value } from 'react-zorm'
 
 import { TextAreaField } from '~/components/fields'
@@ -28,10 +29,6 @@ interface Props {
 
 export function TweetDetailModal({ tweet, onClose: _onClose }: Props) {
   const [showHistory, setShowHistory] = useState(false)
-  const onClose = () => {
-    setShowHistory(false)
-    _onClose()
-  }
 
   const fetcher = useFetcher()
   const updateFormId = 'update-tweet'
@@ -52,6 +49,16 @@ export function TweetDetailModal({ tweet, onClose: _onClose }: Props) {
     }, 0)
   }
   useEffect(expandTextArea, [tweet, showHistory])
+
+  const onClose = () => {
+    const res = zoUpdate.validate()
+    if (res.success && res.data.draft !== tweet?.drafts[0]) {
+      toast.loading('Saving...')
+      zoUpdate.form?.submit()
+    }
+    setShowHistory(false)
+    _onClose()
+  }
 
   return (
     <FullscreenModal
