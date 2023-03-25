@@ -1,6 +1,5 @@
 import { Fragment, useEffect, useRef, useState } from 'react'
-import type { ActionArgs } from '@remix-run/node'
-import { json } from '@remix-run/node'
+import type { ActionArgs, HeadersFunction } from '@remix-run/node'
 import { Link, useFetcher } from '@remix-run/react'
 import type { HTMLAttributes, ReactNode } from 'react'
 import { parseFormAny } from 'react-zorm'
@@ -39,13 +38,9 @@ const scripts: ExternalScriptsFunction = () =>
 
 export const handle = { scripts }
 
-export async function loader() {
-  const headers = new Headers({
-    'cache-control': 'public, max-age=60, s-maxage=120, stale-while-revalidate',
-    vary: 'cookie',
-  })
-  return json({}, { headers })
-}
+export const headers: HeadersFunction = () => ({
+  'cache-control': 'public, max-age=60, s-maxage=120, stale-while-revalidate',
+})
 
 export async function action({ request }: ActionArgs) {
   try {
