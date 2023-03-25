@@ -141,7 +141,7 @@ function TranscriptUploader({ isAuthed, fetcher }: Props, ref: ForwardedRef<Tran
                     <>
                       <InboxArrowDownIcon className="mb-3 h-14 w-full" />
                       <span>Drop file here</span>
-                      <span className="text-base">accepts audio, video, or transcript (.txt) files</span>
+                      <span className="text-base">accepts audio, video, and text files (mp3, mp4, txt...)</span>
                     </>
                   )}
                 </div>
