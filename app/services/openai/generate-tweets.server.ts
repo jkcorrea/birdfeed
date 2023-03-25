@@ -14,12 +14,11 @@ import FIXTURES from '../../../test/fixtures/sample_generated_tweets.json'
 const MODEL_NAME = 'gpt-3.5-turbo'
 const RESULT_REGEX = /(?:\d\W*)\s*"?(.*)"?$/gm
 
-const UNNECESSARY_QUOTES_REGEX = /(^"|"$)/g
 const HASHTAGS_REGEX = /#\w+(?:\s+|$)/g
 
 const CHUNK_SIZE = 8000 // 10min * 150wpm * 5char/word
 
-const cleanup = (str: string) => str.replaceAll(UNNECESSARY_QUOTES_REGEX, '').replaceAll(HASHTAGS_REGEX, '').trim()
+const cleanup = (str: string) => str.replaceAll('"', '').replaceAll(HASHTAGS_REGEX, '').trim()
 
 export type GeneratedTweet = Pick<Tweet, 'id' | 'drafts' | 'document'>
 
