@@ -15,6 +15,7 @@ import { createCheckoutSession, stripe } from '~/services/billing'
 export const SubscriptionInterval = z.enum(['month', 'year'])
 export const SubscribeFormSchema = z.object({ interval: SubscriptionInterval })
 
+// Creates checkout session
 export async function action({ request }: ActionArgs) {
   const isAnon = await isAnonymousSession(request)
   let authSession: SessionWithCookie<AuthSession> | null = null
@@ -27,9 +28,13 @@ export async function action({ request }: ActionArgs) {
     )
 
     let customerId: string
+    let tokenType: TokenType
+    let baseSuccessUrl: string
     if (isAnon) {
       const { id } = await stripe.customers.create()
       customerId = id
+      tokenType = TokenType.ANON_CHECKOUT_TOKEN
+      baseSuccessUrl = `${SERVER_URL}/join`
     } else {
       authSession = await requireAuthSession(request)
       const { userId } = authSession
@@ -39,6 +44,8 @@ export async function action({ request }: ActionArgs) {
         select: { stripeCustomerId: true },
       })
       customerId = stripeCustomerId
+      tokenType = TokenType.AUTH_CHECKOUT_TOKEN
+      baseSuccessUrl = `${SERVER_URL}/api/billing/checkout-success`
     }
 
     const { stripePriceId: priceId } = await db.price.findFirstOrThrow({
@@ -51,8 +58,8 @@ export async function action({ request }: ActionArgs) {
     const { url } = await createCheckoutSession({
       priceId,
       customerId,
-      baseSuccessUrl: `${SERVER_URL}/api/billing/checkout`,
-      tokenType: TokenType.AUTH_CHECKOUT_TOKEN,
+      baseSuccessUrl,
+      tokenType,
     })
 
     return response.redirect(url, { authSession })

@@ -1,3 +1,4 @@
+import { useEffect } from 'react'
 import type { ActionArgs, LoaderArgs } from '@remix-run/node'
 import { Form, Link, useActionData, useNavigation, useSearchParams } from '@remix-run/react'
 import { parseFormAny, useZorm } from 'react-zorm'
@@ -9,8 +10,9 @@ import { db } from '~/database'
 import { APP_ROUTES } from '~/lib/constants'
 import { useIsSubmitting } from '~/lib/hooks'
 import { response } from '~/lib/http.server'
-import { AppError, getGuardedToken, parseData } from '~/lib/utils'
+import { AppError, celebrate, getGuardedToken, parseData } from '~/lib/utils'
 import { createAuthSession, isAnonymousSession } from '~/services/auth'
+import { CheckoutTokenMeta } from '~/services/billing'
 import { createUserAccount, getUserByEmail } from '~/services/user'
 
 export async function loader({ request }: LoaderArgs) {
@@ -52,18 +54,11 @@ export async function action({ request }: ActionArgs) {
           type: TokenType.ANON_CHECKOUT_TOKEN,
         },
       },
-      z.object({
-        stripeSubscriptionId: z.string(),
-        stripeCustomerId: z.string(),
-      })
+      CheckoutTokenMeta
     )
-
     if (!token.active) throw new AppError('token is not active')
-
     const { stripeSubscriptionId, stripeCustomerId } = token.metadata
-
     const { email, password, redirectTo } = payload
-
     const existingUser = await getUserByEmail(email)
 
     if (existingUser) {
@@ -98,19 +93,31 @@ export async function action({ request }: ActionArgs) {
 }
 
 export default function Join() {
-  const zo = useZorm('NewQuestionWizardScreen', JoinFormSchema)
+  const zo = useZorm('join', JoinFormSchema)
   const actionResponse = useActionData<typeof action>()
   const [searchParams] = useSearchParams()
+  const checkoutToken = searchParams.get('token') ?? undefined
   const redirectTo = searchParams.get('redirectTo') ?? undefined
   const nav = useNavigation()
   const isSubmitting = useIsSubmitting(nav)
 
+  useEffect(() => {
+    if (checkoutToken && !actionResponse?.error) {
+      celebrate()
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
+
   return (
     <Form ref={zo.ref} method="post" className="space-y-6" replace>
-      <div>
-        <h1 className="text-2xl font-bold">Create an account</h1>
-        <div className="divider divider-vertical my-0" />
-      </div>
+      <h1 className="text-2xl font-bold">Create your account</h1>
+      <p>Thank you for signing up! Last step, just create an account below & you'll be flying in no time🐥</p>
+
+      {checkoutToken && (
+        <p className="cursor-pointer text-xs text-gray-500" onClick={celebrate}>
+          More confetti!
+        </p>
+      )}
       <div className="space-y-2 pb-4">
         <TextField
           data-test-id="email"
@@ -134,14 +141,20 @@ export default function Join() {
         />
 
         <input type="hidden" name={zo.fields.redirectTo()} value={redirectTo} />
-        <input type="hidden" name="checkoutToken" value={searchParams.get('token') || ''} />
+        <input type="hidden" name={zo.fields.checkoutToken()} value={checkoutToken} />
       </div>
+
+      {actionResponse?.error && (
+        <div className="pt-1 text-error" id="name-error">
+          {actionResponse.error.message}
+        </div>
+      )}
 
       <button className="btn-primary btn w-full" disabled={isSubmitting}>
         {isSubmitting ? '...' : 'Create Account'}
       </button>
 
-      <div className="flex items-center justify-center">
+      {!checkoutToken && (
         <div className="text-center text-sm text-gray-500">
           Already have an account?{' '}
           <Link
@@ -154,12 +167,7 @@ export default function Join() {
             Log in
           </Link>
         </div>
-      </div>
-      {actionResponse?.error ? (
-        <div className="pt-1 text-error" id="name-error">
-          {actionResponse.error.message}
-        </div>
-      ) : null}
+      )}
     </Form>
   )
 }

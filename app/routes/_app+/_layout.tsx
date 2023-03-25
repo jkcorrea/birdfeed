@@ -10,7 +10,7 @@ import { useAnalytics } from '~/lib/analytics'
 import { APP_ROUTES, NAV_ROUTES } from '~/lib/constants'
 import { useIsSubmitting } from '~/lib/hooks'
 import { response } from '~/lib/http.server'
-import { tw } from '~/lib/utils'
+import { celebrate, tw } from '~/lib/utils'
 import { isAnonymousSession, requireAuthSession } from '~/services/auth'
 import { userSubscriptionStatus } from '~/services/user'
 
@@ -60,6 +60,16 @@ export default function AppLayout() {
       })
     }
   }, [status, hasClosedModal, openSubscribeModal])
+
+  const loc = useLocation()
+  useEffect(() => {
+    if (loc.hash === '#success') {
+      toast.success('Success! Thank you for re-subscribing!', { id: 'checkout-success' })
+      celebrate()
+      window.location.hash = ''
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
 
   return (
     <>

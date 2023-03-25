@@ -57,7 +57,7 @@ export async function action({ request }: ActionArgs) {
 }
 
 export default function LoginPage() {
-  const zo = useZorm('Auth', LoginFormSchema)
+  const zo = useZorm('login', LoginFormSchema)
   const actionResponse = useActionData<typeof action>()
   const [searchParams] = useSearchParams()
   const redirectTo = searchParams.get('redirectTo') ?? undefined
