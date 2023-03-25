@@ -6,7 +6,7 @@ import { APP_ROUTES } from '~/lib/constants'
 import FullscreenModal from './FullscreenModal'
 
 export const PublicFooter = () => {
-  const [aboutIsOpen, setAboutIsOpen] = useState(true)
+  const [aboutIsOpen, setAboutIsOpen] = useState(false)
 
   return (
     <footer className="footer footer-center mt-5 rounded bg-base-200 text-base-content">
