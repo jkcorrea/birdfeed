@@ -4,6 +4,7 @@ import { useFetcher } from '@remix-run/react'
 import { toast } from 'react-hot-toast'
 import { useZorm } from 'react-zorm'
 
+import { useAnalytics } from '~/lib/analytics'
 import { useIsSubmitting } from '~/lib/hooks'
 import { tw } from '~/lib/utils'
 import { RateTweetSchema } from '~/routes/api+/rate-tweet'
@@ -21,6 +22,8 @@ export const PublicActionBar = ({ tweet }: { tweet: GeneratedTweet }) => {
   const isSubmitting = useIsSubmitting(fetcher)
   const isUpvoting = isSubmitting && vote === 'upvote'
   const isDownvoting = isSubmitting && vote === 'downvote'
+
+  const { capture } = useAnalytics()
 
   useEffect(() => {
     if (fetcher.data?.upvoted) {
@@ -42,6 +45,7 @@ export const PublicActionBar = ({ tweet }: { tweet: GeneratedTweet }) => {
               isUpvoting && 'loading',
               vote === 'downvote' && 'opacity-30 grayscale'
             )}
+            onClick={() => capture('tweet_upvote', { tweetId: tweet.id })}
             disabled={Boolean(vote)}
             name={zoDownvote.fields.upvote()}
             value="upvote"
@@ -59,6 +63,7 @@ export const PublicActionBar = ({ tweet }: { tweet: GeneratedTweet }) => {
               isDownvoting && 'loading',
               vote === 'upvote' && 'opacity-30 grayscale'
             )}
+            onClick={() => capture('tweet_downvote', { tweetId: tweet.id })}
             disabled={Boolean(vote)}
           >
             {!isDownvoting && <HandThumbDownIcon className="h-6 w-6" />}
@@ -67,7 +72,7 @@ export const PublicActionBar = ({ tweet }: { tweet: GeneratedTweet }) => {
         </fetcher.Form>
       </div>
 
-      <SendTweetButton body={tweet.drafts[0]} />
+      <SendTweetButton body={tweet.drafts[0]} tweetId={tweet.id} />
     </div>
   )
 }

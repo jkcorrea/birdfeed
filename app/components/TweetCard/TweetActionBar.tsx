@@ -3,6 +3,7 @@ import { ArrowPathIcon, InboxArrowDownIcon, InboxIcon, TrashIcon } from '@heroic
 import { useFetcher } from '@remix-run/react'
 import { useZorm } from 'react-zorm'
 
+import { useAnalytics } from '~/lib/analytics'
 import { APP_ROUTES } from '~/lib/constants'
 import { useIsSubmitting } from '~/lib/hooks'
 import { tw } from '~/lib/utils'
@@ -33,12 +34,15 @@ function TweetActionBar({ tweet, onDelete, showRating }: Props) {
     (f) => (f.get('intent') as IHomeActionIntent) === 'regenerate-tweet' && f.get('tweetId') === tweet.id
   )
 
+  const { capture } = useAnalytics()
   const updateRating = (e: React.ChangeEvent<HTMLInputElement>) => {
     const rating = parseInt(e.currentTarget.dataset.rating as any, 10)
     const formData = new FormData()
     formData.append('intent', 'update-tweet')
     formData.append('tweetId', tweet.id)
     formData.append('rating', rating as any)
+
+    capture('tweet_rate', { rating })
     fetcher.submit(formData, {
       action: APP_ROUTES.HOME.href,
       method: 'post',
@@ -133,7 +137,7 @@ function TweetActionBar({ tweet, onDelete, showRating }: Props) {
             />
           </div>
         ) : (
-          <SendTweetButton body={tweet.drafts[0]} />
+          <SendTweetButton body={tweet.drafts[0]} tweetId={tweet.id} />
         )}
       </div>
     </div>

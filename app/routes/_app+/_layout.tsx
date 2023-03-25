@@ -3,11 +3,10 @@ import { Dialog } from '@headlessui/react'
 import { Bars3Icon, ChevronDownIcon, XMarkIcon } from '@heroicons/react/24/outline'
 import { Form, Link, NavLink, Outlet, useFetcher, useLoaderData, useLocation } from '@remix-run/react'
 import type { LoaderArgs } from '@remix-run/server-runtime'
-import posthog from 'posthog-js'
 import { toast } from 'react-hot-toast'
 
 import { useSubscribeModal } from '~/components/SubscribeModal'
-import { ph } from '~/lib/analytics'
+import { useAnalytics } from '~/lib/analytics'
 import { APP_ROUTES, NAV_ROUTES } from '~/lib/constants'
 import { useIsSubmitting } from '~/lib/hooks'
 import { response } from '~/lib/http.server'
@@ -44,22 +43,23 @@ export async function loader({ request }: LoaderArgs) {
 
 export default function AppLayout() {
   const location = useLocation()
-  const { email, status } = useLoaderData<typeof loader>()
+  const { status } = useLoaderData<typeof loader>()
+
+  const { capture } = useAnalytics()
+
+  useEffect(() => {
+    capture('$pageview')
+  }, [location.key])
 
   const { open: openSubscribeModal } = useSubscribeModal()
   const [hasClosedModal, setHasClosedModal] = useState(false) // dont be annoying with the modal popups..
   useEffect(() => {
-    if ((!hasClosedModal && status === 'active') || status === 'trialing') {
-      openSubscribeModal('resubscribe', () => {
+    if (!hasClosedModal && status !== 'active' && status !== 'trialing') {
+      openSubscribeModal('resubscribe', 'automatic', () => {
         setHasClosedModal(true)
       })
     }
   }, [status, hasClosedModal, openSubscribeModal])
-
-  // TODO - see if there's a race condition btwn this and the useEffect in root.tsx
-  useEffect(() => {
-    if (ph) ph.identify(email)
-  }, [email])
 
   return (
     <>
@@ -174,6 +174,7 @@ function Navbar() {
 function DropdownActions({ isMobile }: { isMobile?: boolean }) {
   const portalFetcher = useFetcher()
   const isFetchingPortal = useIsSubmitting(portalFetcher)
+  const { reset } = useAnalytics()
 
   return (
     <ul
@@ -206,7 +207,7 @@ function DropdownActions({ isMobile }: { isMobile?: boolean }) {
       </li>
       <li className={tw(isMobile ? 'mt-8 text-center' : 'mt-3')}>
         <Form action={APP_ROUTES.LOGOUT.href} method="post">
-          <button onClick={() => posthog.reset()} data-test-id="logout" className="text-error">
+          <button onClickCapture={() => reset()} type="submit" data-test-id="logout" className="text-error">
             {APP_ROUTES.LOGOUT.title}
           </button>
         </Form>
