@@ -137,7 +137,7 @@ function TweetActionBar({ tweet, onDelete, showRating }: Props) {
             />
           </div>
         ) : (
-          <SendTweetButton body={tweet.drafts[0]} tweetId={tweet.id} />
+          <SendTweetButton isAuthed body={tweet.drafts[0]} tweetId={tweet.id} />
         )}
       </div>
     </div>

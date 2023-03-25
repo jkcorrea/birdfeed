@@ -29,6 +29,6 @@ export function getSupabaseClient(supabaseKey: string, accessToken?: string) {
  *
  * Reason : https://github.com/rphlmr/supa-fly-stack/pull/43#issue-1336412790
  */
-export function getSupabase(accessToken: string = SUPABASE_ANON_PUBLIC) {
-  return getSupabaseClient(SUPABASE_URL, accessToken)
+export function getSupabase(accessToken?: string) {
+  return getSupabaseClient(SUPABASE_ANON_PUBLIC, accessToken)
 }

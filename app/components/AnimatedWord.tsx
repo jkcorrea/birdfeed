@@ -2,6 +2,12 @@ import { useEffect, useState } from 'react'
 import type { Variants } from 'framer-motion'
 import { AnimatePresence, motion } from 'framer-motion'
 
+const animationVariants: Variants = {
+  // center the text
+  hidden: { opacity: 0, y: 20, rotateX: -45 },
+  visible: { opacity: 1, y: 0, rotateX: 0 },
+  exit: { opacity: 0, y: -20, rotateX: 45 },
+}
 interface Props {
   words: string[]
   duration?: number
@@ -10,15 +16,9 @@ interface Props {
 export function AnimatedWord({ words, duration = 5000 }: Props) {
   const word = useWordCycle(words, duration)
 
-  const animationVariants: Variants = {
-    hidden: { opacity: 0, y: 20, rotateX: -45 },
-    visible: { opacity: 1, y: 0, rotateX: 0 },
-    exit: { opacity: 0, y: -20, rotateX: 45 },
-  }
-
   return (
-    <div className="relative inline-block w-[200px] sm:w-[300px]">
-      <div className="absolute inset-x-0 -bottom-1 z-0 h-2 -rotate-1 rounded-full bg-accent" />
+    <div className="relative inline-block w-[180px] whitespace-nowrap text-center sm:w-[300px]">
+      <div className="absolute inset-x-0 -bottom-1 z-0 ml-0.5 h-2 -rotate-1 rounded-full bg-accent" />
       <AnimatePresence mode="wait">
         <motion.span
           key={word}

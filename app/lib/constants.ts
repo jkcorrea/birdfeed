@@ -55,4 +55,4 @@ export const UPSELL_FEATURES = [
 ]
 
 export const UPLOAD_LIMIT_FREE_MB = 50
-export const UPLOAD_LIMIT_PRO_MB = 1000
+export const UPLOAD_LIMIT_PRO_MB = 5000

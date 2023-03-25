@@ -108,8 +108,8 @@ export async function createTranscript({ name, mimetype, pathInBucket }: ICreate
     if (SUPABASE_URL.match(/^http:\/\/(localhost|0\.0\.0\.0|127\.0\.0\.1)/)) {
       const { data: blob, error } = await storage.download(pathInBucket)
       if (error || !blob) throw error ?? new AppError('Could not download file on localhost')
-      const limit = userId ? UPLOAD_LIMIT_PRO_MB : UPLOAD_LIMIT_FREE_MB
-      if (blob.size > limit) throw new AppError(`File size exceeds limit of ${limit} MB`)
+      const limit = (userId ? UPLOAD_LIMIT_PRO_MB : UPLOAD_LIMIT_FREE_MB) * 1_000_000
+      if (blob.size > limit) throw new AppError(`File size of exceeds limit of ${limit} MB`)
       const buffer = Buffer.from(await blob?.arrayBuffer())
       content = await transcribeMedia({ buffer, mimetype })
     } else {

@@ -89,22 +89,23 @@ export default function Home() {
 
   useEffect(() => {
     capture('$pageview')
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
   return (
     <div className="container mx-auto max-w-screen-lg px-10 py-8 lg:px-0">
       <nav className="mb-8 flex items-center justify-between" aria-label="Global">
-        <Link to="/" className="-m-1.5 flex items-center whitespace-nowrap p-1.5 text-2xl font-black">
+        <Link to="/" className="-m-1.5 flex items-center whitespace-nowrap p-1.5 text-lg font-black md:text-2xl">
           <img src={birdfeedIcon} alt="Birdfeed AI" className="inline h-10 w-10" /> Birdfeed
         </Link>
 
-        <div className="inline-flex items-center md:gap-2">
+        <div className="inline-flex items-center gap-2">
           <Link to={APP_ROUTES.LOGIN.href} className="btn-ghost btn-xs btn md:btn-md">
             Login
           </Link>
           <button
             onClick={() => openSubscribeModal('signup', 'getStarted_button')}
-            className="btn-outline btn-primary btn-sm btn md:btn-md"
+            className="btn-outline btn-primary btn-xs btn md:btn-md"
           >
             Get Started
           </button>
@@ -139,7 +140,7 @@ export default function Home() {
             </div>
           </ContentCardWrapper>
           <ContentCardWrapper
-            className="order-first lg:order-none"
+            className="order-[-1] lg:order-none"
             header={<h1 className="font-bold leading-loose">Get Started Today</h1>}
           >
             <p>
@@ -158,7 +159,10 @@ export default function Home() {
               Unlock more features!
             </button>
           </ContentCardWrapper>
-          <ContentCardWrapper header={<h1 className="font-bold leading-loose">Tips & Quickstart</h1>}>
+          <ContentCardWrapper
+            className="order-first lg:order-none"
+            header={<h1 className="font-bold leading-loose">Tips & Quickstart</h1>}
+          >
             <p>
               No content, but want to see how it works? Try it out with{' '}
               <a
