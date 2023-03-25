@@ -34,7 +34,7 @@ const fileSizeLimits = {
   },
 }
 
-function TranscriptUploader({ isAuthed, fetcher }: Props, ref: ForwardedRef<Handle>) {
+function TranscriptUploader({ isAuthed, fetcher }: Props, ref: ForwardedRef<TranscriptUploaderHandle>) {
   const { capture } = useAnalytics()
 
   const fileInputRef = useRef<HTMLInputElement>(null)
