@@ -18,7 +18,7 @@ export function AnimatedWord({ words, duration = 5000 }: Props) {
 
   return (
     <div className="relative inline-block w-[180px] whitespace-nowrap text-center sm:w-[300px]">
-      <div className="absolute inset-x-0 z-0 ml-0.5 h-2 -rotate-1 rounded-full bg-accent" />
+      <div className="absolute inset-x-0 -bottom-px z-0 ml-0.5 h-2 -rotate-1 rounded-full bg-accent" />
       <AnimatePresence mode="wait">
         <motion.span
           key={word}
