@@ -1,5 +1,5 @@
-import { Fragment, useEffect, useRef } from 'react'
-import type { ActionArgs, LoaderArgs } from '@remix-run/node'
+import { Fragment, useEffect, useRef, useState } from 'react'
+import type { ActionArgs } from '@remix-run/node'
 import { Link, useFetcher } from '@remix-run/react'
 import type { HTMLAttributes, ReactNode } from 'react'
 import { parseFormAny } from 'react-zorm'
@@ -17,7 +17,6 @@ import { APP_ROUTES, UPLOAD_LIMIT_FREE_MB, UPSELL_FEATURES } from '~/lib/constan
 import { NODE_ENV } from '~/lib/env'
 import { response } from '~/lib/http.server'
 import { parseData, tw } from '~/lib/utils'
-import { isAnonymousSession } from '~/services/auth'
 import type { GeneratedTweet } from '~/services/openai'
 import { generateTweetsFromContent } from '~/services/openai'
 
@@ -39,15 +38,10 @@ const scripts: ExternalScriptsFunction = () =>
 
 export const handle = { scripts }
 
-export async function loader({ request }: LoaderArgs) {
-  const isAnonymous = await isAnonymousSession(request)
-
-  if (!isAnonymous) {
-    return response.redirect(APP_ROUTES.HOME.href, { authSession: null })
-  }
-
+export async function loader() {
   const headers = new Headers({
     'cache-control': 'max-age=60, s-maxage=120, stale-while-revalidate',
+    vary: 'cookie',
   })
 
   try {
@@ -83,13 +77,16 @@ export async function action({ request }: ActionArgs) {
 
 export default function Home() {
   const fetcher = useFetcher<typeof action>()
-
   const { open: openSubscribeModal } = useSubscribeModal()
-
   const { capture } = useAnalytics()
+  const [isLoggedIn, setIsLoggedIn] = useState<boolean>(false)
 
   useEffect(() => {
     capture('$pageview')
+
+    fetch('/api/is-logged-in').then(async (res) => {
+      setIsLoggedIn(Boolean(await res.json()))
+    })
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
@@ -109,15 +106,23 @@ export default function Home() {
         </Link>
 
         <div className="inline-flex items-center gap-2">
-          <Link to={APP_ROUTES.LOGIN.href} className="btn-ghost btn-xs btn md:btn-md">
-            Login
-          </Link>
-          <button
-            onClick={() => openSubscribeModal('signup', 'getStarted_button')}
-            className="btn-outline btn-primary btn-xs btn md:btn-md"
-          >
-            Free Trial
-          </button>
+          {isLoggedIn ? (
+            <Link to={APP_ROUTES.HOME.href} className="btn-outline btn-secondary btn-xs btn md:btn-md">
+              Go to app →
+            </Link>
+          ) : (
+            <>
+              <Link to={APP_ROUTES.LOGIN.href} className="btn-ghost btn-xs btn md:btn-md">
+                Login
+              </Link>
+              <button
+                onClick={() => openSubscribeModal('signup', 'getStarted_button')}
+                className="btn-outline btn-primary btn-xs btn md:btn-md"
+              >
+                Free Trial
+              </button>
+            </>
+          )}
         </div>
       </nav>
       <main className="flex flex-col">
