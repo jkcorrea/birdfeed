@@ -116,7 +116,7 @@ export default function Home() {
             onClick={() => openSubscribeModal('signup', 'getStarted_button')}
             className="btn-outline btn-primary btn-xs btn md:btn-md"
           >
-            Get Started
+            Free Trial
           </button>
         </div>
       </nav>
@@ -166,7 +166,7 @@ export default function Home() {
               onClick={() => openSubscribeModal('signup', 'unlockFeatures_button')}
               className="btn-primary btn-sm btn my-5 w-fit self-center text-lg font-bold normal-case"
             >
-              Unlock more features!
+              7 day free trial
             </button>
           </ContentCardWrapper>
           <ContentCardWrapper
