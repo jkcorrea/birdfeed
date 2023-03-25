@@ -54,7 +54,7 @@ export async function createCheckoutSession({
       },
       payment_method_types: ['card'],
       success_url: baseSuccessUrl + `?token=${token}`,
-      cancel_url: `${SERVER_URL}/`,
+      cancel_url: `${SERVER_URL}/api/billing/checkout-cancel?token=${token}`,
     })
 
     if (!url) {

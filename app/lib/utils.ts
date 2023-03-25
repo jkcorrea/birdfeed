@@ -7,6 +7,7 @@ import { db } from '~/database'
 import { CLEANUP_WORDS } from './constants'
 
 export * from './utils/assert-http.server'
+export * from './utils/celebrate'
 export * from './utils/cookies.server'
 export * from './utils/errors'
 export * from './utils/logger'

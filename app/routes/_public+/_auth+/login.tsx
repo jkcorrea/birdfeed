@@ -57,7 +57,7 @@ export async function action({ request }: ActionArgs) {
 }
 
 export default function LoginPage() {
-  const zo = useZorm('Auth', LoginFormSchema)
+  const zo = useZorm('login', LoginFormSchema)
   const actionResponse = useActionData<typeof action>()
   const [searchParams] = useSearchParams()
   const redirectTo = searchParams.get('redirectTo') ?? undefined
@@ -94,23 +94,22 @@ export default function LoginPage() {
         <input type="hidden" name={zo.fields.redirectTo()} value={redirectTo} />
       </div>
 
-      <button className={tw('btn-primary btn w-full', isSubmitting && 'loading')} disabled={isSubmitting}>
-        Log in
-      </button>
-
-      <div className="flex items-center justify-center">
-        <div className="text-center text-sm text-gray-500">
-          Don't have an account?{' '}
-          <button type="button" className="link-info link" onClick={() => openSubscribeModal('signup')}>
-            Join now
-          </button>
-        </div>
-      </div>
       {actionResponse?.error ? (
         <div className="pt-1 text-error" id="name-error">
           {actionResponse.error.message}
         </div>
       ) : null}
+
+      <button className={tw('btn-primary btn w-full', isSubmitting && 'loading')} disabled={isSubmitting}>
+        Log in
+      </button>
+
+      <div className="text-center text-sm text-gray-500">
+        Don't have an account?{' '}
+        <button type="button" className="link-info link" onClick={() => openSubscribeModal('signup')}>
+          Join now
+        </button>
+      </div>
     </Form>
   )
 }
