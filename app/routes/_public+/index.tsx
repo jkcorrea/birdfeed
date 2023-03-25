@@ -99,13 +99,8 @@ export default function Home() {
         </Link>
 
         <div className="inline-flex items-center md:gap-2">
-          <Link to={APP_ROUTES.LOGIN.href} className="btn-ghost btn-xs  btn md:btn-md">
+          <Link to={APP_ROUTES.LOGIN.href} className="btn-ghost btn-xs btn md:btn-md">
             Login
-          </Link>
-        </div>
-        <div className="inline-flex items-center">
-          <Link to={APP_ROUTES.LOGIN.href} className="btn-outline btn-accent btn-xs btn md:btn-md">
-            Log In
           </Link>
           <button
             onClick={() => openSubscribeModal('signup', 'getStarted_button')}
