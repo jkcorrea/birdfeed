@@ -118,7 +118,7 @@ export default function Home() {
       <main className="flex flex-col">
         <div className="mb-6">
           <h1 className="text-4xl font-black tracking-tight sm:text-center sm:text-6xl">
-            Turn your <AnimatedWord words={['podcasts', 'meetings', 'content']} /> into tweets.
+            Turn your <AnimatedWord words={['blog posts', 'podcasts', 'meetings', 'content']} /> into tweets.
           </h1>
           <p className="mx-auto mt-6 text-lg leading-snug text-gray-600 sm:text-center">
             Birdfeed listens to hours of content and crafts tweets in your words.

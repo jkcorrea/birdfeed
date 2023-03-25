@@ -1,5 +1,5 @@
 import type { ActionArgs, LoaderArgs } from '@remix-run/node'
-import { Form, useActionData, useNavigation, useSearchParams } from '@remix-run/react'
+import { Form, Link, useActionData, useNavigation, useSearchParams } from '@remix-run/react'
 import { parseFormAny, useZorm } from 'react-zorm'
 import { z } from 'zod'
 
@@ -111,6 +111,22 @@ export default function LoginPage() {
           {actionResponse.error.message}
         </div>
       ) : null}
+
+      <button className={tw('btn-primary btn w-full font-bold', isSubmitting && 'loading')} disabled={isSubmitting}>
+        Log in
+      </button>
+
+      <div className="flex flex-col justify-center gap-1 text-center text-sm text-gray-500">
+        <Link className="link-info link" to={APP_ROUTES.FORGOT.href}>
+          Forgot password?
+        </Link>
+        <span>
+          Don't have an account?{' '}
+          <button type="button" className="link-info link" onClick={() => openSubscribeModal('signup')}>
+            Join now
+          </button>
+        </span>
+      </div>
     </Form>
   )
 }

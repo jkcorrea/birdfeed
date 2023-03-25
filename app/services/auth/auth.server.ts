@@ -30,7 +30,7 @@ export async function createEmailAuthAccount(email: string, password: string) {
   }
 }
 
-export async function signInWithEmail(email: string, password: string) {
+export async function signInWithPassword(email: string, password: string) {
   try {
     const { data, error } = await supabaseAdmin().auth.signInWithPassword({
       email,
@@ -58,6 +58,14 @@ export async function signInWithEmail(email: string, password: string) {
       tag,
     })
   }
+}
+
+export async function updateAccountPassword(id: string, password: string) {
+  const { data, error } = await supabaseAdmin().auth.admin.updateUserById(id, { password })
+
+  if (!data.user || error) return null
+
+  return data.user
 }
 
 async function getUserByEmail(email: string) {
