@@ -1,5 +1,6 @@
 import { Fragment, useEffect, useRef, useState } from 'react'
 import type { ActionArgs } from '@remix-run/node'
+import { json } from '@remix-run/node'
 import { Link, useFetcher } from '@remix-run/react'
 import type { HTMLAttributes, ReactNode } from 'react'
 import { parseFormAny } from 'react-zorm'
@@ -43,13 +44,7 @@ export async function loader() {
     'cache-control': 'max-age=60, s-maxage=120, stale-while-revalidate',
     vary: 'cookie',
   })
-
-  try {
-    // const pricingPlan = await getPricingPlan(getDefaultCurrency(request))
-    return response.ok({}, { authSession: null, headers })
-  } catch (cause) {
-    throw response.error(cause, { authSession: null })
-  }
+  return json({}, { headers })
 }
 
 export async function action({ request }: ActionArgs) {

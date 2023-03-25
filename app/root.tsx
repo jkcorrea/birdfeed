@@ -1,6 +1,7 @@
 import { useEffect, useMemo } from 'react'
 import { XCircleIcon } from '@heroicons/react/24/outline'
-import type { LinksFunction, LoaderArgs, MetaFunction } from '@remix-run/node'
+import type { LinksFunction, MetaFunction } from '@remix-run/node'
+import { json } from '@remix-run/node'
 import {
   Links,
   LiveReload,
@@ -20,8 +21,6 @@ import { initAnalytics } from './lib/analytics'
 import { APP_THEME } from './lib/constants'
 import { getBrowserEnv, NODE_ENV } from './lib/env'
 import type { CatchResponse } from './lib/http.server'
-import { response } from './lib/http.server'
-import { isAnonymousSession, requireAuthSession } from './services/auth'
 
 import tailwindStylesheetUrl from './assets/tailwind.css'
 
@@ -48,40 +47,14 @@ export const meta: MetaFunction = () => ({
   'og:image': '/og-image.png',
 })
 
-export async function loader({ request }: LoaderArgs) {
-  const isAnonymous = await isAnonymousSession(request)
-
-  if (isAnonymous) {
-    return response.ok({ env: getBrowserEnv(), email: null, isLoggedIn: false }, { authSession: null })
-  }
-
-  const authSession = await requireAuthSession(request)
-
-  try {
-    return response.ok(
-      {
-        env: getBrowserEnv(),
-        email: authSession.email,
-        // TODO - UX improvement: we can use this to change the topbar to say e.g. "Go to app ->"
-        isLoggedIn: true,
-      },
-      { authSession }
-    )
-  } catch (cause) {
-    throw response.error(cause, { authSession })
-  }
+export async function loader() {
+  return json({ env: getBrowserEnv() })
 }
 
 export default function App() {
-  const { env, email } = useLoaderData<typeof loader>()
+  const { env } = useLoaderData<typeof loader>()
 
-  useEffect(
-    () =>
-      initAnalytics((posthog) => {
-        email && posthog.identify(email)
-      }),
-    []
-  )
+  useEffect(() => initAnalytics(), [])
 
   // Notify any errors from server
   const fetchers = useFetchers()

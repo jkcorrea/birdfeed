@@ -3,6 +3,7 @@ import { Dialog } from '@headlessui/react'
 import { Bars3Icon, ChevronDownIcon, XMarkIcon } from '@heroicons/react/24/outline'
 import { Form, Link, NavLink, Outlet, useFetcher, useLoaderData, useLocation } from '@remix-run/react'
 import type { LoaderArgs } from '@remix-run/server-runtime'
+import { posthog } from 'posthog-js'
 import { toast } from 'react-hot-toast'
 
 import { useSubscribeModal } from '~/components/SubscribeModal'
@@ -43,12 +44,14 @@ export async function loader({ request }: LoaderArgs) {
 
 export default function AppLayout() {
   const location = useLocation()
-  const { status } = useLoaderData<typeof loader>()
+  const { email, status } = useLoaderData<typeof loader>()
 
   const { capture } = useAnalytics()
 
   useEffect(() => {
     capture('$pageview')
+    posthog.identify(email)
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [location.key])
 
   const { open: openSubscribeModal } = useSubscribeModal()
