@@ -41,7 +41,7 @@ export const handle = { scripts }
 
 export async function loader() {
   const headers = new Headers({
-    'cache-control': 'max-age=60, s-maxage=120, stale-while-revalidate',
+    'cache-control': 'public, max-age=60, s-maxage=120, stale-while-revalidate',
     vary: 'cookie',
   })
   return json({}, { headers })
