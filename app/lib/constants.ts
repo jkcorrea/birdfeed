@@ -18,6 +18,7 @@ export const APP_ROUTES = {
   LOGIN: { title: 'Log In', href: '/login' },
   JOIN: { title: 'Join', href: '/join' },
   LOGOUT: { title: 'Log Out', href: '/logout' },
+  FORGOT: { title: 'Forgot Password', href: '/forgot-password' },
 } as const satisfies Record<string, AppRoute | ((...args: any) => AppRoute)>
 export const NAV_ROUTES = Object.values(APP_ROUTES).filter((r) => 'showInNav' in r && r.showInNav) as AppRoute[]
 
@@ -53,5 +54,5 @@ export const UPSELL_FEATURES = [
   'And much more...',
 ]
 
-export const UPLOAD_LIMIT_FREE_MB = 20
+export const UPLOAD_LIMIT_FREE_MB = 50
 export const UPLOAD_LIMIT_PRO_MB = 1000
