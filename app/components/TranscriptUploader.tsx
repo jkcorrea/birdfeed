@@ -47,14 +47,16 @@ function TranscriptUploader({ isAuthed, fetcher }: Props) {
 
   const handleFileUpload = async (file: File) => {
     capture('transcript_start', { file_name: file.name })
-    setIsUploading(true)
 
     const limits = isAuthed ? fileSizeLimits.authed : fileSizeLimits.unauthed
     if (file.size > limits.size) {
-      openSubscribeModal('signup', 'fileUploadlimit_exceeded')
       setError(`File size is too large. Please upload a file smaller than ${limits.label}.`)
+      openSubscribeModal('signup', 'fileUploadlimit_exceeded')
+      capture('transcript_fail', { reason: 'too_large', file_name: file.name })
       return
     }
+
+    setIsUploading(true)
 
     const id = createId()
     const fileSuffix = file.name.split('.').pop()

@@ -94,18 +94,6 @@ export default function LoginPage() {
         <input type="hidden" name={zo.fields.redirectTo()} value={redirectTo} />
       </div>
 
-      <button className={tw('btn-primary btn w-full', isSubmitting && 'loading')} disabled={isSubmitting}>
-        Log in
-      </button>
-
-      <div className="flex items-center justify-center">
-        <div className="text-center text-sm text-gray-500">
-          Don't have an account?{' '}
-          <button type="button" className="link-info link" onClick={() => openSubscribeModal('signup')}>
-            Join now
-          </button>
-        </div>
-      </div>
       {actionResponse?.error ? (
         <div className="pt-1 text-error" id="name-error">
           {actionResponse.error.message}
@@ -122,7 +110,11 @@ export default function LoginPage() {
         </Link>
         <span>
           Don't have an account?{' '}
-          <button type="button" className="link-info link" onClick={() => openSubscribeModal('signup')}>
+          <button
+            type="button"
+            className="link-info link"
+            onClick={() => openSubscribeModal('signup', 'joinNow_button')}
+          >
             Join now
           </button>
         </span>

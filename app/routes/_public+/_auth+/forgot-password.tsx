@@ -91,7 +91,11 @@ export default function LoginPage() {
 
         <span>
           Don't have an account?{' '}
-          <button type="button" className="link-info link" onClick={() => openSubscribeModal('signup')}>
+          <button
+            type="button"
+            className="link-info link"
+            onClick={() => openSubscribeModal('signup', 'joinNow_button')}
+          >
             Join now
           </button>
         </span>
