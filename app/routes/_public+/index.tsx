@@ -132,7 +132,7 @@ export default function Home() {
         <div className="grid-col-1 mt-8 grid gap-4 leading-relaxed lg:grid-cols-3">
           <ContentCardWrapper header={<h1 className="font-bold leading-loose">Use Cases</h1>}>
             <p className="mb-1">
-              Whether you&#39;re a <span className="font-black">marketer</span>
+              Whether you&#39;re a <span className="font-black">marketer</span>,{' '}
               <span className="font-black"> content creator</span>, or <span className="font-black">influencer</span>,
               Birdfeed empowers you to:
             </p>
