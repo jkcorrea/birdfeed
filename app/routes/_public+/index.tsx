@@ -59,7 +59,7 @@ export async function action({ request }: ActionArgs) {
       })),
     })
 
-    return response.ok({ tweets }, { authSession: null })
+    return response.ok({ tweets, isDemo: data.isDemo }, { authSession: null })
   } catch (cause) {
     return response.error(cause, { authSession: null })
   }
@@ -85,7 +85,7 @@ export default function Home() {
     // fetch from /demo.txt as File
     const demoFile = await fetch('/demo.txt').then((res) => res.blob())
     const demoFileAsFile = new File([demoFile], 'demo.txt', { type: 'text/plain' })
-    uploaderHandle.current?.handleFileUpload(demoFileAsFile)
+    uploaderHandle.current?.handleFileUpload(demoFileAsFile, true)
   }
 
   return (
@@ -169,21 +169,8 @@ export default function Home() {
             header={<h1 className="font-bold leading-loose">Tips & Quickstart</h1>}
           >
             <p>
-              No file on hand? Click below to watch Birdfeed transform{' '}
-              <a
-                href="https://www.joshterryplays.com/how-to-be-smarter/"
-                target="_blank"
-                rel="noreferrer"
-                className="link-secondary link"
-              >
-                this blog post
-              </a>{' '}
-              into instantly usable ideas.
-              <button
-                type="button"
-                className="btn-outline btn-secondary btn-xs btn my-4 mx-auto block font-bold"
-                onClick={runDemo}
-              >
+              No file on hand? Click below to watch Birdfeed transform a blog post into instantly usable ideas.
+              <button type="button" className="btn-secondary btn-xs btn my-4 mx-auto block font-bold" onClick={runDemo}>
                 Run demo 💫
               </button>
             </p>
@@ -194,14 +181,18 @@ export default function Home() {
           </ContentCardWrapper>
         </div>
         {fetcher.data &&
-          (fetcher.data?.error ? fetcher.data.error.message : <TweetGrid tweets={fetcher.data.tweets} />)}
+          (fetcher.data?.error ? (
+            fetcher.data.error.message
+          ) : (
+            <TweetGrid isDemo={fetcher.data.isDemo} tweets={fetcher.data.tweets} />
+          ))}
       </main>
       <PublicFooter />
     </div>
   )
 }
 
-function TweetGrid({ tweets }: { tweets: GeneratedTweet[] }) {
+function TweetGrid({ tweets, isDemo }: { tweets: GeneratedTweet[]; isDemo: boolean }) {
   const [left, right] = tweets.reduce<[GeneratedTweet[], GeneratedTweet[]]>(
     (acc, tweet, i) => {
       if (i % 2 === 1) acc[0].push(tweet)
@@ -213,12 +204,27 @@ function TweetGrid({ tweets }: { tweets: GeneratedTweet[] }) {
 
   return (
     <>
-      <h3
-        ref={(el) => el?.scrollIntoView({ behavior: 'smooth' })}
-        className="mt-16 mb-12 text-center text-5xl font-bold"
-      >
-        Your Tweets
-      </h3>
+      <div className="mt-16 mb-12 text-center">
+        <h3 ref={(el) => el?.scrollIntoView({ behavior: 'smooth' })} className="text-5xl font-bold">
+          Your Tweets
+        </h3>
+
+        {isDemo && (
+          <p className="mt-6 text-2xl text-gray-800">
+            The following tweets were generated from{' '}
+            <a
+              href="https://www.joshterryplays.com/how-to-be-smarter/"
+              target="_blank"
+              rel="noreferrer"
+              className="link-primary link"
+            >
+              this blog post
+            </a>
+            !
+          </p>
+        )}
+      </div>
+
       <div className="mx-auto grid max-w-screen-md gap-4 md:grid-cols-2">
         <TweetColumn hasAd tweets={left} />
         <TweetColumn tweets={right} />

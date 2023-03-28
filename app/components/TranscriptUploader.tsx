@@ -11,16 +11,11 @@ import { useIsSubmitting, useMockProgress, useRunAfterSubmission } from '~/lib/h
 import { tw } from '~/lib/utils'
 import { getSupabase } from '~/services/supabase'
 
-import type { ICreateTranscript } from '../routes/_app+/home/schemas'
+import type { CreateTranscriptSchema } from '../routes/_app+/home/schemas'
 import { useSubscribeModal } from './SubscribeModal'
 
 export interface TranscriptUploaderHandle {
-  handleFileUpload: (file: File) => Promise<void>
-}
-
-interface Props {
-  isAuthed?: boolean
-  fetcher: FetcherWithComponents<any>
+  handleFileUpload: (file: File, isDemo?: boolean) => Promise<void>
 }
 
 const fileSizeLimits = {
@@ -32,6 +27,11 @@ const fileSizeLimits = {
     size: UPLOAD_LIMIT_PRO_MB * 1_000_000,
     label: `${UPLOAD_LIMIT_PRO_MB} GB`,
   },
+}
+
+interface Props {
+  isAuthed?: boolean
+  fetcher: FetcherWithComponents<any>
 }
 
 function TranscriptUploader({ isAuthed, fetcher }: Props, ref: ForwardedRef<TranscriptUploaderHandle>) {
@@ -51,7 +51,7 @@ function TranscriptUploader({ isAuthed, fetcher }: Props, ref: ForwardedRef<Tran
     else finishProgress()
   }, [isUploading, isTranscribing, startProgress, finishProgress])
 
-  const handleFileUpload = async (file: File) => {
+  const handleFileUpload = async (file: File, isDemo?: boolean) => {
     capture('transcript_start', { file_name: file.name })
 
     const limits = isAuthed ? fileSizeLimits.authed : fileSizeLimits.unauthed
@@ -82,12 +82,14 @@ function TranscriptUploader({ isAuthed, fetcher }: Props, ref: ForwardedRef<Tran
           name: file.name,
           mimetype: file.type,
           pathInBucket: data.path,
-        } satisfies ICreateTranscript,
+          ...(isDemo ? { isDemo: 'true' } : {}),
+        } satisfies (typeof CreateTranscriptSchema)['_input'],
         { method: 'post' }
       )
     }
   }
 
+  // Allows us to pass control of the ref "back up" to the parent
   useImperativeHandle(ref, () => ({ handleFileUpload }))
 
   return (
