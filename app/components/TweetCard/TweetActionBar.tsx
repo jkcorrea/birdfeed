@@ -1,5 +1,5 @@
 import React from 'react'
-import { ArrowPathIcon, InboxArrowDownIcon, InboxIcon, TrashIcon } from '@heroicons/react/24/outline'
+import { ArrowPathIcon, InboxArrowDownIcon, InboxIcon, PencilIcon, TrashIcon } from '@heroicons/react/24/outline'
 import { useFetcher } from '@remix-run/react'
 import { useZorm } from 'react-zorm'
 
@@ -21,10 +21,11 @@ const btnClassName =
 interface Props {
   tweet: SerializedTweetItem
   onDelete?: () => void
+  canEdit?: boolean
   showRating?: boolean
 }
 
-function TweetActionBar({ tweet, onDelete, showRating }: Props) {
+function TweetActionBar({ tweet, onDelete, canEdit, showRating }: Props) {
   const fetcher = useFetcher()
   const zoRegen = useZorm('regenerate', RegenerateTweetSchema)
   const zoDelete = useZorm('delete', DeleteTweetSchema, { onValidSubmit: onDelete })
@@ -52,20 +53,13 @@ function TweetActionBar({ tweet, onDelete, showRating }: Props) {
   return (
     <div className="inline-flex w-full justify-between gap-2 py-2">
       <div className="inline-flex items-center gap-3">
-        <fetcher.Form
-          action={APP_ROUTES.HOME.href}
-          method="post"
-          ref={zoDelete.ref}
-          className="pointer-events-none flex items-center"
-        >
-          <IntentField<IHomeAction> value="delete-tweet" />
-          <input name={zoDelete.fields.tweetId()} type="hidden" value={tweet.id} />
-          <button className={btnClassName} data-tip="Delete">
-            <TrashIcon className="h-5 w-5" />
-            <span className="sr-only">Delete</span>
+        {/* Edit */}
+        {canEdit && (
+          <button className={btnClassName} data-tip="Edit">
+            <PencilIcon className="h-5 w-5" />
           </button>
-        </fetcher.Form>
-
+        )}
+        {/* Regenerate */}
         <fetcher.Form
           action={APP_ROUTES.HOME.href}
           method="post"
@@ -79,7 +73,7 @@ function TweetActionBar({ tweet, onDelete, showRating }: Props) {
             <span className="sr-only">Re-generate</span>
           </button>
         </fetcher.Form>
-
+        {/* Un/Archive */}
         <fetcher.Form
           action={APP_ROUTES.HOME.href}
           method="post"
@@ -92,6 +86,20 @@ function TweetActionBar({ tweet, onDelete, showRating }: Props) {
           <button className={btnClassName} data-tip={tweet.archived ? 'Move to queue' : 'Move to Idea Bin'}>
             {tweet.archived ? <InboxIcon className="h-5 w-5" /> : <InboxArrowDownIcon className="h-5 w-5" />}
             <span className="sr-only">{tweet.archived ? 'Move to queue' : 'Move to ideas bin'}</span>
+          </button>
+        </fetcher.Form>
+        {/* Delete */}
+        <fetcher.Form
+          action={APP_ROUTES.HOME.href}
+          method="post"
+          ref={zoDelete.ref}
+          className="pointer-events-none flex items-center"
+        >
+          <IntentField<IHomeAction> value="delete-tweet" />
+          <input name={zoDelete.fields.tweetId()} type="hidden" value={tweet.id} />
+          <button className={btnClassName} data-tip="Delete">
+            <TrashIcon className="h-5 w-5" />
+            <span className="sr-only">Delete</span>
           </button>
         </fetcher.Form>
       </div>

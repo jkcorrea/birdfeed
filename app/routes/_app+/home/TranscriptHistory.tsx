@@ -1,10 +1,10 @@
-import { useEffect, useState } from 'react'
+import { useState } from 'react'
 import { useFetcher } from '@remix-run/react'
 import type { SerializeFrom } from '@remix-run/server-runtime'
 import dayjs from 'dayjs'
 import relativeTime from 'dayjs/plugin/relativeTime'
 import type { Variants } from 'framer-motion'
-import { motion } from 'framer-motion'
+import { motion, useIsomorphicLayoutEffect } from 'framer-motion'
 import { useZorm } from 'react-zorm'
 
 import type { Transcript } from '@prisma/client'
@@ -31,7 +31,7 @@ const TranscriptHistory = ({ transcripts }: Props) => {
   const [openTranscript, setOpenTranscript] = useState<null | string>()
 
   const [topmostId, setTopmostId] = useState<null | string>(null)
-  useEffect(() => {
+  useIsomorphicLayoutEffect(() => {
     if (topmostId === null) {
       // first render taking place
       setTopmostId(transcripts[0]?.id ?? null)
@@ -128,7 +128,7 @@ const TranscriptItem = ({ transcript, isOpen, onClick }: TranscriptItemProps) =>
               {transcript.name}
               {transcript.neverGenerated && (
                 // eslint-disable-next-line tailwindcss/classnames-order
-                <span className="badge-secondary badge badge-sm ml-2 justify-end">NEW</span>
+                <span className="badge badge-secondary badge-sm ml-2 justify-end">NEW</span>
               )}
             </h3>
           </span>

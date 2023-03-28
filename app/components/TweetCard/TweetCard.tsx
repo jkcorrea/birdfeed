@@ -46,7 +46,11 @@ export const TweetCard = ({ tweet, showRating, isPublic, linkTo }: PublicProps |
 
       <div className="divider divider-vertical mt-auto mb-0" />
       <div className="flex  px-4" onClick={(e) => e.stopPropagation()}>
-        {isPublic ? <PublicActionBar tweet={tweet} /> : <TweetActionBar tweet={tweet} showRating={showRating} />}
+        {isPublic ? (
+          <PublicActionBar tweet={tweet} />
+        ) : (
+          <TweetActionBar canEdit={!showRating} tweet={tweet} showRating={showRating} />
+        )}
       </div>
     </li>
   )
