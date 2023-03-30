@@ -1,15 +1,14 @@
 import { forwardRef, useCallback, useEffect, useImperativeHandle, useRef, useState } from 'react'
 import { CloudArrowUpIcon, InboxArrowDownIcon, SignalSlashIcon } from '@heroicons/react/24/outline'
-import { createId } from '@paralleldrive/cuid2'
 import type { FetcherWithComponents } from '@remix-run/react'
 import { AnimatePresence, motion } from 'framer-motion'
 import type { ForwardedRef } from 'react'
 
 import { useAnalytics } from '~/lib/analytics/use-analytics'
-import { UPLOAD_BUCKET_ID, UPLOAD_LIMIT_FREE_MB, UPLOAD_LIMIT_PRO_MB } from '~/lib/constants'
+import { UPLOAD_LIMIT_FREE_KB, UPLOAD_LIMIT_PRO_KB } from '~/lib/constants'
 import { useIsSubmitting, useMockProgress, useRunAfterSubmission } from '~/lib/hooks'
 import { tw } from '~/lib/utils'
-import { getSupabase } from '~/services/supabase'
+import { uploadFile } from '~/services/storage'
 
 import type { CreateTranscriptSchema } from '../routes/_app+/home/schemas'
 import { useSubscribeModal } from './SubscribeModal'
@@ -18,23 +17,12 @@ export interface TranscriptUploaderHandle {
   handleFileUpload: (file: File, isDemo?: boolean) => Promise<void>
 }
 
-const fileSizeLimits = {
-  unauthed: {
-    size: UPLOAD_LIMIT_FREE_MB * 1_000_000,
-    label: `${UPLOAD_LIMIT_FREE_MB} MB`,
-  },
-  authed: {
-    size: UPLOAD_LIMIT_PRO_MB * 1_000_000,
-    label: `${UPLOAD_LIMIT_PRO_MB} GB`,
-  },
-}
-
 interface Props {
-  isAuthed?: boolean
+  userId?: string | null
   fetcher: FetcherWithComponents<any>
 }
 
-function TranscriptUploader({ isAuthed, fetcher }: Props, ref: ForwardedRef<TranscriptUploaderHandle>) {
+function TranscriptUploader({ userId, fetcher }: Props, ref: ForwardedRef<TranscriptUploaderHandle>) {
   const { capture } = useAnalytics()
 
   const fileInputRef = useRef<HTMLInputElement>(null)
@@ -54,38 +42,33 @@ function TranscriptUploader({ isAuthed, fetcher }: Props, ref: ForwardedRef<Tran
   const handleFileUpload = async (file: File, isDemo?: boolean) => {
     capture('transcript_start', { file_name: file.name })
 
-    const limits = isAuthed ? fileSizeLimits.authed : fileSizeLimits.unauthed
-    if (file.size > limits.size) {
-      setError(`File size is too large. Please upload a file smaller than ${limits.label}.`)
-      if (!isAuthed) openSubscribeModal('signup', 'fileUploadlimit_exceeded')
+    const limit = userId ? UPLOAD_LIMIT_PRO_KB : UPLOAD_LIMIT_FREE_KB
+    if (file.size > limit) {
+      setError(`File size is too large. Please upload a file smaller than ${Math.floor(limit / 1_000_000_000)} GB.`)
+      if (!userId) openSubscribeModal('signup', 'fileUploadlimit_exceeded')
       capture('transcript_fail', { reason: 'too_large', file_name: file.name })
       return
     }
 
     setIsUploading(true)
+    try {
+      const pathInBucket = await uploadFile(file, userId)
 
-    const id = createId()
-    const fileSuffix = file.name.split('.').pop()
-
-    const supabase = getSupabase()
-    const storage = supabase.storage.from(UPLOAD_BUCKET_ID)
-    const { data, error } = await storage.upload(`${id}.${fileSuffix}`, file)
-    setIsUploading(false)
-
-    if (error) {
-      setError(error.message)
-    } else {
       // now we can create the transcript in our db
       fetcher.submit(
         {
           intent: 'create-transcript',
           name: file.name,
           mimetype: file.type,
-          pathInBucket: data.path,
+          pathInBucket,
           ...(isDemo ? { isDemo: 'true' } : {}),
         } satisfies (typeof CreateTranscriptSchema)['_input'],
         { method: 'post' }
       )
+    } catch (error) {
+      setError((error as Error).message)
+    } finally {
+      setIsUploading(false)
     }
   }
 

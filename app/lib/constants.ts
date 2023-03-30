@@ -43,7 +43,7 @@ export const LOADING_TWEET_TOAST_ID = 'loading-tweet'
 export const STRIPE_PRODUCT_ID = 'dwsckm5c6y8sszu4v73sra08'
 
 export const UPSELL_FEATURES = [
-  'Unlimited file sizes.',
+  'Unlimited transcription length',
   'Save & rate drafts of your tweets',
   'GPT-4 powered generations',
   // 'Schedule your tweets.',
@@ -54,5 +54,5 @@ export const UPSELL_FEATURES = [
   'And much more...',
 ]
 
-export const UPLOAD_LIMIT_FREE_MB = 50
-export const UPLOAD_LIMIT_PRO_MB = 5000
+export const UPLOAD_LIMIT_FREE_KB = 5 * 1000 * 1000 * 1000 // 5GB
+export const UPLOAD_LIMIT_PRO_KB = 20 * 1000 * 1000 * 1000 // 20GB

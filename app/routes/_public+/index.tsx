@@ -13,7 +13,7 @@ import TranscriptUploader from '~/components/TranscriptUploader'
 import { TweetCard } from '~/components/TweetCard'
 import { db } from '~/database'
 import { useAnalytics } from '~/lib/analytics'
-import { APP_ROUTES, UPLOAD_LIMIT_FREE_MB, UPSELL_FEATURES } from '~/lib/constants'
+import { APP_ROUTES, UPSELL_FEATURES } from '~/lib/constants'
 import { NODE_ENV } from '~/lib/env'
 import { response } from '~/lib/http.server'
 import { parseData, tw } from '~/lib/utils'
@@ -149,7 +149,8 @@ export default function Home() {
             header={<h1 className="font-bold leading-loose">Get Started Today</h1>}
           >
             <p>
-              Upload up to {UPLOAD_LIMIT_FREE_MB}mb <em>for free</em>! With an account, you'll get access to:
+              We analyze & generate tweets from the first 15 minutes of content <em>for free</em>! With an account,
+              you'll get access to:
             </p>
             <ul className="list-inside list-disc py-3">
               {UPSELL_FEATURES.map((feature) => (

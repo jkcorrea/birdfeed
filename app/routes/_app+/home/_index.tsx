@@ -32,7 +32,7 @@ export async function loader({ request }: LoaderArgs) {
   const recentTranscripts = Promise.resolve(_recentTranscripts)
   const recentTweets = Promise.resolve(_recentTweets)
 
-  return response.defer({ recentTranscripts, recentTweets }, { authSession })
+  return response.defer({ userId, recentTranscripts, recentTweets }, { authSession })
 }
 
 export { action } from './actions'
@@ -64,7 +64,7 @@ export default function HomePage() {
 
       <Column hideOnMobile={activeTab !== 'transcripts'} title="Transcripts">
         <div className="mb-7">
-          <TranscriptUploader isAuthed fetcher={fetcher} />
+          <TranscriptUploader userId={data.userId} fetcher={fetcher} />
         </div>
         <Suspense fallback={<LoadingColumn />}>
           <Await resolve={data.recentTranscripts} errorElement={<Error />}>

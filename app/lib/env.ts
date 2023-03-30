@@ -60,6 +60,10 @@ export const TWITTER_CONSUMER_KEY = getEnv('TWITTER_CONSUMER_KEY')
 export const TWITTER_CONSUMER_SECRET = getEnv('TWITTER_CONSUMER_SECRET')
 export const TWITTER_CALLBACK_URL = getEnv('TWITTER_CALLBACK_URL')
 export const DEEPGRAM_API_KEY = getEnv('DEEPGRAM_API_KEY')
+export const S3_ACCOUNT_ID = getEnv('S3_ACCOUNT_ID', { isRequired: false })
+export const S3_ACCESS_KEY_ID = getEnv('S3_ACCESS_KEY_ID', { isRequired: false })
+export const S3_SECRET_ACCESS_KEY = getEnv('S3_SECRET_ACCESS_KEY', { isRequired: false })
+export const S3_BUCKET_NAME = getEnv('S3_BUCKET_NAME', { isRequired: false })
 
 /**
  * Shared envs

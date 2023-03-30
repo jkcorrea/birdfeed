@@ -8,13 +8,15 @@ const tag = 'Deepgram service 🔮'
 const deepgram = new Deepgram(DEEPGRAM_API_KEY)
 
 export async function transcribeMedia(args: { url: string; mimetype: string } | { buffer: Buffer; mimetype: string }) {
-  const transcribedResponse = await deepgram.transcription.preRecorded(args, {
+  const res = await deepgram.transcription.preRecorded(args, {
     punctuate: true,
   })
 
-  if (!transcribedResponse.results) throw new AppError({ message: 'Could not transcribe file', tag })
+  if (!res.results) throw new AppError({ message: 'Could not transcribe file', tag })
 
-  const transcript = transcribedResponse.results.channels[0].alternatives[0].transcript
+  const transcript = res.results.channels[0]?.alternatives?.[0]?.transcript
+
+  if (res.results.channels.length === 0) throw new AppError({ message: 'No transcribable audio detected', tag })
 
   return transcript
 }

@@ -2,13 +2,11 @@ import type { ActionArgs } from '@remix-run/server-runtime'
 import { parseFormAny } from 'react-zorm'
 
 import { db } from '~/database'
-import { UPLOAD_BUCKET_ID, UPLOAD_LIMIT_FREE_MB, UPLOAD_LIMIT_PRO_MB } from '~/lib/constants'
-import { SUPABASE_URL } from '~/lib/env'
 import { response } from '~/lib/http.server'
 import { AppError, assertPost, parseData } from '~/lib/utils'
 import { requireAuthSession } from '~/services/auth'
 import { generateTweetsFromContent, regenerateTweetFromSelf } from '~/services/openai'
-import { supabaseAdmin } from '~/services/supabase'
+import { createSignedDownloadUrl, downloadFile } from '~/services/storage'
 import { transcribeMedia } from '~/services/transcription'
 import { assertUserIsSubscribed } from '~/services/user'
 
@@ -94,30 +92,16 @@ async function deleteTweet({ tweetId }: IDeleteTweet) {
 
 export async function createTranscript({ name, mimetype, pathInBucket }: ICreateTranscript, userId?: string) {
   if (mimetype.includes('image')) throw new AppError('Image files are not supported')
-
-  const storage = supabaseAdmin().storage.from(UPLOAD_BUCKET_ID)
   let content: string
 
   if (mimetype === 'text/plain') {
     // Text is easy! Just download & read it into content
-    const { data: blob, error } = await storage.download(pathInBucket)
-    if (error) throw error
-    content = await blob.text()
+    const file = await downloadFile(pathInBucket)
+    if (!file) throw new AppError('File not found')
+    content = await file.transformToString('utf-8')
   } else {
-    // NOTE: Deepgram can't access files on localhost, so we need to download the file and send it as a buffer
-    if (SUPABASE_URL.match(/^http:\/\/(localhost|0\.0\.0\.0|127\.0\.0\.1)/)) {
-      const { data: blob, error } = await storage.download(pathInBucket)
-      if (error || !blob) throw error ?? new AppError('Could not download file on localhost')
-      const limit = (userId ? UPLOAD_LIMIT_PRO_MB : UPLOAD_LIMIT_FREE_MB) * 1_000_000
-      if (blob.size > limit) throw new AppError(`File size of exceeds limit of ${limit} MB`)
-      const buffer = Buffer.from(await blob?.arrayBuffer())
-      content = await transcribeMedia({ buffer, mimetype })
-    } else {
-      // not on localhost! let's assume the url is routable & send that to deepgram
-      const { data: urlData, error } = await storage.createSignedUrl(pathInBucket, 60 * 60 * 24 * 7)
-      if (error) throw error
-      content = await transcribeMedia({ url: urlData.signedUrl, mimetype })
-    }
+    const url = await createSignedDownloadUrl(pathInBucket)
+    content = await transcribeMedia({ url, mimetype })
   }
 
   return db.transcript.create({

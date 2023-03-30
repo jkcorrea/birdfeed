@@ -4,10 +4,10 @@
   <a href="https://twitter.com/rphlmr">Twitter</a> • <a href="https://remix-supa-stripe-stack.fly.dev/">Live Demo</a>
   <br/>
   <br/>
-  A Remix & Stripe Stack, backed by Supabase (driven by Prisma), that integrates authentication, subscriptions (multi-currency, month and year intervals) and handling tier limit. 
+  A Remix & Stripe Stack, backed by Supabase (driven by Prisma), that integrates authentication, subscriptions (multi-currency, month and year intervals) and handling tier limit.
 </p>
 <p align="center">
-  Remix deploy target: Fly.io 
+  Remix deploy target: Fly.io
 </p>
 <p align="center">
   <b>Disclaimer</b>: This stack gives you a good starting point but it can't handle a specific business model. You'll need to adapt it to your needs and you must understand how Stripe works before going to production.
@@ -116,7 +116,6 @@ There are other environment variables you can set in your `.env` file.
 
 - `SERVER_URL`: the URL of your server (`http://localhost:3000` in local env)
 - `SESSION_SECRET`: a secret string used to encrypt your session cookie
-- `DEFAULT_CURRENCY`: default currency for your Stripe subscriptions if the user currency is not supported. (only used for UI purposes)
   > **Note**:
   >
   > The currency we show on the Pricing page is based on the user locale.See [getDefaultCurrency](app/utils/http.server.ts)
