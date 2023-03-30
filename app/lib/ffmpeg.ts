@@ -3,7 +3,7 @@ import { createFFmpeg, fetchFile } from '@ffmpeg/ffmpeg'
 import { UPLOAD_LIMIT_FREE_DURATION, UPLOAD_LIMIT_PRO_DURATION } from './constants'
 import { NODE_ENV } from './env'
 
-export async function convertToMp3(inputFile: File, isAuthed: boolean, onProgress?: (progress: number) => void) {
+export async function convertToAudio(inputFile: File, isAuthed: boolean, onProgress?: (progress: number) => void) {
   // Create an FFmpeg instance
   const ffmpeg = createFFmpeg({ log: true })
 

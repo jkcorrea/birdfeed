@@ -133,7 +133,7 @@ export function TweetDetailModal({ tweet, onClose: _onClose }: Props) {
           <div className="divider my-3" />
 
           <div className="flex items-center justify-between">
-            <TweetActionBar showRating tweet={tweet} onDelete={() => setTimeout(onClose, 0)} />
+            <TweetActionBar tweet={tweet} onDelete={() => setTimeout(onClose, 0)} />
 
             <Value zorm={zoUpdate} name={zoUpdate.fields.draft()}>
               {(draft) => {

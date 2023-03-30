@@ -137,7 +137,7 @@ export default function Home() {
               Birdfeed empowers you to:
             </p>
             <div>
-              <p>🪄 Generate tweets from your content</p>
+              <p>💡 Generate tweets from your content</p>
               <p>📝 Refine the content you create</p>
               <p>🚀 Create content faster</p>
               <p>🧠 Manage & organize your thoughts</p>
@@ -149,8 +149,7 @@ export default function Home() {
             header={<h1 className="font-bold leading-loose">Get Started Today</h1>}
           >
             <p>
-              We analyze & generate tweets from the first 15 minutes of content <em>for free</em>! With an account,
-              you'll get access to:
+              You can use Birdfeed right now, <em>for free</em>! If you create an an account, you'll get access to:
             </p>
             <ul className="list-inside list-disc py-3">
               {UPSELL_FEATURES.map((feature) => (
@@ -194,6 +193,9 @@ export default function Home() {
 }
 
 function TweetGrid({ tweets, isDemo }: { tweets: GeneratedTweet[]; isDemo: boolean }) {
+  const { open } = useSubscribeModal()
+  const openSignupModal = () => open('signup', 'tweetGrid_subtitle')
+
   const [left, right] = tweets.reduce<[GeneratedTweet[], GeneratedTweet[]]>(
     (acc, tweet, i) => {
       if (i % 2 === 1) acc[0].push(tweet)
@@ -218,8 +220,12 @@ function TweetGrid({ tweets, isDemo }: { tweets: GeneratedTweet[]; isDemo: boole
     </>
   ) : (
     <>
-      We used only the <em>first 15 minutes</em> of your content to generate these tweets. Upgrade today to unlock full
-      content generations!
+      The free version only uses the <em className="underline">first 15 minutes</em> of your content to create tweets.
+      If you'd like Birdfeed to utilize the full length of your content,{' '}
+      <button type="button" className="link-hover link-primary link" onClick={openSignupModal}>
+        upgrade today
+      </button>
+      !
     </>
   )
 
@@ -230,7 +236,7 @@ function TweetGrid({ tweets, isDemo }: { tweets: GeneratedTweet[]; isDemo: boole
           Your Tweets
         </h3>
 
-        <p className="mt-6 max-w-screen-md text-2xl text-gray-600">{subtitle}</p>
+        <p className="mx-auto mt-6 max-w-screen-md text-center text-2xl text-gray-600">{subtitle}</p>
       </div>
 
       <div className="mx-auto grid max-w-screen-md gap-4 md:grid-cols-2">

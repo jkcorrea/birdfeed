@@ -7,7 +7,7 @@ import type { ForwardedRef } from 'react'
 
 import { useAnalytics } from '~/lib/analytics/use-analytics'
 import { UPLOAD_LIMIT_FREE_KB, UPLOAD_LIMIT_PRO_KB } from '~/lib/constants'
-import { convertToMp3 } from '~/lib/ffmpeg'
+import { convertToAudio } from '~/lib/ffmpeg'
 import { useIsSubmitting, useMockProgress, useRunAfterSubmission } from '~/lib/hooks'
 import { tw } from '~/lib/utils'
 import { uploadFile } from '~/services/storage'
@@ -99,12 +99,15 @@ function TranscriptUploader({ userId, fetcher }: Props, ref: ForwardedRef<Transc
 
     try {
       // Use ffmpeg to convert the file to a wav & chomp it to 15min (if no userId)
-      const processedFile = file
-      if (file.type !== 'text/plain') {
+      let processedFile = file
+      if (file.type.startsWith('video/') || file.type.startsWith('audio/')) {
         try {
           dispatch({ type: 'transcoding' })
-          await convertToMp3(file, Boolean(userId), (progress) => dispatch({ type: 'progress', progress }))
+          processedFile = await convertToAudio(file, Boolean(userId), (progress) =>
+            dispatch({ type: 'progress', progress })
+          )
         } catch (error) {
+          processedFile = file
           dispatch({
             type: 'error',
             error: (error as Error).message,
