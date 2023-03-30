@@ -46,6 +46,7 @@ export default function AppLayout() {
   const { email, status } = useLoaderData<typeof loader>()
 
   useEffect(() => {
+    posthog.capture('$pageview')
     posthog.identify(email)
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [location.key])
