@@ -116,11 +116,11 @@ export default function Home() {
         </div>
       </nav>
       <main className="flex flex-col">
-        <div className="mb-6">
+        <div className="mb-4 md:mb-8">
           <h1 className="text-4xl font-black tracking-tight sm:text-center sm:text-6xl">
             Turn your <AnimatedWord words={['blog posts', 'podcasts', 'meetings', 'content']} /> into tweets.
           </h1>
-          <p className="mx-auto mt-6 text-lg leading-snug text-gray-600 sm:text-center">
+          <p className="mx-auto mt-4 text-lg leading-snug text-gray-600 sm:text-center md:mt-8 md:text-2xl">
             Birdfeed listens to hours of content and crafts tweets in your words.
             <br />
             Upload hours of audio and get tweets in seconds.
@@ -218,8 +218,8 @@ function TweetGrid({ tweets, isDemo }: { tweets: GeneratedTweet[]; isDemo: boole
     </>
   ) : (
     <>
-      We used only the first 15 minutes of your content to generate these tweets. Upgrade today to unlock full content
-      generations!
+      We used only the <em>first 15 minutes</em> of your content to generate these tweets. Upgrade today to unlock full
+      content generations!
     </>
   )
 
@@ -230,7 +230,7 @@ function TweetGrid({ tweets, isDemo }: { tweets: GeneratedTweet[]; isDemo: boole
           Your Tweets
         </h3>
 
-        <p className="mt-6 text-2xl text-gray-800">{subtitle}</p>
+        <p className="mt-6 max-w-screen-md text-2xl text-gray-600">{subtitle}</p>
       </div>
 
       <div className="mx-auto grid max-w-screen-md gap-4 md:grid-cols-2">

@@ -73,7 +73,7 @@ function TranscriptUploader({ userId, fetcher }: Props, ref: ForwardedRef<Transc
 
   // We have no idea how long the generation step will take, so just mock it
   const isGenerating = useIsSubmitting(fetcher)
-  const { start: startGeneratingProgress, finish: finishGeneratingProgress } = useMockProgress(3000, (progress) =>
+  const { start: startGeneratingProgress, finish: finishGeneratingProgress } = useMockProgress(4000, (progress) =>
     dispatch({ type: 'progress', progress })
   )
   useEffect(() => {
@@ -100,7 +100,7 @@ function TranscriptUploader({ userId, fetcher }: Props, ref: ForwardedRef<Transc
     try {
       // Use ffmpeg to convert the file to a wav & chomp it to 15min (if no userId)
       const processedFile = file
-      if (file.type === 'text/plain') {
+      if (file.type !== 'text/plain') {
         try {
           dispatch({ type: 'transcoding' })
           await convertToMp3(file, Boolean(userId), (progress) => dispatch({ type: 'progress', progress }))
@@ -113,7 +113,9 @@ function TranscriptUploader({ userId, fetcher }: Props, ref: ForwardedRef<Transc
       }
 
       dispatch({ type: 'uploading' })
-      const pathInBucket = await uploadFile(processedFile, userId)
+      const pathInBucket = await uploadFile(processedFile, userId, (progress) =>
+        dispatch({ type: 'progress', progress })
+      )
       // now we can create the transcript in our db
       dispatch({ type: 'generating' })
       startGeneratingProgress()
