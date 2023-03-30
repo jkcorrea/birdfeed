@@ -163,7 +163,7 @@ function TranscriptUploader({ userId, fetcher }: Props, ref: ForwardedRef<Transc
                 <div className="flex flex-col justify-center">
                   <CloudArrowUpIcon className="h-14 w-full" />
                   <span>{capitalCase(uploadState.status)}</span>
-                  <span className="mb-4 text-base">this could take a while...</span>
+                  <span className="mb-4 text-base">tweets incoming! just give us a sec...</span>
                   <progress className="progress" value={uploadState.progress} max={1} />
                 </div>
               </div>
@@ -191,7 +191,7 @@ function TranscriptUploader({ userId, fetcher }: Props, ref: ForwardedRef<Transc
                     <>
                       <InboxArrowDownIcon className="mb-3 h-14 w-full" />
                       <span>Drop file here</span>
-                      <span className="text-base">accepts audio, video, and text files (mp3, mp4, txt...)</span>
+                      <span className="text-base">accepts audio, video, and text files (e.g. mp3, mp4, txt)</span>
                     </>
                   )}
                 </div>
