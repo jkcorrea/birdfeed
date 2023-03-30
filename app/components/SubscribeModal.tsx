@@ -67,7 +67,7 @@ const SubscribeModal = ({ mode, referer, onClose }: SubscribeModalProps) => {
   return (
     <FullscreenModal isOpen={mode !== null} leftAction={<></>} onClose={onClose}>
       <div className="flex flex-col rounded-lg p-4 sm:p-6">
-        <h2 className="text-xl font-bold sm:text-3xl">Upgrade to Birdfeed Pro 🐣</h2>
+        <h2 className="text-xl font-bold sm:text-3xl">Birdfeed Pro Free Trial 🐣</h2>
 
         <div className="form-control mt-5">
           <label className="label cursor-pointer justify-center gap-2">
