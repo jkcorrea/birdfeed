@@ -20,6 +20,11 @@ const handleRequest: HandleDocumentRequestFunction = (request, responseStatusCod
 
   const callbackName = isbot(request.headers.get('user-agent')) ? 'onAllReady' : 'onShellReady'
 
+  // For ffmpeg to work, we need to set these headers
+  // https://github.com/ffmpegwasm/ffmpeg.wasm#installation
+  responseHeaders.set('Cross-Origin-Embedder-Policy', 'require-corp')
+  responseHeaders.set('Cross-Origin-Opener-Policy', 'same-origin')
+
   if (NODE_ENV !== 'production') {
     // just flat out disable caching in dev to prevent any weird issues
     responseHeaders.set('Cache-Control', 'no-store')

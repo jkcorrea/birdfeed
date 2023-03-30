@@ -203,6 +203,26 @@ function TweetGrid({ tweets, isDemo }: { tweets: GeneratedTweet[]; isDemo: boole
     [[], []]
   )
 
+  const subtitle = isDemo ? (
+    <>
+      The following tweets were generated from{' '}
+      <a
+        href="https://www.joshterryplays.com/how-to-be-smarter/"
+        target="_blank"
+        rel="noreferrer"
+        className="link-primary link"
+      >
+        this blog post
+      </a>
+      !
+    </>
+  ) : (
+    <>
+      We used only the first 15 minutes of your content to generate these tweets. Upgrade today to unlock full content
+      generations!
+    </>
+  )
+
   return (
     <>
       <div className="mt-16 mb-12 text-center">
@@ -210,20 +230,7 @@ function TweetGrid({ tweets, isDemo }: { tweets: GeneratedTweet[]; isDemo: boole
           Your Tweets
         </h3>
 
-        {isDemo && (
-          <p className="mt-6 text-2xl text-gray-800">
-            The following tweets were generated from{' '}
-            <a
-              href="https://www.joshterryplays.com/how-to-be-smarter/"
-              target="_blank"
-              rel="noreferrer"
-              className="link-primary link"
-            >
-              this blog post
-            </a>
-            !
-          </p>
-        )}
+        <p className="mt-6 text-2xl text-gray-800">{subtitle}</p>
       </div>
 
       <div className="mx-auto grid max-w-screen-md gap-4 md:grid-cols-2">

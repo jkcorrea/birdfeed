@@ -19,7 +19,8 @@ export function useMockProgress(
    *
    * @default 1_000
    */
-  timeConstant = 1000
+  timeConstant = 1000,
+  onProgress?: (progress: number) => void
 ): MockProgressReturnType {
   const [progress, setProgress] = useState<number>(0) // progress value
   const shouldProgress = useRef(false) // manage start, finish progress callbacks
@@ -33,6 +34,7 @@ export function useMockProgress(
       _time.current += INTERVAL_FREQUENCY
       const newProgress = 1 - Math.exp(-_time.current / timeConstant)
       setProgress(newProgress)
+      onProgress?.(newProgress)
     }
   }, freq)
 

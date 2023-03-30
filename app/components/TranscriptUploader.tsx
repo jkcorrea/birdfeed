@@ -1,11 +1,13 @@
-import { forwardRef, useCallback, useEffect, useImperativeHandle, useRef, useState } from 'react'
+import { forwardRef, useCallback, useEffect, useImperativeHandle, useReducer, useRef, useState } from 'react'
 import { CloudArrowUpIcon, InboxArrowDownIcon, SignalSlashIcon } from '@heroicons/react/24/outline'
 import type { FetcherWithComponents } from '@remix-run/react'
+import { capitalCase } from 'change-case'
 import { AnimatePresence, motion } from 'framer-motion'
 import type { ForwardedRef } from 'react'
 
 import { useAnalytics } from '~/lib/analytics/use-analytics'
 import { UPLOAD_LIMIT_FREE_KB, UPLOAD_LIMIT_PRO_KB } from '~/lib/constants'
+import { convertToMp3 } from '~/lib/ffmpeg'
 import { useIsSubmitting, useMockProgress, useRunAfterSubmission } from '~/lib/hooks'
 import { tw } from '~/lib/utils'
 import { uploadFile } from '~/services/storage'
@@ -17,6 +19,43 @@ export interface TranscriptUploaderHandle {
   handleFileUpload: (file: File, isDemo?: boolean) => Promise<void>
 }
 
+interface UploadState {
+  status: 'idle' | 'transcoding' | 'uploading' | 'generating' | 'error'
+  error?: string
+  progress: number
+}
+
+type UploadAction =
+  | {
+      type: 'transcoding' | 'uploading' | 'generating' | 'reset'
+    }
+  | {
+      type: 'error'
+      error: string
+    }
+  | { type: 'progress'; progress: number }
+
+const initialUploadState: UploadState = { status: 'idle', progress: 1 }
+
+function uploadStateReducer(state: UploadState, action: UploadAction): UploadState {
+  switch (action.type) {
+    case 'transcoding':
+      return { ...state, status: 'transcoding', progress: 0 }
+    case 'uploading':
+      return { ...state, status: 'uploading', progress: 0 }
+    case 'generating':
+      return { ...state, status: 'generating', progress: 0 }
+    case 'error':
+      return { ...state, status: 'error', error: action.error, progress: 1 }
+    case 'reset':
+      return { ...state, status: 'idle', progress: 1 }
+    case 'progress':
+      return { ...state, progress: action.progress }
+    default:
+      return state
+  }
+}
+
 interface Props {
   userId?: string | null
   fetcher: FetcherWithComponents<any>
@@ -26,49 +65,73 @@ function TranscriptUploader({ userId, fetcher }: Props, ref: ForwardedRef<Transc
   const { capture } = useAnalytics()
 
   const fileInputRef = useRef<HTMLInputElement>(null)
-  const [error, setError] = useState<string | null>(null)
-  const [isUploading, setIsUploading] = useState(false)
-  const isTranscribing = useIsSubmitting(fetcher)
   const { open: openSubscribeModal } = useSubscribeModal()
 
   useRunAfterSubmission(fetcher, () => capture('transcript_finish'))
 
-  const { start: startProgress, finish: finishProgress, progress } = useMockProgress(3000)
+  const [uploadState, dispatch] = useReducer(uploadStateReducer, initialUploadState)
+
+  // We have no idea how long the generation step will take, so just mock it
+  const isGenerating = useIsSubmitting(fetcher)
+  const { start: startGeneratingProgress, finish: finishGeneratingProgress } = useMockProgress(3000, (progress) =>
+    dispatch({ type: 'progress', progress })
+  )
   useEffect(() => {
-    if (isTranscribing || isUploading) startProgress()
-    else finishProgress()
-  }, [isUploading, isTranscribing, startProgress, finishProgress])
+    if (!isGenerating && uploadState.status === 'generating') {
+      finishGeneratingProgress()
+      if (uploadState.status === 'generating') dispatch({ type: 'reset' })
+    }
+  }, [uploadState.status, isGenerating, startGeneratingProgress, finishGeneratingProgress])
 
   const handleFileUpload = async (file: File, isDemo?: boolean) => {
     capture('transcript_start', { file_name: file.name })
 
     const limit = userId ? UPLOAD_LIMIT_PRO_KB : UPLOAD_LIMIT_FREE_KB
     if (file.size > limit) {
-      setError(`File size is too large. Please upload a file smaller than ${Math.floor(limit / 1_000_000_000)} GB.`)
+      dispatch({
+        type: 'error',
+        error: `File size is too large. Please upload a file smaller than ${Math.floor(limit / 1_000_000_000)} GB.`,
+      })
       if (!userId) openSubscribeModal('signup', 'fileUploadlimit_exceeded')
       capture('transcript_fail', { reason: 'too_large', file_name: file.name })
       return
     }
 
-    setIsUploading(true)
     try {
-      const pathInBucket = await uploadFile(file, userId)
+      // Use ffmpeg to convert the file to a wav & chomp it to 15min (if no userId)
+      const processedFile = file
+      if (file.type === 'text/plain') {
+        try {
+          dispatch({ type: 'transcoding' })
+          await convertToMp3(file, Boolean(userId), (progress) => dispatch({ type: 'progress', progress }))
+        } catch (error) {
+          dispatch({
+            type: 'error',
+            error: (error as Error).message,
+          })
+        }
+      }
 
+      dispatch({ type: 'uploading' })
+      const pathInBucket = await uploadFile(processedFile, userId)
       // now we can create the transcript in our db
+      dispatch({ type: 'generating' })
+      startGeneratingProgress()
       fetcher.submit(
         {
           intent: 'create-transcript',
-          name: file.name,
-          mimetype: file.type,
+          name: processedFile.name,
+          mimetype: processedFile.type,
           pathInBucket,
           ...(isDemo ? { isDemo: 'true' } : {}),
         } satisfies (typeof CreateTranscriptSchema)['_input'],
         { method: 'post' }
       )
     } catch (error) {
-      setError((error as Error).message)
-    } finally {
-      setIsUploading(false)
+      dispatch({
+        type: 'error',
+        error: (error as Error).message,
+      })
     }
   }
 
@@ -80,26 +143,26 @@ function TranscriptUploader({ userId, fetcher }: Props, ref: ForwardedRef<Transc
       key={fetcher.state}
       className={tw(
         'rounded-lg bg-base-300 shadow-inner transition',
-        !(isUploading && isTranscribing) && 'hover:bg-[rgb(226,221,218)]'
+        uploadState.status === 'generating' && 'hover:bg-[rgb(226,221,218)]'
       )}
     >
       <AnimatePresence mode="wait" initial={false}>
         <motion.div
-          key={isUploading ? 'uploading' : fetcher.state}
+          key={uploadState.status}
           initial={{ y: 10, opacity: 0 }}
           animate={{ y: 0, opacity: 1 }}
           exit={{ y: 10, opacity: 0 }}
           transition={{ duration: 0.2 }}
           className="flex h-full w-full items-center justify-center"
         >
-          {isUploading || isTranscribing ? (
+          {uploadState.status !== 'error' && uploadState.status !== 'idle' ? (
             <div className="h-full w-full p-3 text-center text-2xl font-black opacity-60">
               <div className="rounded-lg border-2 border-dashed border-neutral p-6">
                 <div className="flex flex-col justify-center">
                   <CloudArrowUpIcon className="h-14 w-full" />
-                  <span>{isTranscribing ? 'Transcribing' : 'Uploading'}</span>
+                  <span>{capitalCase(uploadState.status)}</span>
                   <span className="mb-4 text-base">this could take a while...</span>
-                  <progress className="progress" value={progress} max={1} />
+                  <progress className="progress" value={uploadState.progress} max={1} />
                 </div>
               </div>
             </div>
@@ -116,11 +179,11 @@ function TranscriptUploader({ userId, fetcher }: Props, ref: ForwardedRef<Transc
               />
               <div className="rounded-lg border-2 border-dashed border-neutral p-6">
                 <div className="flex flex-col justify-center">
-                  {error ? (
+                  {uploadState.error ? (
                     <>
                       <SignalSlashIcon className="mb-3 h-14 w-full" />
                       <span>Sorry, try that again?</span>
-                      <span className="text-base">{error}</span>
+                      <span className="text-base">{uploadState.error}</span>
                     </>
                   ) : (
                     <>
