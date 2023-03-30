@@ -78,8 +78,8 @@ function TranscriptUploader({ userId, fetcher }: Props, ref: ForwardedRef<Transc
   )
   useEffect(() => {
     if (!isGenerating && uploadState.status === 'generating') {
+      dispatch({ type: 'reset' })
       finishGeneratingProgress()
-      if (uploadState.status === 'generating') dispatch({ type: 'reset' })
     }
   }, [uploadState.status, isGenerating, startGeneratingProgress, finishGeneratingProgress])
 
@@ -116,6 +116,7 @@ function TranscriptUploader({ userId, fetcher }: Props, ref: ForwardedRef<Transc
       const pathInBucket = await uploadFile(processedFile, userId, (progress) =>
         dispatch({ type: 'progress', progress })
       )
+
       // now we can create the transcript in our db
       dispatch({ type: 'generating' })
       startGeneratingProgress()
