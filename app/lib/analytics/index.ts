@@ -8,7 +8,7 @@ export function initAnalytics(loaded?: (posthog: PostHog) => void): void {
       api_host: 'https://dawn-bar-63d4.jahilliard.com',
       autocapture: false,
       capture_performance: false,
-      capture_pageview: false,
+      capture_pageview: true,
       capture_pageleave: false,
       disable_session_recording: true,
       loaded,
@@ -18,5 +18,3 @@ export function initAnalytics(loaded?: (posthog: PostHog) => void): void {
     // services to set up on initial show
   }
 }
-
-export * from './use-analytics'

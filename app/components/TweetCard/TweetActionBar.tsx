@@ -1,9 +1,9 @@
 import React from 'react'
 import { ArrowPathIcon, InboxArrowDownIcon, InboxIcon, PencilIcon, TrashIcon } from '@heroicons/react/24/outline'
 import { useFetcher } from '@remix-run/react'
+import posthog from 'posthog-js'
 import { useZorm } from 'react-zorm'
 
-import { useAnalytics } from '~/lib/analytics'
 import { APP_ROUTES } from '~/lib/constants'
 import { useIsSubmitting } from '~/lib/hooks'
 import { tw } from '~/lib/utils'
@@ -35,7 +35,6 @@ function TweetActionBar({ tweet, onDelete, canEdit, showRating }: Props) {
     (f) => (f.get('intent') as IHomeActionIntent) === 'regenerate-tweet' && f.get('tweetId') === tweet.id
   )
 
-  const { capture } = useAnalytics()
   const updateRating = (e: React.ChangeEvent<HTMLInputElement>) => {
     const rating = parseInt(e.currentTarget.dataset.rating as any, 10)
     const formData = new FormData()
@@ -43,7 +42,7 @@ function TweetActionBar({ tweet, onDelete, canEdit, showRating }: Props) {
     formData.append('tweetId', tweet.id)
     formData.append('rating', rating as any)
 
-    capture('tweet_rate', { rating })
+    posthog.capture('tweet_rate', { rating })
     fetcher.submit(formData, {
       action: APP_ROUTES.HOME.href,
       method: 'post',

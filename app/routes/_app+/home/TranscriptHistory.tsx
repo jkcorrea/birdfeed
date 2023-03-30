@@ -5,13 +5,13 @@ import dayjs from 'dayjs'
 import relativeTime from 'dayjs/plugin/relativeTime'
 import type { Variants } from 'framer-motion'
 import { motion, useIsomorphicLayoutEffect } from 'framer-motion'
+import posthog from 'posthog-js'
 import { useZorm } from 'react-zorm'
 
 import type { Transcript } from '@prisma/client'
 import { TextAreaField } from '~/components/fields'
 import IntentField from '~/components/fields/IntentField'
 import FormErrorCatchall from '~/components/FormErrorCatchall'
-import { useAnalytics } from '~/lib/analytics/use-analytics'
 import { NODE_ENV } from '~/lib/env'
 import { useIsSubmitting, useKeypress } from '~/lib/hooks'
 import { tw } from '~/lib/utils'
@@ -106,8 +106,6 @@ const TranscriptItem = ({ transcript, isOpen, onClick }: TranscriptItemProps) =>
 
   const skipOAI = useKeypress('Shift') && NODE_ENV === 'development'
 
-  const { capture } = useAnalytics()
-
   return (
     <motion.li
       className={tw(
@@ -172,7 +170,7 @@ const TranscriptItem = ({ transcript, isOpen, onClick }: TranscriptItemProps) =>
             <button
               className={tw('btn-primary btn-xs btn flex items-center justify-center gap-1', isGenerating && 'loading')}
               disabled={isGenerating}
-              onClick={() => capture('tweets_generate')}
+              onClick={() => posthog.capture('tweets_generate')}
             >
               {transcript.neverGenerated ? 'Generate' : 'Re-generate'}
               {skipOAI ? ' (skip)' : ''}

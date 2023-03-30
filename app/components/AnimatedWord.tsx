@@ -27,7 +27,7 @@ export function AnimatedWord({ words, duration = 5000 }: Props) {
           exit="exit"
           variants={animationVariants}
           transition={{ duration: 0.8, ease: 'easeInOut' }}
-          className="z-1 relative inline-block transform-gpu"
+          className="relative inline-block transform-gpu"
         >
           {word}
         </motion.span>

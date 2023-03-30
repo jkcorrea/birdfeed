@@ -7,7 +7,6 @@ import { posthog } from 'posthog-js'
 import { toast } from 'react-hot-toast'
 
 import { useSubscribeModal } from '~/components/SubscribeModal'
-import { useAnalytics } from '~/lib/analytics'
 import { APP_ROUTES, NAV_ROUTES } from '~/lib/constants'
 import { useIsSubmitting } from '~/lib/hooks'
 import { response } from '~/lib/http.server'
@@ -46,10 +45,7 @@ export default function AppLayout() {
   const location = useLocation()
   const { email, status } = useLoaderData<typeof loader>()
 
-  const { capture } = useAnalytics()
-
   useEffect(() => {
-    capture('$pageview')
     posthog.identify(email)
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [location.key])
@@ -187,7 +183,6 @@ function Navbar() {
 function DropdownActions({ isMobile }: { isMobile?: boolean }) {
   const portalFetcher = useFetcher()
   const isFetchingPortal = useIsSubmitting(portalFetcher)
-  const { reset } = useAnalytics()
 
   return (
     <ul
@@ -220,7 +215,7 @@ function DropdownActions({ isMobile }: { isMobile?: boolean }) {
       </li>
       <li className={tw(isMobile ? 'mt-8 text-center' : 'mt-3')}>
         <Form action={APP_ROUTES.LOGOUT.href} method="post">
-          <button onClickCapture={() => reset()} type="submit" data-test-id="logout" className="text-error">
+          <button onClickCapture={() => posthog.reset()} type="submit" data-test-id="logout" className="text-error">
             {APP_ROUTES.LOGOUT.title}
           </button>
         </Form>

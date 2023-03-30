@@ -54,7 +54,7 @@ export async function loader() {
 export default function App() {
   const { env } = useLoaderData<typeof loader>()
 
-  useEffect(() => initAnalytics(), [])
+  useEffect(initAnalytics, [])
 
   // Notify any errors from server
   const fetchers = useFetchers()

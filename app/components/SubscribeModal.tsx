@@ -1,10 +1,10 @@
 /* eslint-disable tailwindcss/classnames-order */
 import React, { useState } from 'react'
 import { useFetcher } from '@remix-run/react'
+import posthog from 'posthog-js'
 import { useZorm } from 'react-zorm'
 import type { z } from 'zod'
 
-import { useAnalytics } from '~/lib/analytics'
 import { UPSELL_FEATURES } from '~/lib/constants'
 import { useIsSubmitting } from '~/lib/hooks'
 import { tw } from '~/lib/utils'
@@ -28,10 +28,8 @@ export const SubscribeModalProvider = ({ children }: { children: React.ReactNode
   const [referer, setReferer] = useState<string | null>(null)
   const onCloseCallback = React.useRef<() => void>()
 
-  const { capture } = useAnalytics()
-
   const open: OpenFn = (mode, referer, onClose) => {
-    capture('subscribeModal_open', { referer, mode })
+    posthog.capture('subscribeModal_open', { referer, mode })
     setMode(mode)
     onCloseCallback.current = onClose
   }
@@ -62,8 +60,6 @@ const SubscribeModal = ({ mode, referer, onClose }: SubscribeModalProps) => {
   const isRedirectingToStripe = useIsSubmitting(fetcher)
   const [plan, setPlan] = useState<z.infer<typeof SubscriptionInterval>>('year')
 
-  const { capture } = useAnalytics()
-
   return (
     <FullscreenModal isOpen={mode !== null} leftAction={<></>} onClose={onClose}>
       <div className="flex flex-col rounded-lg p-4 sm:p-6">
@@ -78,7 +74,7 @@ const SubscribeModal = ({ mode, referer, onClose }: SubscribeModalProps) => {
               onChange={(e) => setPlan(e.currentTarget.checked ? 'year' : 'month')}
             />
             <span className="label-text text-sm sm:text-lg">
-              Annual billing <span className={tw('badge-success badge', plan === 'month' && 'invisible')}>60% OFF</span>
+              Annual billing <span className={tw('badge badge-success', plan === 'month' && 'invisible')}>60% OFF</span>
             </span>
           </label>
         </div>
@@ -103,7 +99,7 @@ const SubscribeModal = ({ mode, referer, onClose }: SubscribeModalProps) => {
           <input type="hidden" name="interval" value={plan} readOnly />
           <button
             disabled={isRedirectingToStripe}
-            onClick={() => capture('subscribeModal_success', { referer, mode })}
+            onClick={() => posthog.capture('subscribeModal_success', { referer, mode })}
             className={tw('btn-secondary btn text-lg font-black', isRedirectingToStripe && 'opacity-50')}
           >
             {mode === 'resubscribe' ? `Resubscribe` : `Try 7 days for free`}

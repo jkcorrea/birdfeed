@@ -3,9 +3,9 @@ import { CloudArrowUpIcon, InboxArrowDownIcon, SignalSlashIcon } from '@heroicon
 import type { FetcherWithComponents } from '@remix-run/react'
 import { capitalCase } from 'change-case'
 import { AnimatePresence, motion } from 'framer-motion'
+import posthog from 'posthog-js'
 import type { ForwardedRef } from 'react'
 
-import { useAnalytics } from '~/lib/analytics/use-analytics'
 import { UPLOAD_LIMIT_FREE_KB, UPLOAD_LIMIT_PRO_KB } from '~/lib/constants'
 import { convertToAudio } from '~/lib/ffmpeg'
 import { useIsSubmitting, useMockProgress, useRunAfterSubmission } from '~/lib/hooks'
@@ -62,12 +62,10 @@ interface Props {
 }
 
 function TranscriptUploader({ userId, fetcher }: Props, ref: ForwardedRef<TranscriptUploaderHandle>) {
-  const { capture } = useAnalytics()
-
   const fileInputRef = useRef<HTMLInputElement>(null)
   const { open: openSubscribeModal } = useSubscribeModal()
 
-  useRunAfterSubmission(fetcher, () => capture('transcript_finish'))
+  useRunAfterSubmission(fetcher, () => posthog.capture('transcript_finish'))
 
   const [uploadState, dispatch] = useReducer(uploadStateReducer, initialUploadState)
 
@@ -84,7 +82,7 @@ function TranscriptUploader({ userId, fetcher }: Props, ref: ForwardedRef<Transc
   }, [uploadState.status, isGenerating, startGeneratingProgress, finishGeneratingProgress])
 
   const handleFileUpload = async (file: File, isDemo?: boolean) => {
-    capture('transcript_start', { file_name: file.name })
+    posthog.capture('transcript_start', { file_name: file.name })
 
     const limit = userId ? UPLOAD_LIMIT_PRO_KB : UPLOAD_LIMIT_FREE_KB
     if (file.size > limit) {
@@ -93,7 +91,7 @@ function TranscriptUploader({ userId, fetcher }: Props, ref: ForwardedRef<Transc
         error: `File size is too large. Please upload a file smaller than ${Math.floor(limit / 1_000_000_000)} GB.`,
       })
       if (!userId) openSubscribeModal('signup', 'fileUploadlimit_exceeded')
-      capture('transcript_fail', { reason: 'too_large', file_name: file.name })
+      posthog.capture('transcript_fail', { reason: 'too_large', file_name: file.name })
       return
     }
 

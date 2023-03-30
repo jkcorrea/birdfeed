@@ -12,7 +12,6 @@ import type { TranscriptUploaderHandle } from '~/components/TranscriptUploader'
 import TranscriptUploader from '~/components/TranscriptUploader'
 import { TweetCard } from '~/components/TweetCard'
 import { db } from '~/database'
-import { useAnalytics } from '~/lib/analytics'
 import { APP_ROUTES, UPSELL_FEATURES } from '~/lib/constants'
 import { NODE_ENV } from '~/lib/env'
 import { response } from '~/lib/http.server'
@@ -68,12 +67,9 @@ export async function action({ request }: ActionArgs) {
 export default function Home() {
   const fetcher = useFetcher<typeof action>()
   const { open: openSubscribeModal } = useSubscribeModal()
-  const { capture } = useAnalytics()
   const [isLoggedIn, setIsLoggedIn] = useState<boolean>(false)
 
   useEffect(() => {
-    capture('$pageview')
-
     fetch('/api/is-logged-in').then(async (res) => {
       setIsLoggedIn(Boolean(await res.json()))
     })
