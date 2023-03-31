@@ -1,5 +1,10 @@
 import { forwardRef, useCallback, useEffect, useImperativeHandle, useReducer, useRef, useState } from 'react'
-import { CloudArrowUpIcon, InboxArrowDownIcon, SignalSlashIcon } from '@heroicons/react/24/outline'
+import {
+  CloudArrowUpIcon,
+  InboxArrowDownIcon,
+  InformationCircleIcon,
+  SignalSlashIcon,
+} from '@heroicons/react/24/outline'
 import type { FetcherWithComponents } from '@remix-run/react'
 import { capitalCase } from 'change-case'
 import { AnimatePresence, motion } from 'framer-motion'
@@ -192,8 +197,13 @@ function TranscriptUploader({ userId, fetcher }: Props, ref: ForwardedRef<Transc
                   ) : (
                     <>
                       <InboxArrowDownIcon className="mb-3 h-14 w-full" />
-                      <span>Drop file here</span>
-                      <span className="text-base">accepts audio, video, and text files (e.g. mp3, mp4, txt)</span>
+                      <span>
+                        Drop file here{' '}
+                        <div className="tooltip" data-tip="keep file ~2gbs">
+                          <InformationCircleIcon className="inline h-5 w-5 opacity-80" />
+                        </div>
+                      </span>
+                      <span className="text-base">prefers audio, but takes vid and txt too (e.g. mp3, mp4)</span>
                     </>
                   )}
                 </div>
