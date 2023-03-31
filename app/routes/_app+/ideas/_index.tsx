@@ -65,7 +65,7 @@ function IdeaBin() {
     <div className="mx-auto max-w-screen-lg py-4">
       <div className="mb-4 flex w-full justify-between">
         <div className="inline-flex items-center">
-          <NativeSelectField defaultValue={params.get('rating') ?? 'DEFAULT'} name="rating" onChange={handleFilter}>
+          <NativeSelectField value={params.get('rating') ?? 'DEFAULT'} name="rating" onChange={handleFilter}>
             <option disabled value="DEFAULT">
               Filter by rating
             </option>

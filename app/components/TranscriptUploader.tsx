@@ -10,6 +10,7 @@ import { capitalCase } from 'change-case'
 import { AnimatePresence, motion } from 'framer-motion'
 import posthog from 'posthog-js'
 import type { ForwardedRef } from 'react'
+import { toast } from 'react-hot-toast'
 
 import { UPLOAD_LIMIT_FREE_KB, UPLOAD_LIMIT_PRO_KB } from '~/lib/constants'
 import { convertToAudio } from '~/lib/ffmpeg'
@@ -88,6 +89,14 @@ function TranscriptUploader({ userId, fetcher }: Props, ref: ForwardedRef<Transc
 
   const handleFileUpload = async (file: File, isDemo?: boolean) => {
     posthog.capture('transcript_start', { file_name: file.name })
+
+    // if greater than 2gb, warn them it might not work
+    if (file.size > 2_000_000_000) {
+      const resolution = file.type.startsWith('video/')
+        ? 'convert it to an audio format (mp3, wav, etc..) and try again'
+        : 'try chopping it into smaller files.'
+      toast.error(`Sorry, this file may be too large! If it's not working, ${resolution}.`, { duration: 10_000 })
+    }
 
     const limit = userId ? UPLOAD_LIMIT_PRO_KB : UPLOAD_LIMIT_FREE_KB
     if (file.size > limit) {

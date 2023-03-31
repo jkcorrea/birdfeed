@@ -146,7 +146,7 @@ export function TweetDetailModal({ tweet, onClose: _onClose }: Props) {
                     {progress > 0 && (
                       <div
                         className={tw(
-                          'radial-progress text-xs transition-all',
+                          'radial-progress shrink-0 text-xs transition-all',
                           remainingChars <= 0 ? 'text-error' : remainingChars <= 20 ? 'text-warning' : ''
                         )}
                         style={{

@@ -46,6 +46,7 @@ function TweetActionBar({ tweet, onDelete, canEdit, showRating }: Props) {
     fetcher.submit(formData, {
       action: APP_ROUTES.HOME.href,
       method: 'post',
+      replace: true,
     })
   }
 

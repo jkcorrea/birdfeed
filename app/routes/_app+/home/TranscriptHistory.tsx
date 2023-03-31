@@ -148,7 +148,7 @@ const TranscriptItem = ({ transcript, isOpen, onClick }: TranscriptItemProps) =>
           <span className="text-sm font-semibold uppercase text-gray-600">Preview</span>
           {/* <button className="badge badge-secondary text-xs uppercase">🪄 Cleaned</button> */}
         </label>
-        <TextAreaField readOnly rows={2} className="resize-none rounded text-xs" value={transcript.content} />
+        <TextAreaField readOnly rows={8} className="resize-none rounded text-xs" value={transcript.content} />
 
         <div className="mt-3 flex justify-end gap-1">
           {/* Delete Form */}
