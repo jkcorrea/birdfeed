@@ -43,9 +43,9 @@ export async function getGuardedToken<T = Record<string, any>>(
   return token as Omit<Token, 'metadata'> & { metadata: T }
 }
 
-export const sendSlackEventMessage = (message: string) =>
-  // if (process.env.NODE_ENV !== 'production') return
-  fetch('https://hooks.slack.com/services/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', {
+export const sendSlackEventMessage = (message: string) => {
+  if (process.env.NODE_ENV !== 'production' || !process.env.SLACK_EVENTS_URL) return
+  fetch(process.env.SLACK_EVENTS_URL, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
@@ -54,3 +54,4 @@ export const sendSlackEventMessage = (message: string) =>
       text: message,
     }),
   })
+}
