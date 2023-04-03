@@ -4,6 +4,7 @@ import { Bars3Icon, ChevronDownIcon, XMarkIcon } from '@heroicons/react/24/outli
 import { Form, Link, NavLink, Outlet, useFetcher, useLoaderData, useLocation } from '@remix-run/react'
 import type { LoaderArgs } from '@remix-run/server-runtime'
 import { posthog } from 'posthog-js'
+import type { DetailedHTMLProps, FC } from 'react'
 import { toast } from 'react-hot-toast'
 
 import { useSubscribeModal } from '~/components/SubscribeModal'
@@ -181,6 +182,19 @@ function Navbar() {
   )
 }
 
+// eslint-disable-next-line unused-imports/no-unused-vars
+const DropdownButton: FC<
+  DetailedHTMLProps<React.ButtonHTMLAttributes<HTMLButtonElement>, HTMLButtonElement> & { isMobile?: boolean }
+> = ({ children, isMobile, ...props }) => (
+  <button
+    type="submit"
+    {...props}
+    className={tw('w-full rounded-full py-2 text-left hover:bg-base-300', !isMobile && 'px-3.5', props.className)}
+  >
+    {children}
+  </button>
+)
+
 function DropdownActions({ isMobile }: { isMobile?: boolean }) {
   const portalFetcher = useFetcher()
   const isFetchingPortal = useIsSubmitting(portalFetcher)
@@ -189,16 +203,14 @@ function DropdownActions({ isMobile }: { isMobile?: boolean }) {
     <ul
       tabIndex={0}
       className={tw(
-        isMobile
-          ? 'my-4 flex flex-col gap-4 text-xl'
-          : 'dropdown-content menu rounded-box menu-compact mt-3 w-64 bg-base-100 p-2 shadow'
+        isMobile ? 'my-4 flex flex-col gap-4 text-xl' : 'dropdown-content rounded-box mt-3 w-64 bg-base-100 p-2 shadow'
       )}
     >
       <li>
         <portalFetcher.Form method="post" action="/api/billing/customer-portal">
-          <button disabled={isFetchingPortal} className="text-left" onClick={() => toast.loading('Redirecting...')}>
+          <DropdownButton disabled={isFetchingPortal} onClick={() => toast.loading('Redirecting...')}>
             💳 Manage subscription
-          </button>
+          </DropdownButton>
         </portalFetcher.Form>
       </li>
       <li>
@@ -211,14 +223,14 @@ function DropdownActions({ isMobile }: { isMobile?: boolean }) {
             }
           }}
         >
-          <button type="submit">🥲 Delete my account</button>
+          <DropdownButton>🥲 Delete my account</DropdownButton>
         </Form>
       </li>
-      <li className={tw(isMobile ? 'mt-8 text-center' : 'mt-3')}>
+      <li className={tw(isMobile ? 'mt-8 text-center' : 'mt-3 ')}>
         <Form action={APP_ROUTES.LOGOUT.href} method="post">
-          <button onClickCapture={() => posthog.reset()} type="submit" data-test-id="logout" className="text-error">
+          <DropdownButton onClick={() => posthog.reset()} data-test-id="logout" className="font-medium text-error">
             {APP_ROUTES.LOGOUT.title}
-          </button>
+          </DropdownButton>
         </Form>
       </li>
     </ul>
