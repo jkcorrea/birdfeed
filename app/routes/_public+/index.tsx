@@ -173,12 +173,13 @@ export default function Home() {
             </p>
           </ContentCardWrapper>
         </div>
-        {fetcher.data &&
+        <TweetGrid isDemo={true} tweets={tweets} />
+        {/* {fetcher.data &&
           (fetcher.data?.error ? (
             fetcher.data.error.message
           ) : (
             <TweetGrid isDemo={fetcher.data.isDemo} tweets={fetcher.data.tweets} />
-          ))}
+          ))} */}
       </main>
       <PublicFooter />
     </div>
