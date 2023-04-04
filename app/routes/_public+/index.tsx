@@ -23,6 +23,7 @@ import { createTranscript } from '../_app+/home/actions'
 import { CreateTranscriptSchema } from '../_app+/home/schemas'
 
 import birdfeedIcon from '~/assets/birdfeed-icon.png'
+import tweets from 'test/fixtures/generatedTweets.json'
 
 const scripts: ExternalScriptsFunction = () =>
   // NOTE rendering this in dev causes hydration mismatch issues, luckily it's only cosmetic & we don't need it in dev
@@ -176,12 +177,13 @@ export default function Home() {
             </p>
           </ContentCardWrapper>
         </div>
-        {fetcher.data &&
+        <TweetGrid isDemo={true} tweets={tweets} />
+        {/* {fetcher.data &&
           (fetcher.data?.error ? (
             fetcher.data.error.message
           ) : (
             <TweetGrid isDemo={fetcher.data.isDemo} tweets={fetcher.data.tweets} />
-          ))}
+          ))} */}
       </main>
       <PublicFooter />
     </div>
@@ -292,23 +294,3 @@ function _LoadingColumn() {
     </div>
   )
 }
-
-const _pregenTweets: string[] = [
-  'In order to survive on Mars, you need all the necessary resources, just like being on a long sea voyage and needing vitamin C.',
-  'Crocodiles are incredibly resilient and can survive in disastrous situations because they feed on decayed meat.',
-  'The Fermi Paradox asks the question: where are the aliens? Are there many or none at all?',
-  "Naval fighter pilot Commander David Fraser's account of the Tic-Tac UFO that he encountered off the coast of San Diego is fascinating.",
-  'The encounter with the Tic-Tac UFO is a case that baffles skeptics and believers alike. What do you think?',
-  'Honestly, I think I would know if there were aliens." Do you agree?',
-  'Politicians are trying to figure out what all this "shit" is. Are you curious too?',
-  'Have you ever thought about what you would do if aliens showed up on Earth? Would you be excited or scared?',
-  "It's interesting to consider how much we still don't know about the universe and the possibility of extraterrestrial life.",
-  'Imagine if aliens did make contact and suddenly we had a whole new world of information to explore. The possibilities are endless.',
-  "The search for extraterrestrial life continues to intrigue us, but for now, let's focus on the fascinating discoveries on Earth.",
-  'Who knows what secrets are hidden beneath our feet? Archaeology offers a glimpse into our past and a window into our future.',
-  'The geological history of Earth shows numerous extinction events, including the Permian extinction where over 90% of species died out."',
-  "Imagine a future where we've colonized the entire galaxy, jumping from planet to planet.",
-  "Don't miss out on the JRE back catalogue available now on Spotify!",
-  'Go to Spotify now to get this full episode of the Joe Rogan experience." -Joe Rogan',
-  'You can listen to the jury in the background by using other apps." -Joe Rogan',
-]
