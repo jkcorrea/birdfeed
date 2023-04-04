@@ -5,7 +5,7 @@ import { TokenType } from '@prisma/client'
 import { db } from '~/database'
 import { STRIPE_ENDPOINT_SECRET } from '~/lib/env'
 import { response } from '~/lib/http.server'
-import { AppError, getGuardedToken, parseData } from '~/lib/utils'
+import { AppError, getGuardedToken, parseData, sendSlackEventMessage } from '~/lib/utils'
 import { stripe } from '~/services/billing'
 
 const tag = 'Stripe webhook 🎣'
@@ -83,9 +83,44 @@ export async function action({ request }: ActionArgs) {
 
         return response.ok({}, { authSession: null })
       }
-    }
+      case 'customer.subscription.updated':
+      case 'customer.subscription.deleted': {
+        const {
+          customer: stripeCustomerId,
+          status,
+          cancel_at_period_end,
+        } = await parseData(
+          event.data.object,
+          z.object({
+            customer: z.string(),
+            status: z.string(),
+            cancel_at_period_end: z.boolean(),
+          }),
+          `${event.type} payload is malformed`
+        )
 
-    return response.ok({}, { authSession: null })
+        const user = await db.user.findUnique({
+          where: {
+            stripeCustomerId,
+          },
+          select: {
+            email: true,
+          },
+        })
+
+        sendSlackEventMessage(
+          `Subscription ${event.type.split('.')[2]} for ${user?.email || 'unknown user'} 
+          
+          Status: ${status}
+          Cancel at period end: ${cancel_at_period_end}`
+        )
+
+        return response.ok({}, { authSession: null })
+      }
+
+      default:
+        return response.ok({}, { authSession: null })
+    }
   } catch (cause) {
     const reason = new AppError({
       cause,

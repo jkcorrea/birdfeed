@@ -10,7 +10,7 @@ import { db } from '~/database'
 import { APP_ROUTES } from '~/lib/constants'
 import { useIsSubmitting } from '~/lib/hooks'
 import { response } from '~/lib/http.server'
-import { AppError, celebrate, getGuardedToken, parseData } from '~/lib/utils'
+import { AppError, celebrate, getGuardedToken, parseData, sendSlackEventMessage } from '~/lib/utils'
 import { createAuthSession, isAnonymousSession } from '~/services/auth'
 import { CheckoutTokenMeta } from '~/services/billing'
 import { createUserAccount, getUserByEmail } from '~/services/user'
@@ -81,6 +81,8 @@ export async function action({ request }: ActionArgs) {
         id: token.id,
       },
     })
+
+    sendSlackEventMessage(`New Subscription created for ${email}!`)
 
     return createAuthSession({
       request,
