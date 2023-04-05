@@ -12,7 +12,7 @@ import { makeGenPrompt, makeRegenPrompt } from './prompts'
 import FIXTURES from '../../../test/fixtures/sample_generated_tweets.json'
 
 const MODEL_NAME = 'gpt-3.5-turbo'
-const RESULT_REGEX = /(?:\d\W*)\s*"?(.*)"?$/gm
+const RESULT_REGEX = /(?:\d+\W*)\s*(.*)$/gm
 
 const HASHTAGS_REGEX = /#\w+(?:\s+|$)/g
 
