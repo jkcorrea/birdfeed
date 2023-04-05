@@ -126,6 +126,25 @@ async function assertAuthSession(request: Request, { onFailRedirectTo }: { onFai
   return authSession
 }
 
+export async function getOptionalAuthSession(request: Request) {
+  const authSession = await getAuthSession(request)
+
+  if (!authSession) {
+    return null
+  }
+
+  // damn, access token is not valid or expires soon
+  // let's try to refresh, in case of 🧐
+  if (isExpiringSoon(authSession.expiresAt)) {
+    return refreshAuthSession(request)
+  }
+
+  return {
+    ...authSession,
+    cookie: await commitAuthSession(request, authSession),
+  }
+}
+
 /**
  * Assert that auth session is present and verified from Supabase auth api
 

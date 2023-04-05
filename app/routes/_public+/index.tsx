@@ -1,6 +1,7 @@
 import { Fragment, useEffect, useRef, useState } from 'react'
 import type { ActionArgs, HeadersFunction } from '@remix-run/node'
 import { Link, useFetcher } from '@remix-run/react'
+import twitterLogo from 'public/twitter_logo_white.svg'
 import type { HTMLAttributes, ReactNode } from 'react'
 import { parseFormAny } from 'react-zorm'
 import type { ExternalScriptsFunction } from 'remix-utils'
@@ -14,6 +15,7 @@ import { TweetCard } from '~/components/TweetCard'
 import { db } from '~/database'
 import { APP_ROUTES, UPSELL_FEATURES } from '~/lib/constants'
 import { NODE_ENV } from '~/lib/env'
+import { useIsSubmitting } from '~/lib/hooks'
 import { response } from '~/lib/http.server'
 import { parseData, tw } from '~/lib/utils'
 import type { GeneratedTweet } from '~/services/openai'
@@ -103,10 +105,10 @@ export default function Home() {
                 Login
               </Link>
               <button
-                onClick={() => openSubscribeModal('signup', 'getStarted_button')}
+                onClick={() => openSubscribeModal('signup', 'getStartedFree_mainButton')}
                 className="btn-outline btn-primary btn-xs btn md:btn-md"
               >
-                Free Trial
+                Get Started Free
               </button>
             </>
           )}
@@ -155,10 +157,10 @@ export default function Home() {
             </ul>
 
             <button
-              onClick={() => openSubscribeModal('signup', 'unlockFeatures_button')}
-              className="btn-primary btn-sm btn my-5 w-fit self-center text-lg font-bold normal-case"
+              onClick={() => openSubscribeModal('signup', 'getStartedFree_contentCardButton')}
+              className="btn-primary btn-md btn my-5 w-fit self-center text-lg font-bold normal-case"
             >
-              7 day free trial
+              Get Started Free
             </button>
           </ContentCardWrapper>
           <ContentCardWrapper
@@ -177,7 +179,7 @@ export default function Home() {
             </p>
           </ContentCardWrapper>
         </div>
-        <TweetGrid isDemo={true} tweets={tweets} />
+        <TweetGrid isDemo={false} tweets={tweets} />
         {/* {fetcher.data &&
           (fetcher.data?.error ? (
             fetcher.data.error.message
@@ -218,26 +220,42 @@ function TweetGrid({ tweets, isDemo }: { tweets: GeneratedTweet[]; isDemo: boole
     </>
   ) : (
     <>
-      The free version only uses the <em className="underline">first 15 minutes</em> of your content to create tweets.
-      If you'd like Birdfeed to utilize the full length of your content,{' '}
+      For the full length of your content,{' '}
       <button type="button" className="link-hover link-primary link" onClick={openSignupModal}>
-        upgrade today
+        try pro free
       </button>
       !
     </>
   )
 
+  const ConnectTwitter = useFetcher()
+  const isDispatchConnectTwitter = useIsSubmitting(ConnectTwitter)
+
   return (
     <>
       <div className="mt-16 mb-12 text-center">
         <h3 ref={(el) => el?.scrollIntoView({ behavior: 'smooth' })} className="text-5xl font-bold">
-          Your Tweets
+          {isDemo ? `Your Tweets` : `First 15 Minute's Tweets`}
         </h3>
 
         <p className="mx-auto mt-6 max-w-screen-md text-center text-2xl text-gray-600">{subtitle}</p>
       </div>
 
-      <div className="mx-auto grid max-w-screen-md gap-4 md:grid-cols-2">
+      <div className="relative mx-auto grid max-w-screen-md gap-4 overflow-y-clip md:grid-cols-2">
+        <ConnectTwitter.Form
+          action="/api/connect-twitter"
+          method="post"
+          className="absolute top-2/3 right-1/2 z-10 translate-x-1/2"
+        >
+          <button
+            type="submit"
+            disabled={isDispatchConnectTwitter}
+            className="btn-primary btn-info btn-lg btn pointer-events-auto  px-6 text-white shadow-xl"
+          >
+            <img src={twitterLogo} alt="twitter logo" className="mr-2 h-5 w-5" />
+            Add twitter to see the rest
+          </button>
+        </ConnectTwitter.Form>
         <TweetColumn hasAd tweets={left} />
         <TweetColumn tweets={right} />
       </div>
@@ -253,8 +271,8 @@ function TweetColumn({ tweets, hasAd }: { tweets: GeneratedTweet[]; hasAd?: bool
     <div className="grid h-fit gap-4">
       {tweets.map((tweet, ix) => (
         <Fragment key={tweet.id}>
-          <TweetCard isPublic tweet={tweet} />
-          {hasAd && ix === Math.floor((tweets.length * 2) / 3) - 1 && (
+          <TweetCard isPublic isBlurred={ix > 1} tweet={tweet} />
+          {hasAd && ix === Math.floor((tweets.length * 2) / 4) - 1 && (
             <div className="flex h-20 w-full flex-col items-center justify-center rounded-lg bg-base-300 text-center shadow-inner">
               <h3 className="text-lg font-bold">More, better tweets</h3>
               <button className="link-info link no-underline" onClick={openSignupModal}>
