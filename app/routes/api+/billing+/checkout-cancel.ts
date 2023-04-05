@@ -2,17 +2,12 @@ import type { LoaderArgs } from '@remix-run/node'
 
 import { db } from '~/database'
 import { APP_ROUTES } from '~/lib/constants'
-import type { SessionWithCookie } from '~/lib/http.server'
 import { response } from '~/lib/http.server'
-import type { AuthSession } from '~/services/auth'
-import { requireAuthSession } from '~/services/auth'
+import { safeAuthSession } from '~/services/auth'
 
 // User cancelled. Delete checkout token if there and redirect
 export async function loader({ request }: LoaderArgs) {
-  let authSession: SessionWithCookie<AuthSession> | null = null
-  try {
-    authSession = await requireAuthSession(request)
-  } catch (cause) {}
+  const authSession = await safeAuthSession(request)
 
   try {
     const url = new URL(request.url)

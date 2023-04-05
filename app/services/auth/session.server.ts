@@ -191,6 +191,14 @@ export async function requireAuthSession(
   }
 }
 
+export async function safeAuthSession(
+  request: Request,
+  opts: { onFailRedirectTo?: string; verify: boolean } = { verify: false }
+): Promise<SessionWithCookie<AuthSession> | null> {
+  if (await isAnonymousSession(request)) return null
+  return requireAuthSession(request, opts)
+}
+
 function isExpiringSoon(expiresAt: number) {
   return (expiresAt - REFRESH_ACCESS_TOKEN_THRESHOLD) * 1000 < Date.now()
 }
