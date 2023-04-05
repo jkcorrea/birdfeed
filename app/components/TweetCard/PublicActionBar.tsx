@@ -14,7 +14,7 @@ import SendTweetButton from './SendTweetButton'
 
 const TOAST_ID = 'rate-tweet-toast'
 
-export const PublicActionBar = ({ tweet }: { tweet: GeneratedTweet }) => {
+export const PublicActionBar = ({ tweet, isDisabled }: { isDisabled: boolean; tweet: GeneratedTweet }) => {
   const fetcher = useFetcher()
   const [vote, setVote] = useState<'upvote' | 'downvote' | null>(null)
   const zoUpvote = useZorm('upvote-tweet', RateTweetSchema, { onValidSubmit: () => setVote('upvote') })
@@ -44,7 +44,7 @@ export const PublicActionBar = ({ tweet }: { tweet: GeneratedTweet }) => {
               vote === 'downvote' && 'opacity-30 grayscale'
             )}
             onClick={() => posthog.capture('tweet_upvote', { tweetId: tweet.id })}
-            disabled={Boolean(vote)}
+            disabled={Boolean(vote) || isDisabled}
             name={zoDownvote.fields.upvote()}
             value="upvote"
           >
@@ -62,7 +62,7 @@ export const PublicActionBar = ({ tweet }: { tweet: GeneratedTweet }) => {
               vote === 'upvote' && 'opacity-30 grayscale'
             )}
             onClick={() => posthog.capture('tweet_downvote', { tweetId: tweet.id })}
-            disabled={Boolean(vote)}
+            disabled={Boolean(vote) || isDisabled}
           >
             {!isDownvoting && <HandThumbDownIcon className="h-6 w-6" />}
             <span className="sr-only">Dislike</span>
@@ -70,7 +70,7 @@ export const PublicActionBar = ({ tweet }: { tweet: GeneratedTweet }) => {
         </fetcher.Form>
       </div>
 
-      <SendTweetButton body={tweet.drafts[0]} tweetId={tweet.id} />
+      <SendTweetButton body={tweet.drafts[0]} isDisabled={isDisabled} tweetId={tweet.id} />
     </div>
   )
 }

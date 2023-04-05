@@ -16,25 +16,28 @@ interface BaseProps {
 interface PublicProps extends BaseProps {
   tweet: GeneratedTweet
   isPublic: true
+  isBlurred?: boolean
 }
 
 interface TweetProps extends BaseProps {
   tweet: SerializedTweetItem
   isPublic?: false
+  isBlurred?: false
 }
 
-export const TweetCard = ({ tweet, showRating, isPublic, linkTo }: PublicProps | TweetProps) => {
+export const TweetCard = ({ tweet, showRating, isPublic, isBlurred, linkTo }: PublicProps | TweetProps) => {
   const body = (
     <li
       className={tw(
         'flex h-fit min-w-[300px] flex-col rounded-lg bg-base-100 py-2 px-4 shadow transition',
-        linkTo && 'cursor-pointer hover:bg-primary/10'
+        linkTo && 'cursor-pointer hover:bg-primary/10',
+        isBlurred && 'blur'
       )}
     >
       {isPublic && (
         <TwitterAccountHeader
           icon={
-            <div className="bg-opacity/60 flex w-fit items-center rounded-full bg-base-300 p-1.5 px-3 text-xl">🐣</div>
+            <div className="bg-opacity/60 flex w-fit items-center rounded-full bg-base-300 p-2 px-3 text-xl">🐣</div>
           }
           name="birdfeed"
           handle="@birdfeed.ai"
@@ -47,7 +50,7 @@ export const TweetCard = ({ tweet, showRating, isPublic, linkTo }: PublicProps |
       <div className="divider divider-vertical mt-auto mb-0" />
       <div className="flex  px-4" onClick={(e) => e.stopPropagation()}>
         {isPublic ? (
-          <PublicActionBar tweet={tweet} />
+          <PublicActionBar isDisabled={!!isBlurred} tweet={tweet} />
         ) : (
           <TweetActionBar canEdit={!showRating} tweet={tweet} showRating={showRating} />
         )}
