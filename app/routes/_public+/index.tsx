@@ -11,13 +11,11 @@ import { PublicFooter } from '~/components/PublicFooter'
 import type { TranscriptUploaderHandle } from '~/components/TranscriptUploader'
 import TranscriptUploader from '~/components/TranscriptUploader'
 import { TweetGrid } from '~/components/TweetGrid'
-import { db } from '~/database'
 import { APP_ROUTES, UPSELL_FEATURES } from '~/lib/constants'
 import { NODE_ENV } from '~/lib/env'
 import { response } from '~/lib/http.server'
 import { parseData, tw } from '~/lib/utils'
 import type { GeneratedTweet } from '~/services/openai'
-import { generateTweetsFromContent } from '~/services/openai'
 import { createTranscript, CreateTranscriptSchema } from '~/services/transcription'
 
 import birdfeedIcon from '~/assets/birdfeed-icon.png'
@@ -46,18 +44,7 @@ export async function action({ request }: ActionArgs) {
     const data = await parseData(raw, CreateTranscriptSchema, 'Payload is invalid')
     const transcript = await createTranscript(data)
 
-    const tweets = await generateTweetsFromContent(transcript.content, {
-      maxTweets: 10,
-    })
-
-    await db.tweet.createMany({
-      data: tweets.map((tweet) => ({
-        ...tweet,
-        transcriptId: transcript.id,
-      })),
-    })
-
-    return response.ok({ tweets, isDemo: data.isDemo }, { authSession: null })
+    return response.ok({ tweets: transcript.tweets, isDemo: data.isDemo }, { authSession: null })
   } catch (cause) {
     return response.error(cause, { authSession: null })
   }

@@ -1,8 +1,6 @@
-import { TrashIcon } from '@heroicons/react/24/outline'
 import { useFetcher } from '@remix-run/react'
 import { useZorm } from 'react-zorm'
 
-import { APP_ROUTES } from '~/lib/constants'
 import { useIsSubmitting } from '~/lib/hooks'
 import { tw } from '~/lib/utils'
 import type { IAction as ITweetsAction, IDeleteTweet } from '~/routes/_app+/home.$transcriptId/schemas'
@@ -11,9 +9,6 @@ import type { GeneratedTweet } from '~/services/openai'
 
 import IntentField from '../fields/IntentField'
 import { SendTweetButton } from './SendTweetButton'
-
-const btnClassName =
-  'btn-ghost pointer-events-auto tooltip tooltip-right btn-xs btn-circle btn flex items-center justify-center'
 
 interface Props {
   tweet: GeneratedTweet
@@ -30,21 +25,19 @@ function TweetActionBar({ tweet, canDelete, isAuthed }: Props) {
   )
 
   return (
-    <div className="inline-flex w-full justify-between gap-2 py-2">
+    <div className="inline-flex w-full justify-end gap-2 py-2">
       <div className="inline-flex items-center gap-3">
         {/* Delete */}
         {canDelete && (
-          <fetcher.Form
-            action={APP_ROUTES.HOME.href}
-            method="post"
-            ref={zoDelete.ref}
-            className="pointer-events-none flex items-center"
-          >
+          <fetcher.Form method="post" ref={zoDelete.ref} className="flex items-center">
             <IntentField<ITweetsAction> value="delete-tweet" />
             <input name={zoDelete.fields.tweetId()} type="hidden" value={tweet.id} />
-            <button className={tw(btnClassName, isDeleting && 'loading')} data-tip="Delete" disabled={isDeleting}>
-              {!isDeleting && <TrashIcon className="h-5 w-5" />}
-              <span className="sr-only">Delete</span>
+            <button
+              className={tw('btn-outline btn-error btn-sm btn lowercase', isDeleting && 'loading')}
+              data-tip="Delete"
+              disabled={isDeleting}
+            >
+              Delete
             </button>
           </fetcher.Form>
         )}

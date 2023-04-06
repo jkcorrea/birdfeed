@@ -39,15 +39,18 @@ export async function action({ request }: ActionArgs) {
   assertPost(request)
   const authSession = await requireAuthSession(request)
 
+  let transcriptId: string
   try {
     const raw = parseFormAny(await request.formData())
     const data = await parseData(raw, CreateTranscriptSchema, 'Payload is invalid')
-    await createTranscript(data)
+    const transcript = await createTranscript(data, true, authSession.userId)
+
+    transcriptId = transcript.id
   } catch (cause) {
     return response.error(cause, { authSession })
   }
 
-  return response.ok({}, { authSession })
+  return response.redirect(APP_ROUTES.TRANSCRIPT(transcriptId).href, { authSession })
 }
 
 export default function HomePage() {

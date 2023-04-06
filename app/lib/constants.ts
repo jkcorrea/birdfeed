@@ -58,6 +58,6 @@ export const TWITTER_OAUTH_DENIED_KEY = 'twitter_oauth_denied'
 
 export enum TweetOutlet {
   CLIPBOARD = 'copy',
-  TWITTER = 'twitter',
+  TWITTER = 'tweet',
   HYPEFURY = 'hypefury',
 }

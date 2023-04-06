@@ -26,6 +26,12 @@ export const useUiStore = create<UiState & UiActions>()(
       })),
       {
         name: 'bf-ui-store',
+        onRehydrateStorage: () => (state) => {
+          // If the last used outlet is no longer available, default to twitter
+          if (!Object.values(TweetOutlet).includes(state?.lastUsedOutlet as any)) {
+            state?.setLastUsedOutlet(TweetOutlet.TWITTER)
+          }
+        },
       }
     )
   )
