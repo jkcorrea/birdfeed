@@ -26,10 +26,6 @@ export const buildSendTweetUrl = (tweet: string, watermark = false) =>
     tweet + (watermark ? '\n\n🐣 via https://birdfeed.ai' : '')
   )}`
 
-export function getRandomNumber(min: number, max: number) {
-  return Math.floor(Math.random() * (max - min + 1) + min)
-}
-
 export async function getGuardedToken<T = Record<string, any>>(
   where: Prisma.TokenFindUniqueOrThrowArgs['where'],
   schema?: ZodSchema<T>

@@ -1,13 +1,18 @@
-import { faker } from '@faker-js/faker'
 import { Link } from '@remix-run/react'
 import type { ReactNode } from 'react'
 
-import { getRandomNumber, tw } from '~/lib/utils'
+import { tw } from '~/lib/utils'
 import type { GeneratedTweet } from '~/services/openai'
 import type { SerializedTweetItem } from '~/types'
 
 import { PublicActionBar } from './PublicActionBar'
 import TweetActionBar from './TweetActionBar'
+
+const BLURRED_TWEET_CONTENT = `
+Feathered whispers dance,
+Skyward melodies take flight,
+Nature's symphony.
+- GPT`
 
 interface BaseProps {
   showRating?: boolean
@@ -47,7 +52,7 @@ export const TweetCard = ({ tweet, showRating, isPublic, isBlurred, linkTo }: Pu
 
       {/* Tweet content */}
       <p className={tw(isBlurred && 'select-none	', 'w-full p-4')}>
-        {isBlurred ? faker.lorem.sentences(getRandomNumber(1, 3)) : tweet.drafts[0]}
+        {isBlurred ? BLURRED_TWEET_CONTENT : tweet.drafts[0]}
       </p>
 
       <div className="divider divider-vertical mt-auto mb-0" />
