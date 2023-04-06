@@ -19,7 +19,6 @@ import { tw } from '~/lib/utils'
 import { uploadFile } from '~/services/storage'
 
 import type { CreateTranscriptSchema } from '../routes/_app+/home/schemas'
-import { useSubscribeModal } from './SubscribeModal'
 
 export interface TranscriptUploaderHandle {
   handleFileUpload: (file: File, isDemo?: boolean) => Promise<void>
@@ -69,7 +68,6 @@ interface Props {
 
 function TranscriptUploader({ userId, fetcher }: Props, ref: ForwardedRef<TranscriptUploaderHandle>) {
   const fileInputRef = useRef<HTMLInputElement>(null)
-  const { open: openSubscribeModal } = useSubscribeModal()
 
   useRunAfterSubmission(fetcher, () => posthog.capture('transcript_finish'))
 
@@ -104,7 +102,6 @@ function TranscriptUploader({ userId, fetcher }: Props, ref: ForwardedRef<Transc
         type: 'error',
         error: `File size is too large. Please upload a file smaller than ${Math.floor(limit / 1_000_000_000)} GB.`,
       })
-      if (!userId) openSubscribeModal('signup', 'fileUploadlimit_exceeded')
       posthog.capture('transcript_fail', { reason: 'too_large', file_name: file.name })
       return
     }

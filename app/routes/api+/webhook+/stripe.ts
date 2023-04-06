@@ -101,7 +101,7 @@ export async function action({ request }: ActionArgs) {
 
         const user = await db.user.findUnique({
           where: {
-            stripeCustomerId,
+            customerId: stripeCustomerId,
           },
           select: {
             email: true,

@@ -1,7 +1,7 @@
 import { Fragment, useEffect, useRef, useState } from 'react'
+import { ArrowRightIcon } from '@heroicons/react/20/solid'
 import type { ActionArgs, HeadersFunction } from '@remix-run/node'
 import { Link, useFetcher } from '@remix-run/react'
-import twitterLogo from 'public/twitter_logo_white.svg'
 import type { HTMLAttributes, ReactNode } from 'react'
 import { parseFormAny } from 'react-zorm'
 import type { ExternalScriptsFunction } from 'remix-utils'
@@ -15,7 +15,6 @@ import { TweetCard } from '~/components/TweetCard'
 import { db } from '~/database'
 import { APP_ROUTES, UPSELL_FEATURES } from '~/lib/constants'
 import { NODE_ENV } from '~/lib/env'
-import { useIsSubmitting } from '~/lib/hooks'
 import { response } from '~/lib/http.server'
 import { parseData, tw } from '~/lib/utils'
 import type { GeneratedTweet } from '~/services/openai'
@@ -25,7 +24,7 @@ import { createTranscript } from '../_app+/home/actions'
 import { CreateTranscriptSchema } from '../_app+/home/schemas'
 
 import birdfeedIcon from '~/assets/birdfeed-icon.png'
-import tweets from 'test/fixtures/generatedTweets.json'
+import animalsHooray from 'public/animals_hooray.png'
 
 const scripts: ExternalScriptsFunction = () =>
   // NOTE rendering this in dev causes hydration mismatch issues, luckily it's only cosmetic & we don't need it in dev
@@ -104,12 +103,9 @@ export default function Home() {
               <Link to={APP_ROUTES.LOGIN.href} className="btn-ghost btn-xs btn md:btn-md">
                 Login
               </Link>
-              <button
-                onClick={() => openSubscribeModal('signup', 'getStartedFree_mainButton')}
-                className="btn-outline btn-primary btn-xs btn md:btn-md"
-              >
+              <Link to={APP_ROUTES.JOIN(1).href} className="btn-outline btn-primary btn-xs btn md:btn-md">
                 Get Started Free
-              </button>
+              </Link>
             </>
           )}
         </div>
@@ -156,12 +152,12 @@ export default function Home() {
               ))}
             </ul>
 
-            <button
-              onClick={() => openSubscribeModal('signup', 'getStartedFree_contentCardButton')}
+            <Link
+              to={APP_ROUTES.JOIN(1).href}
               className="btn-primary btn-md btn my-5 w-fit self-center text-lg font-bold normal-case"
             >
               Get Started Free
-            </button>
+            </Link>
           </ContentCardWrapper>
           <ContentCardWrapper
             className="order-first lg:order-none"
@@ -179,13 +175,12 @@ export default function Home() {
             </p>
           </ContentCardWrapper>
         </div>
-        <TweetGrid isDemo={false} tweets={tweets} />
-        {/* {fetcher.data &&
+        {fetcher.data &&
           (fetcher.data?.error ? (
             fetcher.data.error.message
           ) : (
             <TweetGrid isDemo={fetcher.data.isDemo} tweets={fetcher.data.tweets} />
-          ))} */}
+          ))}
       </main>
       <PublicFooter />
     </div>
@@ -193,9 +188,6 @@ export default function Home() {
 }
 
 function TweetGrid({ tweets, isDemo }: { tweets: GeneratedTweet[]; isDemo: boolean }) {
-  const { open } = useSubscribeModal()
-  const openSignupModal = () => open('signup', 'tweetGrid_subtitle')
-
   const [left, right] = tweets.reduce<[GeneratedTweet[], GeneratedTweet[]]>(
     (acc, tweet, i) => {
       if (i % 2 === 1) acc[0].push(tweet)
@@ -220,42 +212,34 @@ function TweetGrid({ tweets, isDemo }: { tweets: GeneratedTweet[]; isDemo: boole
     </>
   ) : (
     <>
-      For the full length of your content,{' '}
-      <button type="button" className="link-hover link-primary link" onClick={openSignupModal}>
+      For tweets from the full-length podcast,{' '}
+      <Link to={APP_ROUTES.JOIN(1).href} className="link-hover link-primary link">
         try pro free
-      </button>
+      </Link>
       !
     </>
   )
 
-  const ConnectTwitter = useFetcher()
-  const isDispatchConnectTwitter = useIsSubmitting(ConnectTwitter)
-
   return (
     <>
-      <div className="mt-16 mb-12 text-center">
-        <h3 ref={(el) => el?.scrollIntoView({ behavior: 'smooth' })} className="text-5xl font-bold">
-          {isDemo ? `Your Tweets` : `First 15 Minute's Tweets`}
-        </h3>
+      <div ref={(el) => el?.scrollIntoView({ behavior: 'smooth' })} className="mt-10 mb-12 text-center">
+        <div className="mx-auto w-7/12">
+          <img src={animalsHooray} alt="greeting animals" className="-ml-2 mb-6 w-fit " />
+        </div>
+        <h3 className="text-5xl font-bold">{isDemo ? `Your Tweets` : `Tweets From First 15 Minutes`}</h3>
 
         <p className="mx-auto mt-6 max-w-screen-md text-center text-2xl text-gray-600">{subtitle}</p>
       </div>
 
       <div className="relative mx-auto grid max-w-screen-md gap-4 overflow-y-clip md:grid-cols-2">
-        <ConnectTwitter.Form
-          action="/api/connect-twitter"
-          method="post"
-          className="absolute top-2/3 right-1/2 z-10 translate-x-1/2"
-        >
-          <button
-            type="submit"
-            disabled={isDispatchConnectTwitter}
-            className="btn-primary btn-info btn-lg btn pointer-events-auto  px-6 text-white shadow-xl"
+        <div className="absolute top-3/4 right-1/2 z-10 translate-x-1/2">
+          <Link
+            to={APP_ROUTES.JOIN(1).href}
+            className="btn-secondary btn-lg btn pointer-events-auto px-6 font-bold shadow-xl"
           >
-            <img src={twitterLogo} alt="twitter logo" className="mr-2 h-5 w-5" />
-            Add twitter to see the rest
-          </button>
-        </ConnectTwitter.Form>
+            Get Started to see the rest! <ArrowRightIcon className="ml-2 w-6" />
+          </Link>
+        </div>
         <TweetColumn hasAd tweets={left} />
         <TweetColumn tweets={right} />
       </div>
@@ -264,20 +248,17 @@ function TweetGrid({ tweets, isDemo }: { tweets: GeneratedTweet[]; isDemo: boole
 }
 
 function TweetColumn({ tweets, hasAd }: { tweets: GeneratedTweet[]; hasAd?: boolean }) {
-  const { open } = useSubscribeModal()
-  const openSignupModal = () => open('signup', 'tweetGrid_ad')
-
   return (
     <div className="grid h-fit gap-4">
       {tweets.map((tweet, ix) => (
         <Fragment key={tweet.id}>
-          <TweetCard isPublic isBlurred={ix > 1} tweet={tweet} />
+          <TweetCard isPublic isBlurred={ix > 2} tweet={tweet} />
           {hasAd && ix === Math.floor((tweets.length * 2) / 4) - 1 && (
             <div className="flex h-20 w-full flex-col items-center justify-center rounded-lg bg-base-300 text-center shadow-inner">
               <h3 className="text-lg font-bold">More, better tweets</h3>
-              <button className="link-info link no-underline" onClick={openSignupModal}>
+              <Link to={APP_ROUTES.JOIN(1).href} className="link-info link no-underline">
                 Sign up here!
-              </button>
+              </Link>
             </div>
           )}
         </Fragment>

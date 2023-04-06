@@ -34,7 +34,7 @@ export async function loader({ request }: LoaderArgs) {
 
   await db.user.update({
     where: { id: userId },
-    data: { stripeSubscriptionId },
+    data: { subscriptionId: stripeSubscriptionId },
   })
 
   await db.token.delete({ where: { id: token.id } })
