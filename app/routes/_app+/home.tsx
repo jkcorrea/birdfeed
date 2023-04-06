@@ -18,55 +18,6 @@ import { createTranscript, CreateTranscriptSchema } from '~/services/transcripti
 
 dayjs.extend(relativeTime)
 
-export default function HomePage() {
-  const { transcriptId } = useParams()
-  const data = useLoaderData<typeof loader>()
-  const fetcher = useFetcher()
-  const outlet = useOutlet()
-
-  const [activeTab, setActiveTab] = useState<'transcripts' | 'upload'>('upload')
-
-  return (
-    <div className="gap-4 overflow-x-auto md:overflow-hidden lg:gap-8">
-      <div className="tabs block md:hidden">
-        <button
-          type="button"
-          onClick={() => setActiveTab('upload')}
-          className={tw('tab text-lg font-bold', activeTab === 'upload' && 'tab-active')}
-        >
-          Upload
-        </button>
-        <button
-          type="button"
-          onClick={() => setActiveTab('transcripts')}
-          className={tw('tab text-lg font-bold', activeTab === 'transcripts' && 'tab-active')}
-        >
-          Transcripts
-        </button>
-      </div>
-
-      <div className="mb-20 flex max-h-96 gap-4 overflow-y-hidden">
-        <div className="max-w-md grow rounded-lg bg-base-300 p-4 shadow-inner">
-          <h2 className="mb-2 text-xl font-bold">Transcripts</h2>
-          <Suspense fallback={<TranscriptsLoading />}>
-            <Await resolve={data.transcripts} errorElement={<Error />}>
-              {(transcripts) => <TranscriptHistory transcripts={transcripts} activeTranscriptId={transcriptId} />}
-            </Await>
-          </Suspense>
-        </div>
-
-        <TranscriptUploader userId={data.userId} fetcher={fetcher} />
-      </div>
-
-      {outlet ?? (
-        <div className="mx-auto mt-20 flex h-full w-full justify-center">
-          <h2 className="text-3xl font-bold text-base-content/40">Select or upload a transcript to see tweets</h2>
-        </div>
-      )}
-    </div>
-  )
-}
-
 export async function loader({ request }: LoaderArgs) {
   const authSession = await requireAuthSession(request)
   const { userId } = authSession
@@ -98,6 +49,61 @@ export async function action({ request }: ActionArgs) {
 
   return response.ok({}, { authSession })
 }
+
+export default function HomePage() {
+  const { transcriptId } = useParams()
+  const data = useLoaderData<typeof loader>()
+  const fetcher = useFetcher()
+  const outlet = useOutlet()
+
+  const [activeTab, setActiveTab] = useState<'transcripts' | 'upload'>('upload')
+
+  return (
+    <div className="gap-4 lg:gap-8">
+      <div className="tabs block md:hidden">
+        <button
+          type="button"
+          onClick={() => setActiveTab('upload')}
+          className={tw('tab text-lg font-bold', activeTab === 'upload' && 'tab-active')}
+        >
+          Upload
+        </button>
+        <button
+          type="button"
+          onClick={() => setActiveTab('transcripts')}
+          className={tw('tab text-lg font-bold', activeTab === 'transcripts' && 'tab-active')}
+        >
+          Transcripts
+        </button>
+      </div>
+
+      <div className="mb-20 flex max-h-96 gap-4">
+        <div
+          className={tw(
+            'relative max-w-md grow overflow-hidden rounded-lg bg-base-300 p-4 shadow-inner',
+            activeTab !== 'transcripts' && 'hidden md:block'
+          )}
+        >
+          <h2 className="mb-2 hidden text-xl font-bold md:block">Transcripts</h2>
+          <Suspense fallback={<TranscriptsLoading />}>
+            <Await resolve={data.transcripts} errorElement={<Error />}>
+              {(transcripts) => <TranscriptHistory transcripts={transcripts} activeTranscriptId={transcriptId} />}
+            </Await>
+          </Suspense>
+        </div>
+
+        <TranscriptUploader
+          userId={data.userId}
+          fetcher={fetcher}
+          className={tw(activeTab !== 'upload' && 'hidden md:block')}
+        />
+      </div>
+
+      {outlet ?? <Empty />}
+    </div>
+  )
+}
+
 const MotionLink = motion(Link)
 
 type RecentTranscript = SerializeFrom<Pick<Transcript, 'id' | 'createdAt' | 'name' | 'neverGenerated'>>
@@ -108,7 +114,7 @@ interface Props {
 }
 
 const TranscriptHistory = ({ transcripts, activeTranscriptId }: Props) => (
-  <motion.ul layoutScroll className="h-full space-y-4 overflow-y-auto pb-8">
+  <motion.ul layoutScroll className="h-[calc(100%-2em)] space-y-2 overflow-y-auto">
     {transcripts.map((t) => {
       const isActive = t.id === activeTranscriptId
       const item = (
@@ -131,7 +137,7 @@ const TranscriptHistory = ({ transcripts, activeTranscriptId }: Props) => (
                   )}
                 </h3>
               </span>
-              <p className="text-sm font-light italic text-gray-600">{dayjs(t.createdAt).fromNow()}</p>
+              <p className="text-sm font-light italic text-gray-600">Uploaded {dayjs(t.createdAt).fromNow()}</p>
             </div>
           </motion.div>
         </li>
@@ -164,5 +170,10 @@ const TranscriptsLoading = () => (
 const Error = () => (
   <div className="mx-auto flex h-20 w-full max-w-md items-center justify-center rounded-lg bg-base-300 p-4 shadow-inner">
     <h2 className="text-2xl font-bold">Couldn't get data. Try reloading?</h2>
+  </div>
+)
+const Empty = () => (
+  <div className="mx-auto mt-20 flex h-full w-full justify-center">
+    <h2 className="text-center text-3xl font-bold text-base-content/40">Select or upload a transcript to see tweets</h2>
   </div>
 )

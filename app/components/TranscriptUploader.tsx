@@ -63,9 +63,10 @@ function uploadStateReducer(state: UploadState, action: UploadAction): UploadSta
 interface Props {
   userId?: string | null
   fetcher: FetcherWithComponents<any>
+  className?: string
 }
 
-function TranscriptUploader({ userId, fetcher }: Props, ref: ForwardedRef<TranscriptUploaderHandle>) {
+function TranscriptUploader({ userId, fetcher, className }: Props, ref: ForwardedRef<TranscriptUploaderHandle>) {
   const fileInputRef = useRef<HTMLInputElement>(null)
 
   useRunAfterSubmission(fetcher, () => posthog.capture('transcript_finish'))
@@ -155,6 +156,7 @@ function TranscriptUploader({ userId, fetcher }: Props, ref: ForwardedRef<Transc
       key={fetcher.state}
       className={tw(
         'grow rounded-lg bg-base-300 shadow-inner transition',
+        className,
         uploadState.status === 'generating' && 'hover:bg-[rgb(226,221,218)]'
       )}
     >

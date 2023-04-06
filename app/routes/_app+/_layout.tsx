@@ -92,9 +92,12 @@ function Navbar() {
 
   return (
     <div>
-      <nav className="flex h-9 items-center justify-between p-10" aria-label="Global">
+      <nav className="mx-auto flex h-9 max-w-screen-xl items-center justify-between p-10" aria-label="Global">
         <div className="flex items-center space-x-2 lg:min-w-0 lg:flex-1" aria-label="Global">
-          <Link to="/" className="-m-1.5 flex items-center whitespace-nowrap p-1.5 text-2xl font-black">
+          <Link
+            to={APP_ROUTES.HOME.href}
+            className="-m-1.5 flex items-center whitespace-nowrap p-1.5 text-2xl font-black"
+          >
             <img src={birdfeedIcon} alt="Birdfeed AI" className="inline h-10 w-10" /> Birdfeed
           </Link>
         </div>
@@ -142,7 +145,10 @@ function Navbar() {
         <Dialog.Panel className="fixed inset-0 z-10 overflow-y-auto bg-white p-6 lg:hidden">
           <div className="flex h-9 items-center justify-between">
             <div className="flex">
-              <Link to="/" className="-m-1.5 p-1.5 text-2xl font-semibold text-gray-900 hover:text-gray-900">
+              <Link
+                to={APP_ROUTES.HOME.href}
+                className="-m-1.5 p-1.5 text-2xl font-semibold text-gray-900 hover:text-gray-900"
+              >
                 Birdfeed
               </Link>
             </div>
