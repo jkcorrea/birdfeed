@@ -17,22 +17,21 @@ import { convertToAudio } from '~/lib/ffmpeg'
 import { useIsSubmitting, useMockProgress, useRunAfterSubmission } from '~/lib/hooks'
 import { tw } from '~/lib/utils'
 import { uploadFile } from '~/services/storage'
-
-import type { CreateTranscriptSchema } from '../routes/_app+/home/schemas'
+import type { CreateTranscriptSchema } from '~/services/transcription'
 
 export interface TranscriptUploaderHandle {
   handleFileUpload: (file: File, isDemo?: boolean) => Promise<void>
 }
 
 interface UploadState {
-  status: 'idle' | 'transcoding' | 'uploading' | 'generating' | 'error'
+  status: 'idle' | 'error' | 'uploading' | 'generating'
   error?: string
   progress: number
 }
 
 type UploadAction =
   | {
-      type: 'transcoding' | 'uploading' | 'generating' | 'reset'
+      type: 'uploading' | 'generating' | 'reset'
     }
   | {
       type: 'error'
@@ -40,20 +39,20 @@ type UploadAction =
     }
   | { type: 'progress'; progress: number }
 
-const initialUploadState: UploadState = { status: 'idle', progress: 1 }
+const initialUploadState: UploadState = {
+  status: 'idle',
+  progress: 0,
+}
 
 function uploadStateReducer(state: UploadState, action: UploadAction): UploadState {
   switch (action.type) {
-    case 'transcoding':
-      return { ...state, status: 'transcoding', progress: 0 }
     case 'uploading':
-      return { ...state, status: 'uploading', progress: 0 }
     case 'generating':
-      return { ...state, status: 'generating', progress: 0 }
+      return { ...state, status: action.type, progress: 0 }
     case 'error':
-      return { ...state, status: 'error', error: action.error, progress: 1 }
+      return { ...state, status: 'error', error: action.error }
     case 'reset':
-      return { ...state, status: 'idle', progress: 1 }
+      return { ...state, status: 'idle', progress: initialUploadState.progress }
     case 'progress':
       return { ...state, progress: action.progress }
     default:
@@ -73,7 +72,7 @@ function TranscriptUploader({ userId, fetcher }: Props, ref: ForwardedRef<Transc
 
   const [uploadState, dispatch] = useReducer(uploadStateReducer, initialUploadState)
 
-  // We have no idea how long the generation step will take, so just mock it
+  // We have no idea how long the transcribing or generating steps will take, so just mock them
   const isGenerating = useIsSubmitting(fetcher)
   const { start: startGeneratingProgress, finish: finishGeneratingProgress } = useMockProgress(4000, (progress) =>
     dispatch({ type: 'progress', progress })
@@ -107,11 +106,12 @@ function TranscriptUploader({ userId, fetcher }: Props, ref: ForwardedRef<Transc
     }
 
     try {
+      // PROCESS & UPLOAD BLOB
+      dispatch({ type: 'uploading' })
       // Use ffmpeg to convert the file to a wav & chomp it to 15min (if no userId)
       let processedFile = file
       if (file.type.startsWith('video/') || file.type.startsWith('audio/')) {
         try {
-          dispatch({ type: 'transcoding' })
           processedFile = await convertToAudio(file, Boolean(userId), (progress) =>
             dispatch({ type: 'progress', progress })
           )
@@ -123,18 +123,15 @@ function TranscriptUploader({ userId, fetcher }: Props, ref: ForwardedRef<Transc
           })
         }
       }
-
-      dispatch({ type: 'uploading' })
       const pathInBucket = await uploadFile(processedFile, userId, (progress) =>
         dispatch({ type: 'progress', progress })
       )
 
-      // now we can create the transcript in our db
+      // CREATE TRANSCRIPT & GENERATE TWEETS
       dispatch({ type: 'generating' })
       startGeneratingProgress()
       fetcher.submit(
         {
-          intent: 'create-transcript',
           name: processedFile.name,
           mimetype: processedFile.type,
           pathInBucket,
@@ -157,7 +154,7 @@ function TranscriptUploader({ userId, fetcher }: Props, ref: ForwardedRef<Transc
     <div
       key={fetcher.state}
       className={tw(
-        'rounded-lg bg-base-300 shadow-inner transition',
+        'grow rounded-lg bg-base-300 shadow-inner transition',
         uploadState.status === 'generating' && 'hover:bg-[rgb(226,221,218)]'
       )}
     >
@@ -192,7 +189,7 @@ function TranscriptUploader({ userId, fetcher }: Props, ref: ForwardedRef<Transc
                 className="hidden"
                 onChange={({ currentTarget: { files } }) => files?.[0] && handleFileUpload(files[0])}
               />
-              <div className="rounded-lg border-2 border-dashed border-neutral p-6">
+              <div className="flex h-full items-center justify-center rounded-lg border-2 border-dashed border-neutral p-6">
                 <div className="flex flex-col justify-center">
                   {uploadState.error ? (
                     <>

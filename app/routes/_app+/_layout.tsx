@@ -9,6 +9,7 @@ import { toast } from 'react-hot-toast'
 
 import { useSubscribeModal } from '~/components/SubscribeModal'
 import { APP_ROUTES, NAV_ROUTES } from '~/lib/constants'
+import { NODE_ENV } from '~/lib/env'
 import { useIsSubmitting } from '~/lib/hooks'
 import { response } from '~/lib/http.server'
 import { celebrate, tw } from '~/lib/utils'
@@ -47,8 +48,10 @@ export default function AppLayout() {
   const { email, status } = useLoaderData<typeof loader>()
 
   useEffect(() => {
-    posthog.capture('$pageview')
-    posthog.identify(email)
+    if (NODE_ENV === 'production') {
+      posthog.capture('$pageview')
+      posthog.identify(email)
+    }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [location.key])
 
@@ -76,7 +79,7 @@ export default function AppLayout() {
     <>
       <Navbar key={location.key} />
 
-      <main className="mx-auto min-h-[500px] w-full min-w-[300px] max-w-screen-2xl grow py-4 px-8 md:px-4 lg:mt-5 2xl:px-0">
+      <main className="container mx-auto min-h-[500px] w-full min-w-[300px] grow py-4 px-8 md:px-4 lg:mt-5 2xl:px-0">
         <Outlet />
       </main>
     </>
@@ -108,7 +111,8 @@ function Navbar() {
         </div>
 
         <div className="hidden lg:flex lg:min-w-0 lg:flex-1 lg:justify-center lg:gap-x-12">
-          {NAV_ROUTES.map(({ title, href }) => (
+          {/* NOTE - hiding ideas route for now. if we ever wanna try out ideas again, toggle this with a feature flag */}
+          {/* {NAV_ROUTES.map(({ title, href }) => (
             <NavLink
               prefetch="intent"
               key={title}
@@ -119,7 +123,7 @@ function Navbar() {
             >
               {title}
             </NavLink>
-          ))}
+          ))} */}
         </div>
 
         <div className="hidden lg:flex lg:min-w-0 lg:flex-1 lg:items-center lg:justify-end lg:space-x-4">

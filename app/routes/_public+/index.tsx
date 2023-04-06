@@ -10,7 +10,7 @@ import { AnimatedWord } from '~/components/AnimatedWord'
 import { PublicFooter } from '~/components/PublicFooter'
 import type { TranscriptUploaderHandle } from '~/components/TranscriptUploader'
 import TranscriptUploader from '~/components/TranscriptUploader'
-import { TweetCard } from '~/components/TweetCard'
+import { TweetGrid } from '~/components/TweetGrid'
 import { db } from '~/database'
 import { APP_ROUTES, UPSELL_FEATURES } from '~/lib/constants'
 import { NODE_ENV } from '~/lib/env'
@@ -18,9 +18,7 @@ import { response } from '~/lib/http.server'
 import { parseData, tw } from '~/lib/utils'
 import type { GeneratedTweet } from '~/services/openai'
 import { generateTweetsFromContent } from '~/services/openai'
-
-import { createTranscript } from '../_app+/home/actions'
-import { CreateTranscriptSchema } from '../_app+/home/schemas'
+import { createTranscript, CreateTranscriptSchema } from '~/services/transcription'
 
 import birdfeedIcon from '~/assets/birdfeed-icon.png'
 import animalsHooray from 'public/animals_hooray.png'
@@ -177,7 +175,7 @@ export default function Home() {
           (fetcher.data?.error ? (
             fetcher.data.error.message
           ) : (
-            <TweetGrid isDemo={fetcher.data.isDemo} tweets={fetcher.data.tweets} />
+            <TweetGridWrapper isDemo={fetcher.data.isDemo} tweets={fetcher.data.tweets} />
           ))}
       </main>
       <PublicFooter />
@@ -185,16 +183,7 @@ export default function Home() {
   )
 }
 
-function TweetGrid({ tweets, isDemo }: { tweets: GeneratedTweet[]; isDemo: boolean }) {
-  const [left, right] = tweets.reduce<[GeneratedTweet[], GeneratedTweet[]]>(
-    (acc, tweet, i) => {
-      if (i % 2 === 1) acc[0].push(tweet)
-      else acc[1].push(tweet)
-      return acc
-    },
-    [[], []]
-  )
-
+function TweetGridWrapper({ tweets, isDemo }: { tweets: GeneratedTweet[]; isDemo: boolean }) {
   const subtitle = isDemo ? (
     <>
       The following tweets were generated from{' '}
@@ -238,30 +227,10 @@ function TweetGrid({ tweets, isDemo }: { tweets: GeneratedTweet[]; isDemo: boole
             Get Started to see the rest! <ArrowRightIcon className="ml-2 w-6" />
           </Link>
         </div>
-        <TweetColumn hasAd tweets={left} />
-        <TweetColumn tweets={right} />
+
+        <TweetGrid isPublic tweets={tweets} />
       </div>
     </>
-  )
-}
-
-function TweetColumn({ tweets, hasAd }: { tweets: GeneratedTweet[]; hasAd?: boolean }) {
-  return (
-    <div className="grid h-fit gap-4">
-      {tweets.map((tweet, ix) => (
-        <Fragment key={tweet.id}>
-          <TweetCard isPublic isBlurred={ix > 1} tweet={tweet} />
-          {hasAd && ix === Math.floor((tweets.length * 2) / 4) - 1 && (
-            <div className="flex h-20 w-full flex-col items-center justify-center rounded-lg bg-base-300 text-center shadow-inner">
-              <h3 className="text-lg font-bold">More, better tweets</h3>
-              <Link to={APP_ROUTES.JOIN(1).href} className="link-info link no-underline">
-                Sign up here!
-              </Link>
-            </div>
-          )}
-        </Fragment>
-      ))}
-    </div>
   )
 }
 

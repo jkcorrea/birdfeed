@@ -7,17 +7,19 @@ interface Props {
   body: string
   tweetId: string
   isAuthed?: boolean
-  isDisabled?: boolean
 }
 
-const SendTweetButton = ({ body, tweetId, isAuthed, isDisabled }: Props) => (
+// TODO delete tweet after sending off
+// TODO track in db with a 5-star rating
+
+const SendTweetButton = ({ body, tweetId, isAuthed }: Props) => (
   <div
     className={tw(
-      isDisabled && 'cursor-not-allowed',
+      !isAuthed && 'cursor-not-allowed',
       'btn-primary btn-info btn-sm btn pointer-events-auto gap-2 lowercase text-white'
     )}
     onClick={(e) => {
-      if (isDisabled) return
+      if (!isAuthed) return
       e.preventDefault()
       posthog.capture('tweet_send', { tweetId: tweetId })
       window.open(buildSendTweetUrl(body, !isAuthed), '_blank', 'noopener,noreferrer')
