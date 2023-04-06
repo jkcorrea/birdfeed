@@ -79,7 +79,7 @@ export default function AppLayout() {
     <>
       <Navbar key={location.key} />
 
-      <main className="container mx-auto min-h-[500px] w-full min-w-[300px] grow py-4 px-8 md:px-4 lg:mt-5 2xl:px-0">
+      <main className="container mx-auto min-h-[500px] w-full min-w-[300px] max-w-screen-lg grow py-4 px-8 md:px-4 lg:mt-5 2xl:px-0">
         <Outlet />
       </main>
     </>

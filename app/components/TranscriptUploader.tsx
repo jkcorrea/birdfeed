@@ -169,8 +169,8 @@ function TranscriptUploader({ userId, fetcher }: Props, ref: ForwardedRef<Transc
         >
           {uploadState.status !== 'error' && uploadState.status !== 'idle' ? (
             <div className="h-full w-full p-3 text-center text-2xl font-black opacity-60">
-              <div className="rounded-lg border-2 border-dashed border-neutral p-6">
-                <div className="flex flex-col justify-center">
+              <div className="h-full rounded-lg border-2 border-dashed border-neutral p-6">
+                <div className="flex h-full flex-col justify-center">
                   <CloudArrowUpIcon className="h-14 w-full" />
                   <span>{capitalCase(uploadState.status)}</span>
                   <span className="mb-4 text-base">tweets incoming! just give us a sec...</span>

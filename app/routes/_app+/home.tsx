@@ -45,8 +45,8 @@ export default function HomePage() {
         </button>
       </div>
 
-      <div className="mb-10 flex max-h-96 gap-4 overflow-y-hidden md:gap-8">
-        <div className="max-w-sm grow rounded-lg bg-base-300 p-4 shadow-inner">
+      <div className="mb-20 flex max-h-96 gap-4 overflow-y-hidden">
+        <div className="max-w-md grow rounded-lg bg-base-300 p-4 shadow-inner">
           <h2 className="mb-2 text-xl font-bold">Transcripts</h2>
           <Suspense fallback={<TranscriptsLoading />}>
             <Await resolve={data.transcripts} errorElement={<Error />}>
