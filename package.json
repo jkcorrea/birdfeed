@@ -54,10 +54,12 @@
     "gpt-3-encoder": "^1.1.4",
     "gpt3-tokenizer": "^1.1.5",
     "huggingface": "^1.4.0",
+    "immer": "^9.0.21",
     "isbinaryfile": "^5.0.0",
     "isbot": "^3.6.7",
     "js-confetti": "^0.11.0",
     "langchain": "^0.0.36",
+    "localforage": "^1.10.0",
     "lodash-es": "^4.17.21",
     "oauth": "^0.10.0",
     "oauth-1.0a": "^2.2.6",
@@ -77,7 +79,8 @@
     "stripe": "^11.14.0",
     "tailwind-merge": "^1.10.0",
     "zod": "^3.21.4",
-    "zodix": "^0.4.0"
+    "zodix": "^0.4.0",
+    "zustand": "^4.3.7"
   },
   "devDependencies": {
     "@ngneat/falso": "^6.4.0",

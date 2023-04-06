@@ -22,6 +22,9 @@ export const buildSendTweetUrl = (tweet: string, watermark = false) =>
     tweet + (watermark ? '\n\n🐣 via https://birdfeed.ai' : '')
   )}`
 
+export const buildSendHypefuryUrl = (tweet: string) =>
+  `https://app.hypefury.com/create?content=${encodeURIComponent(tweet)}`
+
 export const sendSlackEventMessage = (message: string) => {
   if (NODE_ENV !== 'production' || !SLACK_EVENTS_URL) return
   fetch(SLACK_EVENTS_URL, {

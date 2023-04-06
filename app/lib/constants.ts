@@ -55,3 +55,9 @@ export const UPLOAD_LIMIT_FREE_DURATION = 15 * 60 // 15 minutes
 export const UPLOAD_LIMIT_PRO_DURATION = 5 * 60 * 60 // 5 hours
 
 export const TWITTER_OAUTH_DENIED_KEY = 'twitter_oauth_denied'
+
+export enum TweetOutlet {
+  CLIPBOARD = 'copy',
+  TWITTER = 'twitter',
+  HYPEFURY = 'hypefury',
+}

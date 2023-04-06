@@ -10,7 +10,7 @@ import { DeleteTweetSchema } from '~/routes/_app+/home.$transcriptId/schemas'
 import type { GeneratedTweet } from '~/services/openai'
 
 import IntentField from '../fields/IntentField'
-import SendTweetButton from './SendTweetButton'
+import { SendTweetButton } from './SendTweetButton'
 
 const btnClassName =
   'btn-ghost pointer-events-auto tooltip tooltip-right btn-xs btn-circle btn flex items-center justify-center'
