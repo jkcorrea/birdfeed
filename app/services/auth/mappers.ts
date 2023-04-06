@@ -1,4 +1,3 @@
-import { db } from '~/database'
 import { AppError } from '~/lib/utils'
 import type { SupabaseAuthSession } from '~/services/supabase'
 
@@ -15,18 +14,11 @@ export async function mapAuthSession(supabaseAuthSession: SupabaseAuthSession): 
     })
   }
 
-  const user = await db.user.findUnique({
-    where: { id: supabaseAuthSession.user.id },
-    select: { twitterOAuthToken: true, twitterOAuthTokenSecret: true },
-  })
-
   return {
     accessToken: supabaseAuthSession.access_token,
     refreshToken: supabaseAuthSession.refresh_token,
     userId: supabaseAuthSession.user.id,
     email: supabaseAuthSession.user.email,
-    twitterOAuthToken: user?.twitterOAuthToken ?? null,
-    twitterOAuthTokenSecret: user?.twitterOAuthTokenSecret ?? null,
     expiresIn: supabaseAuthSession.expires_in ?? -1,
     expiresAt: supabaseAuthSession.expires_at ?? -1,
   }

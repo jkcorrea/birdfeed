@@ -60,12 +60,16 @@ enable_confirmations = false
 
 # Use an external OAuth provider. The full list of providers are: `apple`, `azure`, `bitbucket`,
 # `discord`, `facebook`, `github`, `gitlab`, `google`, `twitch`, `twitter`, `slack`, `spotify`.
-[auth.external.apple]
-enabled = false
-client_id = ""
-secret = ""
+#  see if anything has changed in the on supabase side
+# https://github.com/supabase/gotrue/issues/105
+# https://github.com/orgs/supabase/discussions/2270
+# [auth.external.twitter]
+# enabled = true
+# client_id = ""
+# secret = ""
 # Overrides the default auth redirectUrl.
-redirect_uri = ""
+# redirect_uri = ""
 # Overrides the default auth provider URL. Used to support self-hosted gitlab, single-tenant Azure,
 # or any other third-party OIDC providers.
-url = ""
+# url = ""
+

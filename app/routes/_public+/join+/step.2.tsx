@@ -1,6 +1,6 @@
 import { useEffect } from 'react'
 import type { ActionArgs, LoaderArgs } from '@remix-run/node'
-import { Form, Link, useActionData, useNavigation, useSearchParams } from '@remix-run/react'
+import { Form, Link, useActionData, useLoaderData, useNavigation, useSearchParams } from '@remix-run/react'
 import { parseFormAny, useZorm } from 'react-zorm'
 import { z } from 'zod'
 
@@ -12,7 +12,6 @@ import { useIsSubmitting } from '~/lib/hooks'
 import { response } from '~/lib/http.server'
 import { AppError, celebrate, getGuardedToken, parseData, sendSlackEventMessage } from '~/lib/utils'
 import { createAuthSession, isAnonymousSession } from '~/services/auth'
-import { CheckoutTokenMeta } from '~/services/billing'
 import { createUserAccount, getUserByEmail } from '~/services/user'
 
 export async function loader({ request }: LoaderArgs) {
@@ -23,7 +22,29 @@ export async function loader({ request }: LoaderArgs) {
       return response.redirect(APP_ROUTES.HOME.href, { authSession: null })
     }
 
-    return response.ok({}, { authSession: null })
+    const url = new URL(request.url)
+
+    const token = url.searchParams.get('token')
+
+    if (!token) {
+      return response.redirect(APP_ROUTES.JOIN(1).href, { authSession: null })
+    }
+
+    const { metadata } = await getGuardedToken(
+      {
+        token_type: {
+          token,
+          type: TokenType.TWITTER_OAUTH_TOKEN,
+        },
+      },
+      z
+        .object({
+          email: z.string(),
+        })
+        .passthrough()
+    )
+
+    return response.ok({ email: metadata.email || null }, { authSession: null })
   } catch (cause) {
     throw response.error(cause, { authSession: null })
   }
@@ -35,8 +56,23 @@ const JoinFormSchema = z.object({
     .email('invalid-email')
     .transform((email) => email.toLowerCase()),
   password: z.string().min(8, 'password-too-short'),
-  checkoutToken: z.string(),
+  twitterToken: z.string(),
   redirectTo: z.string().optional(),
+})
+
+const TwitterTokenMeta = z.object({
+  twitterOAuthToken: z.string(),
+  twitterOAuthTokenSecret: z.string(),
+  id_str: z.string(),
+  followers_count: z.string(),
+  following: z.string(),
+  favourites_count: z.string(),
+  profile_image_url_https: z.string(),
+  screen_name: z.string(),
+  friends_count: z.string(),
+  email: z.string(),
+  location: z.string(),
+  lang: z.string(),
 })
 
 export async function action({ request }: ActionArgs) {
@@ -50,14 +86,16 @@ export async function action({ request }: ActionArgs) {
     const token = await getGuardedToken(
       {
         token_type: {
-          token: payload.checkoutToken,
-          type: TokenType.ANON_CHECKOUT_TOKEN,
+          token: payload.twitterToken,
+          type: TokenType.TWITTER_OAUTH_TOKEN,
         },
       },
-      CheckoutTokenMeta
+      TwitterTokenMeta
     )
+
     if (!token.active) throw new AppError('token is not active')
-    const { stripeSubscriptionId, stripeCustomerId } = token.metadata
+    if (token.expiresAt! < new Date(Date.now())) throw new AppError('token is expired')
+    const { twitterOAuthToken, twitterOAuthTokenSecret, profile_image_url_https } = token.metadata
     const { email, password, redirectTo } = payload
     const existingUser = await getUserByEmail(email)
 
@@ -71,9 +109,24 @@ export async function action({ request }: ActionArgs) {
 
     const authSession = await createUserAccount({
       email,
-      stripeCustomerId,
-      stripeSubscriptionId,
       password,
+      image: profile_image_url_https === '' ? undefined : profile_image_url_https,
+    })
+
+    const { userId } = authSession
+
+    await db.twitterCredential.create({
+      data: {
+        user: {
+          connect: {
+            id: userId,
+          },
+        },
+        twitterId: token.metadata.id_str,
+        handle: token.metadata.screen_name,
+        token: twitterOAuthToken,
+        secret: twitterOAuthTokenSecret,
+      },
     })
 
     await db.token.delete({
@@ -96,15 +149,16 @@ export async function action({ request }: ActionArgs) {
 
 export default function Join() {
   const zo = useZorm('join', JoinFormSchema)
+  const { email } = useLoaderData<typeof loader>()
   const actionResponse = useActionData<typeof action>()
   const [searchParams] = useSearchParams()
-  const checkoutToken = searchParams.get('token') ?? undefined
+  const twitterToken = searchParams.get('token') ?? undefined
   const redirectTo = searchParams.get('redirectTo') ?? undefined
   const nav = useNavigation()
   const isSubmitting = useIsSubmitting(nav)
 
   useEffect(() => {
-    if (checkoutToken && !actionResponse?.error) {
+    if (twitterToken && !actionResponse?.error) {
       celebrate()
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -112,18 +166,18 @@ export default function Join() {
 
   return (
     <Form ref={zo.ref} method="post" className="space-y-6" replace>
-      <h1 className="text-2xl font-bold">Create your account</h1>
-      <p>Thank you for signing up! Last step, just create an account below & you'll be flying in no time🐥</p>
-
-      {checkoutToken && (
-        <p className="cursor-pointer text-xs text-gray-500" onClick={celebrate}>
+      <div>
+        <h1 className="text-center text-4xl font-black leading-relaxed">Finishing Up Account</h1>
+        <p className="align-right cursor-pointer text-xs text-gray-500" onClick={celebrate}>
           More confetti!
         </p>
-      )}
-      <div className="space-y-2 pb-4">
+      </div>
+
+      <div className="space-y-1.5 pb-4">
         <TextField
           data-test-id="email"
           label="Email"
+          defaultValue={email || undefined}
           error={zo.errors.email()?.message}
           name={zo.fields.email()}
           type="email"
@@ -142,21 +196,34 @@ export default function Join() {
           disabled={isSubmitting}
         />
 
+        {/* <NativeSelectField
+          data-test-id="integration"
+          label="Scheduler"
+          error={zo.errors.cms()?.message}
+          name={zo.fields.cms()}
+          type="password"
+          autoComplete="new-password"
+          disabled={isSubmitting}
+        >
+          <option value="none">None</option>
+          <option value="hypefurry">HypeFurry</option>
+          <option value="assembly">Assembly</option>
+          <option value="other">Other</option>
+        </NativeSelectField> */}
         <input type="hidden" name={zo.fields.redirectTo()} value={redirectTo} />
-        <input type="hidden" name={zo.fields.checkoutToken()} value={checkoutToken} />
+        <input type="hidden" name={zo.fields.twitterToken()} value={twitterToken} />
+        {actionResponse?.error && (
+          <div className="text-error" id="name-error">
+            {actionResponse.error.message}
+          </div>
+        )}
       </div>
 
-      {actionResponse?.error && (
-        <div className="pt-1 text-error" id="name-error">
-          {actionResponse.error.message}
-        </div>
-      )}
-
       <button className="btn-primary btn w-full" disabled={isSubmitting}>
-        {isSubmitting ? '...' : 'Create Account'}
+        {isSubmitting ? '...' : 'Start Creating Content'}
       </button>
 
-      {!checkoutToken && (
+      {!twitterToken && (
         <div className="text-center text-sm text-gray-500">
           Already have an account?{' '}
           <Link

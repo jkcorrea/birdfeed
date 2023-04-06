@@ -9,20 +9,21 @@ import type { User } from './types'
 const tag = 'User service 🧑'
 
 type UserCreatePayload = {
-  stripeCustomerId: string
-  stripeSubscriptionId: string
   password: string
   email: string
+  image?: string
 }
 
 export async function userSubscriptionStatus(id: User['id']) {
   try {
-    const { stripeSubscriptionId } = await db.user.findUniqueOrThrow({
+    const { subscriptionId } = await db.user.findUniqueOrThrow({
       where: { id },
-      select: { stripeSubscriptionId: true },
+      select: { subscriptionId: true },
     })
 
-    const subscription = await stripe.subscriptions.retrieve(stripeSubscriptionId)
+    if (!subscriptionId) return 'never_subscribed'
+
+    const subscription = await stripe.subscriptions.retrieve(subscriptionId)
 
     return subscription.status
   } catch (cause) {
@@ -68,20 +69,19 @@ export async function getUserByEmail(email: User['email']) {
 }
 
 export async function createUserAccount(payload: UserCreatePayload) {
-  const { email, password, stripeCustomerId, stripeSubscriptionId } = payload
+  const { email, password, image } = payload
 
   try {
     const { id: userId } = await createEmailAuthAccount(email, password)
     const authSession = await signInWithEmail(email, password)
-
-    await stripe.customers.update(stripeCustomerId, { email })
+    const { id } = await stripe.customers.create()
 
     await db.user.create({
       data: {
         email,
         id: userId,
-        stripeCustomerId,
-        stripeSubscriptionId,
+        customerId: id,
+        image,
       },
     })
 
@@ -123,9 +123,9 @@ export async function updateUser(
 
 export async function deleteUser(id: User['id']) {
   try {
-    const { stripeCustomerId } = await db.user.findUniqueOrThrow({ where: { id }, select: { stripeCustomerId: true } })
+    const { customerId } = await db.user.findUniqueOrThrow({ where: { id }, select: { customerId: true } })
 
-    await stripe.customers.del(stripeCustomerId)
+    await stripe.customers.del(customerId)
     await deleteAuthAccount(id)
     await db.user.delete({ where: { id } })
 

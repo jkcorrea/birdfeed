@@ -23,16 +23,34 @@ model User {
   updatedAt DateTime @updatedAt
   email     String   @unique
 
-  twitterOAuthToken       String?
-  twitterOAuthTokenSecret String?
+  image String?
 
   transcript Transcript[]
 
-  stripeCustomerId     String @unique // Created by Stripe
-  stripeSubscriptionId String // Created by Stripe
+  
+  twitter   TwitterCredential[]
+
+  customerId     String @unique // Stripe customer id
+  subscriptionId String?
 
   @@map("users")
 }
+
+model TwitterCredential {
+  id        String   @id @default(cuid())
+
+  handle    String
+  twitterId String
+  token     String
+  secret    String
+
+  userId String
+  user   User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([twitterId, userId])
+  @@map("twitter_credentials")
+}
+
 
 model Price {
   stripePriceId   String @id
@@ -79,8 +97,6 @@ model Tweet {
 
   @@map("tweets")
 }
-
-// #region BILLING
 
 enum TokenType {
   ANON_CHECKOUT_TOKEN

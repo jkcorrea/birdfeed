@@ -16,7 +16,7 @@ export const APP_ROUTES = {
     title: `Tweet ${tweetId}`,
   }),
   LOGIN: { title: 'Log In', href: '/login' },
-  JOIN: { title: 'Join', href: '/join' },
+  JOIN: (step: number) => ({ href: `/join/step/${step}`, title: `Join` }),
   LOGOUT: { title: 'Log Out', href: '/logout' },
   FORGOT: { title: 'Forgot Password', href: '/forgot-password' },
 } as const satisfies Record<string, AppRoute | ((...args: any) => AppRoute)>
