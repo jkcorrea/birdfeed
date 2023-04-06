@@ -14,7 +14,6 @@ import { TweetCard } from '~/components/TweetCard'
 import { db } from '~/database'
 import { APP_ROUTES, UPSELL_FEATURES } from '~/lib/constants'
 import { NODE_ENV } from '~/lib/env'
-import { useIsSubmitting } from '~/lib/hooks'
 import { response } from '~/lib/http.server'
 import { parseData, tw } from '~/lib/utils'
 import type { GeneratedTweet } from '~/services/openai'
@@ -174,13 +173,12 @@ export default function Home() {
             </p>
           </ContentCardWrapper>
         </div>
-        <TweetGrid isDemo={false} tweets={tweets} />
-        {/* {fetcher.data &&
+        {fetcher.data &&
           (fetcher.data?.error ? (
             fetcher.data.error.message
           ) : (
             <TweetGrid isDemo={fetcher.data.isDemo} tweets={fetcher.data.tweets} />
-          ))} */}
+          ))}
       </main>
       <PublicFooter />
     </div>
@@ -219,9 +217,6 @@ function TweetGrid({ tweets, isDemo }: { tweets: GeneratedTweet[]; isDemo: boole
       !
     </>
   )
-
-  const ConnectTwitter = useFetcher()
-  const isDispatchConnectTwitter = useIsSubmitting(ConnectTwitter)
 
   return (
     <>

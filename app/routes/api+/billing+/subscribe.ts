@@ -39,10 +39,11 @@ export async function action({ request }: ActionArgs) {
       authSession = await requireAuthSession(request)
       const { userId } = authSession
 
-      ;({ stripeCustomerId } = await db.user.findUniqueOrThrow({
+      const user = await db.user.findUniqueOrThrow({
         where: { id: userId },
         select: { stripeCustomerId: true },
-      }))
+      })
+      stripeCustomerId = user.stripeCustomerId
       tokenType = TokenType.AUTH_CHECKOUT_TOKEN
       baseSuccessUrl = `${SERVER_URL}/api/billing/checkout-success`
     }

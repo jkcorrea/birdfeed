@@ -86,7 +86,6 @@ enum TokenType {
   AUTH_CHECKOUT_TOKEN
   CLIENT_OAUTH_ACCESS_TOKEN
   CLIENT_OAUTH_REQUEST_TOKEN
-  TWITTER_OAUTH_TOKEN
 }
 
 // Tokens require a type.  The schema of the metadata is dependent on the type
