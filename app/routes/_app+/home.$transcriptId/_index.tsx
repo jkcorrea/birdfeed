@@ -36,7 +36,7 @@ export async function loader({ request, params }: LoaderArgs) {
 
   const _tweets = db.tweet.findMany({
     where: { transcript: { userId, id: transcriptId }, archived: false },
-    orderBy: [{ sendAt: 'asc' }, { createdAt: 'desc' }],
+    orderBy: [{ createdAt: 'desc' }],
     take: 100,
   })
   // NOTE: prisma does something funky with promises. Wrap in a native promise
