@@ -183,7 +183,7 @@ function InlineNameForm({
       <input type="hidden" name={zo.fields.transcriptId()} value={transcriptId} />
 
       <div className="mx-2 inline-flex items-center gap-2 border-b border-base-content/80 px-2">
-        <label htmlFor="update-name">
+        <label htmlFor="update-name" className="cursor-pointer">
           <PencilIcon className="h-5 w-5" />
         </label>
         <input
@@ -193,7 +193,9 @@ function InlineNameForm({
           defaultValue={name}
           className="inline bg-transparent focus-visible:outline-none"
           onFocus={(e) => e.target.select()}
-          onBlur={() => fetcher.submit(zo.form!)}
+          onBlur={(e) => {
+            if (e.target.value !== name) fetcher.submit(zo.form!)
+          }}
         />
       </div>
     </fetcher.Form>
