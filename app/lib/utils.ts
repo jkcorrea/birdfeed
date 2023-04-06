@@ -5,6 +5,7 @@ import type { Prisma, Token } from '@prisma/client'
 import { db } from '~/database'
 
 import { CLEANUP_WORDS } from './constants'
+import { NODE_ENV, SLACK_EVENTS_URL } from './env'
 
 export * from './utils/assert-http.server'
 export * from './utils/celebrate'
@@ -44,8 +45,8 @@ export async function getGuardedToken<T = Record<string, any>>(
 }
 
 export const sendSlackEventMessage = (message: string) => {
-  if (process.env.NODE_ENV !== 'production' || !process.env.SLACK_EVENTS_URL) return
-  fetch(process.env.SLACK_EVENTS_URL, {
+  if (NODE_ENV !== 'production' || !SLACK_EVENTS_URL) return
+  fetch(SLACK_EVENTS_URL, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
