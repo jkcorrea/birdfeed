@@ -10,8 +10,9 @@ import { APP_ROUTES } from '~/lib/constants'
 import { useIsSubmitting } from '~/lib/hooks'
 import { response } from '~/lib/http.server'
 import { AppError, assertPost, parseData } from '~/lib/utils'
-import { createAuthSession, refreshAccessToken } from '~/services/auth'
+import { refreshAccessToken } from '~/services/auth'
 import { updateAccountPassword } from '~/services/auth/auth.server'
+import { redirectWithNewAuthSession } from '~/services/auth/session.server'
 import { getSupabase } from '~/services/supabase'
 
 const ResetPasswordSchema = z
@@ -48,7 +49,7 @@ export async function action({ request }: ActionArgs) {
     const user = await updateAccountPassword(authSession.userId, payload.password)
     if (!user) throw new AppError({ message: 'Update password failed', status: 500 })
 
-    return createAuthSession({
+    return redirectWithNewAuthSession({
       request,
       authSession,
       redirectTo: APP_ROUTES.HOME.href,

@@ -5,8 +5,9 @@ import { TokenType } from '@prisma/client'
 import { db } from '~/database'
 import { STRIPE_ENDPOINT_SECRET } from '~/lib/env'
 import { response } from '~/lib/http.server'
-import { AppError, getGuardedToken, parseData, sendSlackEventMessage } from '~/lib/utils'
+import { AppError, parseData, sendSlackEventMessage } from '~/lib/utils'
 import { stripe } from '~/services/billing'
+import { getGuardedToken } from '~/services/token'
 
 const tag = 'Stripe webhook 🎣'
 

@@ -1,7 +1,6 @@
-import _ from 'lodash'
-import type { ZodSchema } from 'zod'
+import { createId } from '@paralleldrive/cuid2'
 
-import type { Prisma, Token } from '@prisma/client'
+import { TokenType } from '@prisma/client'
 import { db } from '~/database'
 
 import { CLEANUP_WORDS } from './constants'
@@ -30,23 +29,6 @@ export function getRandomNumber(min: number, max: number) {
   return Math.floor(Math.random() * (max - min + 1) + min)
 }
 
-export async function getGuardedToken<T = Record<string, any>>(
-  where: Prisma.TokenFindUniqueOrThrowArgs['where'],
-  schema?: ZodSchema<T>
-): Promise<Omit<Token, 'metadata'> & { metadata: T }> {
-  const token = await db.token.findUniqueOrThrow({
-    where,
-  })
-
-  if (!token.metadata || !_.isObject(token.metadata)) {
-    throw new Error('Token metadata is missing or not an object')
-  }
-
-  if (schema) schema.parse(token.metadata)
-
-  return token as Omit<Token, 'metadata'> & { metadata: T }
-}
-
 export const sendSlackEventMessage = (message: string) => {
   if (process.env.NODE_ENV !== 'production' || !process.env.SLACK_EVENTS_URL) return
   fetch(process.env.SLACK_EVENTS_URL, {
@@ -58,4 +40,23 @@ export const sendSlackEventMessage = (message: string) => {
       text: message,
     }),
   })
+}
+
+export const buildOAuthAuthorizationURL = async (encodedRedirectUri: string, state: string | null) => {
+  const redirectURL = new URL(decodeURIComponent(encodedRedirectUri))
+
+  const authorizationToken = await db.token.create({
+    data: {
+      token: createId(),
+      type: TokenType.OAUTH_CLIENT_AUTH_TOKEN,
+      active: true,
+      expiresAt: new Date(Date.now() + 3600 * 1000 * 24),
+    },
+  })
+
+  const builtSearch = redirectURL.searchParams.toString() === '' ? '' : `&${redirectURL.searchParams.toString()}`
+
+  return `${redirectURL.protocol}//${redirectURL.host}?code=${authorizationToken.token}${
+    state && `&state=${state}`
+  }${builtSearch}`
 }

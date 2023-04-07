@@ -1,6 +1,6 @@
 import { useEffect } from 'react'
 import type { ActionArgs, LoaderArgs } from '@remix-run/node'
-import { Form, Link, useActionData, useLoaderData, useNavigation, useSearchParams } from '@remix-run/react'
+import { Form, useActionData, useLoaderData, useNavigation, useSearchParams } from '@remix-run/react'
 import { parseFormAny, useZorm } from 'react-zorm'
 import { z } from 'zod'
 
@@ -10,9 +10,26 @@ import { db } from '~/database'
 import { APP_ROUTES } from '~/lib/constants'
 import { useIsSubmitting } from '~/lib/hooks'
 import { response } from '~/lib/http.server'
-import { AppError, celebrate, getGuardedToken, parseData, sendSlackEventMessage } from '~/lib/utils'
-import { createAuthSession, isAnonymousSession } from '~/services/auth'
+import { AppError, buildOAuthAuthorizationURL, celebrate, parseData, sendSlackEventMessage } from '~/lib/utils'
+import { isAnonymousSession } from '~/services/auth'
+import { createAuthSession, redirectWithNewAuthSession } from '~/services/auth/session.server'
+import { getGuardedToken } from '~/services/token'
 import { createUserAccount, getUserByEmail } from '~/services/user'
+
+const TwitterTokenMeta = z.object({
+  twitterOAuthToken: z.string(),
+  twitterOAuthTokenSecret: z.string(),
+  id_str: z.string(),
+  followers_count: z.string(),
+  following: z.string(),
+  favourites_count: z.string(),
+  profile_image_url_https: z.string(),
+  screen_name: z.string(),
+  friends_count: z.string(),
+  email: z.string(),
+  location: z.string(),
+  lang: z.string(),
+})
 
 export async function loader({ request }: LoaderArgs) {
   try {
@@ -24,10 +41,10 @@ export async function loader({ request }: LoaderArgs) {
 
     const url = new URL(request.url)
 
-    const token = url.searchParams.get('token')
+    const token = url.searchParams.get('twitter_token')
 
     if (!token) {
-      return response.redirect(APP_ROUTES.JOIN(1).href, { authSession: null })
+      return response.redirect(`${APP_ROUTES.JOIN(1).href}${url.search}`, { authSession: null })
     }
 
     const { metadata } = await getGuardedToken(
@@ -37,11 +54,7 @@ export async function loader({ request }: LoaderArgs) {
           type: TokenType.TWITTER_OAUTH_TOKEN,
         },
       },
-      z
-        .object({
-          email: z.string(),
-        })
-        .passthrough()
+      TwitterTokenMeta
     )
 
     return response.ok({ email: metadata.email || null }, { authSession: null })
@@ -58,21 +71,7 @@ const JoinFormSchema = z.object({
   password: z.string().min(8, 'password-too-short'),
   twitterToken: z.string(),
   redirectTo: z.string().optional(),
-})
-
-const TwitterTokenMeta = z.object({
-  twitterOAuthToken: z.string(),
-  twitterOAuthTokenSecret: z.string(),
-  id_str: z.string(),
-  followers_count: z.string(),
-  following: z.string(),
-  favourites_count: z.string(),
-  profile_image_url_https: z.string(),
-  screen_name: z.string(),
-  friends_count: z.string(),
-  email: z.string(),
-  location: z.string(),
-  lang: z.string(),
+  ourOAuthToken: z.string().optional(),
 })
 
 export async function action({ request }: ActionArgs) {
@@ -93,8 +92,6 @@ export async function action({ request }: ActionArgs) {
       TwitterTokenMeta
     )
 
-    if (!token.active) throw new AppError('token is not active')
-    if (token.expiresAt! < new Date(Date.now())) throw new AppError('token is expired')
     const { twitterOAuthToken, twitterOAuthTokenSecret, profile_image_url_https } = token.metadata
     const { email, password, redirectTo } = payload
     const existingUser = await getUserByEmail(email)
@@ -137,11 +134,28 @@ export async function action({ request }: ActionArgs) {
 
     sendSlackEventMessage(`New Subscription created for ${email}!`)
 
-    return createAuthSession({
-      request,
-      authSession,
-      redirectTo: redirectTo || APP_ROUTES.HOME.href,
-    })
+    if (!payload.ourOAuthToken)
+      return redirectWithNewAuthSession({
+        request,
+        authSession,
+        redirectTo: redirectTo || APP_ROUTES.HOME.href,
+      })
+
+    const {
+      metadata: { redirectUri, state },
+    } = await getGuardedToken(
+      { token_type: { token: payload.ourOAuthToken, type: TokenType.OAUTH_INTERNAL_FLOW_TOKEN } },
+      z
+        .object({
+          redirectUri: z.string(),
+          state: z.string().nullable(),
+        })
+        .passthrough()
+    )
+
+    const redirectURLBuilt = await buildOAuthAuthorizationURL(redirectUri, state)
+
+    return response.redirect(redirectURLBuilt, { authSession: await createAuthSession({ request, authSession }) })
   } catch (cause) {
     return response.error(cause, { authSession: null })
   }
@@ -152,8 +166,9 @@ export default function Join() {
   const { email } = useLoaderData<typeof loader>()
   const actionResponse = useActionData<typeof action>()
   const [searchParams] = useSearchParams()
-  const twitterToken = searchParams.get('token') ?? undefined
+  const twitterToken = searchParams.get('twitter_token') ?? undefined
   const redirectTo = searchParams.get('redirectTo') ?? undefined
+  const ourOAuthToken = searchParams.get('our_oauth_token') ?? undefined
   const nav = useNavigation()
   const isSubmitting = useIsSubmitting(nav)
 
@@ -167,7 +182,7 @@ export default function Join() {
   return (
     <Form ref={zo.ref} method="post" className="space-y-6" replace>
       <div>
-        <h1 className="text-center text-4xl font-black leading-relaxed">Finishing Up Account</h1>
+        <h1 className="whitespace-nowrap text-center text-4xl font-black leading-relaxed">Finish Up Free Account</h1>
         <p className="align-right cursor-pointer text-xs text-gray-500" onClick={celebrate}>
           More confetti!
         </p>
@@ -196,22 +211,9 @@ export default function Join() {
           disabled={isSubmitting}
         />
 
-        {/* <NativeSelectField
-          data-test-id="integration"
-          label="Scheduler"
-          error={zo.errors.cms()?.message}
-          name={zo.fields.cms()}
-          type="password"
-          autoComplete="new-password"
-          disabled={isSubmitting}
-        >
-          <option value="none">None</option>
-          <option value="hypefurry">HypeFurry</option>
-          <option value="assembly">Assembly</option>
-          <option value="other">Other</option>
-        </NativeSelectField> */}
         <input type="hidden" name={zo.fields.redirectTo()} value={redirectTo} />
         <input type="hidden" name={zo.fields.twitterToken()} value={twitterToken} />
+        <input type="hidden" name={zo.fields.ourOAuthToken()} value={ourOAuthToken} />
         {actionResponse?.error && (
           <div className="text-error" id="name-error">
             {actionResponse.error.message}
@@ -222,21 +224,6 @@ export default function Join() {
       <button className="btn-primary btn w-full" disabled={isSubmitting}>
         {isSubmitting ? '...' : 'Start Creating Content'}
       </button>
-
-      {!twitterToken && (
-        <div className="text-center text-sm text-gray-500">
-          Already have an account?{' '}
-          <Link
-            className="link-info link"
-            to={{
-              pathname: '/login',
-              search: searchParams.toString(),
-            }}
-          >
-            Log in
-          </Link>
-        </div>
-      )}
     </Form>
   )
 }

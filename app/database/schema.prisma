@@ -98,10 +98,24 @@ model Tweet {
   @@map("tweets")
 }
 
+model OAuthPartner {
+  id        String   @id @default(cuid())
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  clientSecret String
+  partnerName         String
+}
+
+
+
 enum TokenType {
   ANON_CHECKOUT_TOKEN
   AUTH_CHECKOUT_TOKEN
   TWITTER_OAUTH_TOKEN
+  OAUTH_CUSTOMER_ACCESS_TOKEN
+  OAUTH_CLIENT_AUTH_TOKEN
+  OAUTH_INTERNAL_FLOW_TOKEN
 }
 
 // Tokens require a type.  The schema of the metadata is dependent on the type

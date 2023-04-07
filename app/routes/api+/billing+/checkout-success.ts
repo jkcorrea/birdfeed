@@ -4,9 +4,10 @@ import { TokenType } from '@prisma/client'
 import { db } from '~/database'
 import { APP_ROUTES } from '~/lib/constants'
 import { response } from '~/lib/http.server'
-import { AppError, getGuardedToken } from '~/lib/utils'
+import { AppError } from '~/lib/utils'
 import { requireAuthSession } from '~/services/auth'
 import { CheckoutTokenMeta } from '~/services/billing'
+import { getGuardedToken } from '~/services/token'
 
 // Callback for when checkout is completed
 // (anon checkout goes to /join)
