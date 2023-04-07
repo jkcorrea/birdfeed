@@ -3,13 +3,13 @@ import { Form, Link, useActionData, useNavigation, useSearchParams } from '@remi
 import { parseFormAny, useZorm } from 'react-zorm'
 import { z } from 'zod'
 
+import { TokenType } from '@prisma/client'
 import { TextField } from '~/components/fields'
-import { useSubscribeModal } from '~/components/SubscribeModal'
 import { APP_ROUTES } from '~/lib/constants'
 import { useIsSubmitting } from '~/lib/hooks'
 import { response } from '~/lib/http.server'
-import { parseData, tw } from '~/lib/utils'
-import { createAuthSession, isAnonymousSession, signInWithEmail } from '~/services/auth'
+import { buildOAuthAuthorizationURL, getGuardedToken, parseData, tw } from '~/lib/utils'
+import { createAuthSession, isAnonymousSession, redirectWithNewAuthSession, signInWithEmail } from '~/services/auth'
 
 export async function loader({ request }: LoaderArgs) {
   try {
@@ -32,6 +32,7 @@ const LoginFormSchema = z.object({
     .transform((email) => email.toLowerCase()),
   password: z.string().min(8, 'password-too-short'),
   redirectTo: z.string().optional(),
+  partnerOAuthToken: z.string().optional(),
 })
 
 export async function action({ request }: ActionArgs) {
@@ -42,15 +43,24 @@ export async function action({ request }: ActionArgs) {
       'Login form payload is invalid'
     )
 
-    const { email, password, redirectTo } = payload
+    const { email, password, redirectTo, partnerOAuthToken } = payload
 
     const authSession = await signInWithEmail(email, password)
 
-    return createAuthSession({
-      request,
-      authSession,
-      redirectTo: redirectTo || APP_ROUTES.HOME.href,
-    })
+    if (!partnerOAuthToken)
+      return redirectWithNewAuthSession({
+        request,
+        authSession,
+        redirectTo: redirectTo || APP_ROUTES.HOME.href,
+      })
+
+    const {
+      metadata: { redirectUri, state },
+    } = await getGuardedToken(partnerOAuthToken, TokenType.PARTNER_VERIFY_ACCOUNT_TOKEN)
+
+    const redirectURLBuilt = await buildOAuthAuthorizationURL(redirectUri, state)
+
+    return response.redirect(redirectURLBuilt, { authSession: await createAuthSession({ request, authSession }) })
   } catch (cause) {
     return response.error(cause, { authSession: null })
   }
@@ -61,10 +71,9 @@ export default function LoginPage() {
   const actionResponse = useActionData<typeof action>()
   const [searchParams] = useSearchParams()
   const redirectTo = searchParams.get('redirectTo') ?? undefined
+  const partnerOAuthToken = searchParams.get('partner_oauth_token') ?? undefined
   const nav = useNavigation()
   const isSubmitting = useIsSubmitting(nav)
-
-  const { open: openSubscribeModal } = useSubscribeModal()
 
   return (
     <Form ref={zo.ref} method="post" className="space-y-6" replace>
@@ -92,6 +101,7 @@ export default function LoginPage() {
         />
 
         <input type="hidden" name={zo.fields.redirectTo()} value={redirectTo} />
+        <input type="hidden" name={zo.fields.partnerOAuthToken()} value={partnerOAuthToken} />
       </div>
 
       {actionResponse?.error ? (
@@ -110,13 +120,15 @@ export default function LoginPage() {
         </Link>
         <span>
           Don't have an account?{' '}
-          <button
-            type="button"
+          <Link
             className="link-info link"
-            onClick={() => openSubscribeModal('signup', 'joinNow_button')}
+            to={{
+              pathname: APP_ROUTES.JOIN(1).href,
+              search: searchParams.toString(),
+            }}
           >
             Join now
-          </button>
+          </Link>
         </span>
       </div>
     </Form>

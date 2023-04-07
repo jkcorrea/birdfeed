@@ -13,7 +13,7 @@ export const CheckoutTokenSchema = z.object({
 })
 export type CheckoutToken = z.infer<typeof CheckoutTokenSchema>
 
-export const ClientOAuthRequestTokenSchema = z.object({
+const TwitterVerifyPayload = z.object({
   twitterOAuthToken: z.string(),
   twitterOAuthTokenSecret: z.string(),
   id_str: z.string(),
@@ -27,17 +27,40 @@ export const ClientOAuthRequestTokenSchema = z.object({
   location: z.string(),
   lang: z.string(),
 })
+
+export const ClientOAuthRequestTokenSchema = z.discriminatedUnion('lifecycle', [
+  z.object({
+    lifecycle: z.literal('setOnRedirectToTwitter'),
+    partnerOAuthToken: z.string().optional(),
+  }),
+  TwitterVerifyPayload.extend({
+    lifecycle: z.literal('setOnCallback'),
+    partnerOAuthToken: z.string().optional(),
+  }),
+])
 export type ClientOAuthRequestToken = z.infer<typeof ClientOAuthRequestTokenSchema>
 
-export const ClientOAuthAccessTokenSchema = ClientOAuthRequestTokenSchema
+export const ClientOAuthAccessTokenSchema = TwitterVerifyPayload
 export type ClientOAuthAccessToken = z.infer<typeof ClientOAuthAccessTokenSchema>
+
+export const PartnerVerifyAccountTokenSchema = z
+  .object({
+    clientId: z.string(),
+    redirectUri: z.string(),
+    state: z.string().nullable(),
+  })
+  .passthrough()
+export type PartnerVerifyAccountToken = z.infer<typeof PartnerVerifyAccountTokenSchema>
 
 const metaSchemas = {
   [TokenType.ANON_CHECKOUT_TOKEN]: CheckoutTokenSchema,
   [TokenType.AUTH_CHECKOUT_TOKEN]: CheckoutTokenSchema,
   [TokenType.CLIENT_OAUTH_ACCESS_TOKEN]: ClientOAuthAccessTokenSchema,
   [TokenType.CLIENT_OAUTH_REQUEST_TOKEN]: ClientOAuthRequestTokenSchema,
-} as const satisfies Record<TokenType, z.AnyZodObject>
+  [TokenType.PARTNER_AUTH_TOKEN]: z.object({}),
+  [TokenType.PARTNER_ACCESS_TOKEN]: z.object({ clientId: z.string() }),
+  [TokenType.PARTNER_VERIFY_ACCOUNT_TOKEN]: PartnerVerifyAccountTokenSchema,
+} as const satisfies Record<TokenType, z.ZodTypeAny>
 
 /**
  * Looks up a token by type & id in our db,
@@ -48,6 +71,26 @@ export async function getGuardedToken<TType extends TokenType>(
   type: TType
 ): Promise<Omit<Token, 'metadata'> & { metadata: z.infer<(typeof metaSchemas)[TType]> }> {
   const { metadata, ...rest } = await db.token.findUniqueOrThrow({ where: { token_type: { token, type } } })
+
+  if (!rest.active) {
+    await db.token.delete({
+      where: {
+        id: rest.id,
+      },
+    })
+
+    throw new AppError('token is not active')
+  }
+
+  if (rest.expiresAt && rest.expiresAt < new Date(Date.now())) {
+    await db.token.delete({
+      where: {
+        id: rest.id,
+      },
+    })
+
+    throw new AppError('token is expired')
+  }
 
   if (!metadata || !_.isObject(metadata)) throw new AppError('Token metadata is missing or not an object')
   const schema = metaSchemas[type]

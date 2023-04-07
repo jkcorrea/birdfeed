@@ -2,6 +2,7 @@ yarn-error.log
 node_modules
 .DS_Store
 
+
 /build
 /public/build
 .cache
@@ -15,4 +16,4 @@ node_modules
 !.env.example
 
 .ipynb_checkpoints/
-scripts/playground.ts
+scripts/playground.*

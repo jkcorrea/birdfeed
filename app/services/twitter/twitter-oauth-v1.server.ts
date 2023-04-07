@@ -2,7 +2,9 @@ import crypto from 'crypto'
 
 import OAuth from 'oauth-1.0a'
 
-import { TWITTER_CALLBACK_URL, TWITTER_CONSUMER_KEY, TWITTER_CONSUMER_SECRET } from '~/lib/env'
+import { TokenType } from '@prisma/client'
+import { db } from '~/database'
+import { TWITTER_CONSUMER_KEY, TWITTER_CONSUMER_SECRET } from '~/lib/env'
 
 const oauth = new OAuth({
   consumer: {
@@ -28,7 +30,7 @@ async function twFetch(request: OAuth.RequestOptions, token?: OAuth.Token | unde
   })
 }
 
-export const getTwitterOAuthRedirectURL = async () => {
+export const getTwitterOAuthRedirectURL = async (partnerOAuthToken?: string) => {
   const tempOAuthToken = await twFetch({
     url: 'https://api.twitter.com/oauth/request_token',
     method: 'POST',
@@ -44,9 +46,20 @@ export const getTwitterOAuthRedirectURL = async () => {
       return oauth_token
     })
 
-  return `https://api.twitter.com/oauth/authenticate?oauth_token=${tempOAuthToken}&oauth_callback=${encodeURIComponent(
-    TWITTER_CALLBACK_URL
-  )}`
+  await db.token.create({
+    data: {
+      token: tempOAuthToken,
+      type: TokenType.CLIENT_OAUTH_REQUEST_TOKEN,
+      active: true,
+      expiresAt: new Date(Date.now() + 3600 * 1000),
+      metadata: {
+        lifecycle: 'setOnRedirectToTwitter',
+        partnerOAuthToken,
+      },
+    },
+  })
+
+  return `https://api.twitter.com/oauth/authenticate?oauth_token=${tempOAuthToken}`
 }
 
 export const getTwitterKeys = async (callbackUrl: URL) => {

@@ -5,5 +5,11 @@ export {
   refreshAccessToken as refreshAuthAccessToken,
   signInWithPassword as signInWithEmail,
 } from './auth.server'
-export { createAuthSession, destroyAuthSession, isAnonymousSession, requireAuthSession } from './session.server'
+export {
+  createAuthSession,
+  destroyAuthSession,
+  isAnonymousSession,
+  redirectWithNewAuthSession,
+  requireAuthSession,
+} from './session.server'
 export * from './types'

@@ -1,4 +1,3 @@
-import { createId } from '@paralleldrive/cuid2'
 import type { LoaderArgs } from '@remix-run/server-runtime'
 
 import { TokenType } from '@prisma/client'
@@ -6,7 +5,7 @@ import { db } from '~/database'
 import { APP_ROUTES } from '~/lib/constants'
 import { response } from '~/lib/http.server'
 import type { ClientOAuthRequestToken } from '~/lib/utils'
-import { sendSlackEventMessage } from '~/lib/utils'
+import { getGuardedToken, sendSlackEventMessage } from '~/lib/utils'
 import { getOptionalAuthSession } from '~/services/auth/session.server'
 import { getTwitterKeys } from '~/services/twitter'
 
@@ -17,9 +16,16 @@ export async function loader({ request }: LoaderArgs) {
 
   try {
     if (!authSession) {
-      const { twitterOAuthToken, twitterOAuthTokenSecret, twitterProfileData } = await getTwitterKeys(
-        new URL(request.url)
-      )
+      const callbackUrl = new URL(request.url)
+      const oauthToken = callbackUrl.searchParams.get('oauth_token')
+
+      if (!oauthToken) return response.error('No oauth token from twitter', { authSession: null })
+
+      const { metadata } = await getGuardedToken(oauthToken, TokenType.CLIENT_OAUTH_REQUEST_TOKEN)
+
+      const { partnerOAuthToken } = metadata
+
+      const { twitterOAuthToken, twitterOAuthTokenSecret, twitterProfileData } = await getTwitterKeys(callbackUrl)
 
       const twitterProfileDataProcessed = {
         id_str: safeToString(twitterProfileData.id_str),
@@ -34,13 +40,18 @@ export async function loader({ request }: LoaderArgs) {
         lang: safeToString(twitterProfileData.lang),
       }
 
-      const token = await db.token.create({
+      const updatedToken = await db.token.update({
+        where: {
+          token_type: {
+            token: oauthToken,
+            type: TokenType.CLIENT_OAUTH_REQUEST_TOKEN,
+          },
+        },
         data: {
-          token: createId(),
-          type: TokenType.CLIENT_OAUTH_REQUEST_TOKEN,
-          active: true,
           expiresAt: new Date(Date.now() + 3600 * 1000 * 24),
           metadata: {
+            lifecycle: 'setOnCallback',
+            partnerOAuthToken,
             twitterOAuthToken,
             twitterOAuthTokenSecret,
             ...twitterProfileDataProcessed,
@@ -54,7 +65,14 @@ export async function loader({ request }: LoaderArgs) {
     email: ${email}
     url: ${url}`)
 
-      return response.redirect(`${APP_ROUTES.JOIN(2).href}?token=${token.token}`, { authSession: null })
+      return response.redirect(
+        `${APP_ROUTES.JOIN(2).href}?twitter_token=${updatedToken.token}${
+          partnerOAuthToken && `&partner_oauth_token=${partnerOAuthToken}`
+        }`,
+        {
+          authSession: null,
+        }
+      )
     } else {
       //TODO: add twitter account to user if logged in
       return response.redirect(APP_ROUTES.HOME.href, { authSession })
