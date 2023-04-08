@@ -1,15 +1,15 @@
-import type { LoaderArgs } from '@remix-run/server-runtime'
+import type { ActionArgs } from '@remix-run/server-runtime'
 
 import { db } from '~/database'
 import { response } from '~/lib/http.server'
 import { AppError } from '~/lib/utils'
 import { authenticateAPI } from '~/services/auth/api.server'
 
-export async function loader({ request }: LoaderArgs) {
+export async function action({ request }: ActionArgs) {
   try {
     const userId = await authenticateAPI(request)
 
-    if (request.method !== 'GET') return response.error('Only POST requests are allowed', { authSession: null })
+    if (request.method !== 'POST') return response.error('Only POST requests are allowed', { authSession: null })
 
     const { limit, cursor } = await request.json()
 
