@@ -32,7 +32,7 @@ export async function loader({ request }: LoaderArgs) {
 
     if (authSession) {
       // User is already logged in, so we can just redirect them to the redirectUri with the authorization code
-      const redirectURLBuilt = await buildOAuthAuthorizationURL(redirectUri, state)
+      const redirectURLBuilt = await buildOAuthAuthorizationURL(authSession.userId, redirectUri, state)
 
       return response.redirect(redirectURLBuilt, {
         authSession,

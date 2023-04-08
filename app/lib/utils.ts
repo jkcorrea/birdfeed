@@ -42,7 +42,7 @@ export const sendSlackEventMessage = (message: string) => {
   })
 }
 
-export const buildOAuthAuthorizationURL = async (encodedRedirectUri: string, state: string | null) => {
+export const buildOAuthAuthorizationURL = async (userId: string, encodedRedirectUri: string, state: string | null) => {
   const redirectURL = new URL(decodeURIComponent(encodedRedirectUri))
 
   const authorizationToken = await db.token.create({
@@ -51,6 +51,9 @@ export const buildOAuthAuthorizationURL = async (encodedRedirectUri: string, sta
       type: TokenType.OAUTH_CLIENT_AUTH_TOKEN,
       active: true,
       expiresAt: new Date(Date.now() + 3600 * 1000 * 24),
+      metadata: {
+        userId,
+      },
     },
   })
 

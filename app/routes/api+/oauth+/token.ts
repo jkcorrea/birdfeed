@@ -56,8 +56,7 @@ export async function action({ request }: ActionArgs) {
 
     return response.ok(
       {
-        token: accessToken.token,
-        token_type: 'Bearer',
+        data: { token: accessToken.token, token_type: 'Bearer' },
       },
       { authSession: null }
     )

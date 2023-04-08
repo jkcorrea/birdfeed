@@ -68,7 +68,7 @@ export async function action({ request }: ActionArgs) {
         .passthrough()
     )
 
-    const redirectURLBuilt = await buildOAuthAuthorizationURL(redirectUri, state)
+    const redirectURLBuilt = await buildOAuthAuthorizationURL(authSession.userId, redirectUri, state)
 
     return response.redirect(redirectURLBuilt, { authSession: await createAuthSession({ request, authSession }) })
   } catch (cause) {
