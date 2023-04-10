@@ -92,6 +92,15 @@ export const resetDB = async () => {
 async function main() {
   const { userId } = await resetDB()
 
+  console.log('Creating Partner...')
+  await db.oAuthPartner.create({
+    data: {
+      name: 'Dummy oAuth Partner',
+      id: 'aodd9air1txglkp38otq5z8l',
+      clientSecret: 'fmmlnk3tg0rn6bhiarpjio0e',
+    },
+  })
+
   console.log('Creating Transcripts...')
   const { count: trsCount } = await db.transcript.createMany({
     data: Array.from(Array(10).keys()).map(() => {
