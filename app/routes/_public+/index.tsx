@@ -1,4 +1,5 @@
 import { Fragment, useEffect, useRef, useState } from 'react'
+import { ArrowRightIcon } from '@heroicons/react/20/solid'
 import type { ActionArgs, HeadersFunction } from '@remix-run/node'
 import { Link, useFetcher } from '@remix-run/react'
 import type { HTMLAttributes, ReactNode } from 'react'
@@ -7,7 +8,6 @@ import type { ExternalScriptsFunction } from 'remix-utils'
 
 import { AnimatedWord } from '~/components/AnimatedWord'
 import { PublicFooter } from '~/components/PublicFooter'
-import { useSubscribeModal } from '~/components/SubscribeModal'
 import type { TranscriptUploaderHandle } from '~/components/TranscriptUploader'
 import TranscriptUploader from '~/components/TranscriptUploader'
 import { TweetCard } from '~/components/TweetCard'
@@ -23,6 +23,7 @@ import { createTranscript } from '../_app+/home/actions'
 import { CreateTranscriptSchema } from '../_app+/home/schemas'
 
 import birdfeedIcon from '~/assets/birdfeed-icon.png'
+import animalsHooray from 'public/animals_hooray.png'
 
 const scripts: ExternalScriptsFunction = () =>
   // NOTE rendering this in dev causes hydration mismatch issues, luckily it's only cosmetic & we don't need it in dev
@@ -66,7 +67,6 @@ export async function action({ request }: ActionArgs) {
 
 export default function Home() {
   const fetcher = useFetcher<typeof action>()
-  const { open: openSubscribeModal } = useSubscribeModal()
   const [isLoggedIn, setIsLoggedIn] = useState<boolean>(false)
 
   useEffect(() => {
@@ -101,12 +101,9 @@ export default function Home() {
               <Link to={APP_ROUTES.LOGIN.href} className="btn-ghost btn-xs btn md:btn-md">
                 Login
               </Link>
-              <button
-                onClick={() => openSubscribeModal('signup', 'getStarted_button')}
-                className="btn-outline btn-primary btn-xs btn md:btn-md"
-              >
-                Free Trial
-              </button>
+              <Link to={APP_ROUTES.JOIN(1).href} className="btn-outline btn-primary btn-xs btn md:btn-md">
+                Get Started Free
+              </Link>
             </>
           )}
         </div>
@@ -153,12 +150,12 @@ export default function Home() {
               ))}
             </ul>
 
-            <button
-              onClick={() => openSubscribeModal('signup', 'unlockFeatures_button')}
-              className="btn-primary btn-sm btn my-5 w-fit self-center text-lg font-bold normal-case"
+            <Link
+              to={APP_ROUTES.JOIN(1).href}
+              className="btn-primary btn-md btn my-5 w-fit self-center text-lg font-bold normal-case"
             >
-              7 day free trial
-            </button>
+              Get Started Free
+            </Link>
           </ContentCardWrapper>
           <ContentCardWrapper
             className="order-first lg:order-none"
@@ -189,9 +186,6 @@ export default function Home() {
 }
 
 function TweetGrid({ tweets, isDemo }: { tweets: GeneratedTweet[]; isDemo: boolean }) {
-  const { open } = useSubscribeModal()
-  const openSignupModal = () => open('signup', 'tweetGrid_subtitle')
-
   const [left, right] = tweets.reduce<[GeneratedTweet[], GeneratedTweet[]]>(
     (acc, tweet, i) => {
       if (i % 2 === 1) acc[0].push(tweet)
@@ -216,26 +210,34 @@ function TweetGrid({ tweets, isDemo }: { tweets: GeneratedTweet[]; isDemo: boole
     </>
   ) : (
     <>
-      The free version only uses the <em className="underline">first 15 minutes</em> of your content to create tweets.
-      If you'd like Birdfeed to utilize the full length of your content,{' '}
-      <button type="button" className="link-hover link-primary link" onClick={openSignupModal}>
-        upgrade today
-      </button>
+      For tweets from the full-length podcast,{' '}
+      <Link to={APP_ROUTES.JOIN(1).href} className="link-hover link-primary link">
+        try pro free
+      </Link>
       !
     </>
   )
 
   return (
     <>
-      <div className="mt-16 mb-12 text-center">
-        <h3 ref={(el) => el?.scrollIntoView({ behavior: 'smooth' })} className="text-5xl font-bold">
-          Your Tweets
-        </h3>
+      <div ref={(el) => el?.scrollIntoView({ behavior: 'smooth' })} className="mt-10 mb-12 text-center">
+        <div className="mx-auto w-7/12">
+          <img src={animalsHooray} alt="greeting animals" className="-ml-2 mb-6 w-fit " />
+        </div>
+        <h3 className="text-5xl font-bold">{isDemo ? `Your Tweets` : `Tweets From First 15 Minutes`}</h3>
 
         <p className="mx-auto mt-6 max-w-screen-md text-center text-2xl text-gray-600">{subtitle}</p>
       </div>
 
-      <div className="mx-auto grid max-w-screen-md gap-4 md:grid-cols-2">
+      <div className="relative mx-auto grid max-w-screen-md gap-4 overflow-y-clip md:grid-cols-2">
+        <div className="absolute top-3/4 right-1/2 z-10 translate-x-1/2">
+          <Link
+            to={APP_ROUTES.JOIN(1).href}
+            className="btn-secondary btn-lg btn pointer-events-auto px-6 font-bold shadow-xl"
+          >
+            Get Started to see the rest! <ArrowRightIcon className="ml-2 w-6" />
+          </Link>
+        </div>
         <TweetColumn hasAd tweets={left} />
         <TweetColumn tweets={right} />
       </div>
@@ -244,20 +246,17 @@ function TweetGrid({ tweets, isDemo }: { tweets: GeneratedTweet[]; isDemo: boole
 }
 
 function TweetColumn({ tweets, hasAd }: { tweets: GeneratedTweet[]; hasAd?: boolean }) {
-  const { open } = useSubscribeModal()
-  const openSignupModal = () => open('signup', 'tweetGrid_ad')
-
   return (
     <div className="grid h-fit gap-4">
       {tweets.map((tweet, ix) => (
         <Fragment key={tweet.id}>
-          <TweetCard isPublic tweet={tweet} />
-          {hasAd && ix === Math.floor((tweets.length * 2) / 3) - 1 && (
+          <TweetCard isPublic isBlurred={ix > 2} tweet={tweet} />
+          {hasAd && ix === Math.floor((tweets.length * 2) / 4) - 1 && (
             <div className="flex h-20 w-full flex-col items-center justify-center rounded-lg bg-base-300 text-center shadow-inner">
               <h3 className="text-lg font-bold">More, better tweets</h3>
-              <button className="link-info link no-underline" onClick={openSignupModal}>
+              <Link to={APP_ROUTES.JOIN(1).href} className="link-info link no-underline">
                 Sign up here!
-              </button>
+              </Link>
             </div>
           )}
         </Fragment>
@@ -292,23 +291,3 @@ function _LoadingColumn() {
     </div>
   )
 }
-
-const _pregenTweets: string[] = [
-  'In order to survive on Mars, you need all the necessary resources, just like being on a long sea voyage and needing vitamin C.',
-  'Crocodiles are incredibly resilient and can survive in disastrous situations because they feed on decayed meat.',
-  'The Fermi Paradox asks the question: where are the aliens? Are there many or none at all?',
-  "Naval fighter pilot Commander David Fraser's account of the Tic-Tac UFO that he encountered off the coast of San Diego is fascinating.",
-  'The encounter with the Tic-Tac UFO is a case that baffles skeptics and believers alike. What do you think?',
-  'Honestly, I think I would know if there were aliens." Do you agree?',
-  'Politicians are trying to figure out what all this "shit" is. Are you curious too?',
-  'Have you ever thought about what you would do if aliens showed up on Earth? Would you be excited or scared?',
-  "It's interesting to consider how much we still don't know about the universe and the possibility of extraterrestrial life.",
-  'Imagine if aliens did make contact and suddenly we had a whole new world of information to explore. The possibilities are endless.',
-  "The search for extraterrestrial life continues to intrigue us, but for now, let's focus on the fascinating discoveries on Earth.",
-  'Who knows what secrets are hidden beneath our feet? Archaeology offers a glimpse into our past and a window into our future.',
-  'The geological history of Earth shows numerous extinction events, including the Permian extinction where over 90% of species died out."',
-  "Imagine a future where we've colonized the entire galaxy, jumping from planet to planet.",
-  "Don't miss out on the JRE back catalogue available now on Spotify!",
-  'Go to Spotify now to get this full episode of the Joe Rogan experience." -Joe Rogan',
-  'You can listen to the jury in the background by using other apps." -Joe Rogan',
-]

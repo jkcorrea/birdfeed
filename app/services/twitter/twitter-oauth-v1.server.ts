@@ -4,7 +4,7 @@ import OAuth from 'oauth-1.0a'
 
 import { TWITTER_CALLBACK_URL, TWITTER_CONSUMER_KEY, TWITTER_CONSUMER_SECRET } from '~/lib/env'
 
-export const oauth = new OAuth({
+const oauth = new OAuth({
   consumer: {
     key: TWITTER_CONSUMER_KEY,
     secret: TWITTER_CONSUMER_SECRET,
@@ -14,7 +14,7 @@ export const oauth = new OAuth({
     crypto.createHmac('sha1', key).update(baseString).digest('base64'),
 })
 
-export async function makeTwitterRequest(request: OAuth.RequestOptions, token?: OAuth.Token | undefined) {
+async function twFetch(request: OAuth.RequestOptions, token?: OAuth.Token | undefined) {
   const authorization = oauth.authorize(request, token)
   const headers = oauth.toHeader(authorization)
 
@@ -29,7 +29,7 @@ export async function makeTwitterRequest(request: OAuth.RequestOptions, token?: 
 }
 
 export const getTwitterOAuthRedirectURL = async () => {
-  const tempOAuthToken = await makeTwitterRequest({
+  const tempOAuthToken = await twFetch({
     url: 'https://api.twitter.com/oauth/request_token',
     method: 'POST',
   })
@@ -59,7 +59,7 @@ export const getTwitterKeys = async (callbackUrl: URL) => {
 
   if (!temp_oauth_token || !oauth_verifier) throw new Error('Missing oauth_token or oauth_verifier.')
 
-  const { userOauthToken, userOauthTokenSecret } = await makeTwitterRequest({
+  const { userOauthToken, userOauthTokenSecret } = await twFetch({
     url: 'https://api.twitter.com/oauth/access_token',
     method: 'POST',
     data: { oauth_token: temp_oauth_token, oauth_verifier },
@@ -75,13 +75,13 @@ export const getTwitterKeys = async (callbackUrl: URL) => {
       return { userOauthToken, userOauthTokenSecret }
     })
 
-  const twitterProfileData = await makeTwitterRequest(
+  const twitterProfileData = await twFetch(
     {
       url: 'https://api.twitter.com/1.1/account/verify_credentials.json?include_email=true',
       method: 'GET',
     },
     { key: userOauthToken, secret: userOauthTokenSecret }
-  ).then(async (res) => await res.json())
+  ).then((res) => res.json())
 
   return {
     twitterOAuthToken: userOauthToken,

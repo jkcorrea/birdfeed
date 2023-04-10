@@ -22,6 +22,11 @@ declare global {
       STRIPE_ENDPOINT_SECRET: string
       OPENAI_API_KEY: string
       DEEPGRAM_API_KEY: string
+      S3_ACCOUNT_ID?: string
+      S3_ACCESS_KEY_ID?: string
+      S3_SECRET_ACCESS_KEY?: string
+      S3_BUCKET_NAME?: string
+      SLACK_EVENTS_URL?: string
     }
   }
 }
@@ -64,6 +69,7 @@ export const S3_ACCOUNT_ID = getEnv('S3_ACCOUNT_ID', { isRequired: false })
 export const S3_ACCESS_KEY_ID = getEnv('S3_ACCESS_KEY_ID', { isRequired: false })
 export const S3_SECRET_ACCESS_KEY = getEnv('S3_SECRET_ACCESS_KEY', { isRequired: false })
 export const S3_BUCKET_NAME = getEnv('S3_BUCKET_NAME', { isRequired: false })
+export const SLACK_EVENTS_URL = getEnv('SLACK_EVENTS_URL', { isRequired: false })
 
 /**
  * Shared envs

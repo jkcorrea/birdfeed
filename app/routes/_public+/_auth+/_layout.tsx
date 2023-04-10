@@ -12,7 +12,7 @@ export default function AuthLayout() {
         </Link>
       </div>
 
-      <div className="mx-auto w-full max-w-md rounded-lg bg-base-100 p-4 shadow md:py-6 md:px-8">
+      <div className="mx-auto w-full max-w-md rounded-lg bg-base-100 p-4 shadow-xl md:py-6 md:px-8">
         <Outlet />
       </div>
     </div>

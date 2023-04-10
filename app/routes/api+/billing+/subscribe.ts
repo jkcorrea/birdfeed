@@ -27,23 +27,22 @@ export async function action({ request }: ActionArgs) {
       'Subscribe payload is invalid'
     )
 
-    let customerId: string
+    let stripeCustomerId: string
     let tokenType: TokenType
     let baseSuccessUrl: string
     if (isAnon) {
       const { id } = await stripe.customers.create()
-      customerId = id
+      stripeCustomerId = id
       tokenType = TokenType.ANON_CHECKOUT_TOKEN
       baseSuccessUrl = `${SERVER_URL}/join`
     } else {
       authSession = await requireAuthSession(request)
       const { userId } = authSession
 
-      const { stripeCustomerId } = await db.user.findUniqueOrThrow({
+      ;({ stripeCustomerId } = await db.user.findUniqueOrThrow({
         where: { id: userId },
         select: { stripeCustomerId: true },
-      })
-      customerId = stripeCustomerId
+      }))
       tokenType = TokenType.AUTH_CHECKOUT_TOKEN
       baseSuccessUrl = `${SERVER_URL}/api/billing/checkout-success`
     }
@@ -57,7 +56,7 @@ export async function action({ request }: ActionArgs) {
 
     const { url } = await createCheckoutSession({
       priceId,
-      customerId,
+      customerId: stripeCustomerId,
       baseSuccessUrl,
       tokenType,
     })

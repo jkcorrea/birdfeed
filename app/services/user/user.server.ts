@@ -9,11 +9,9 @@ import type { User } from './types'
 const tag = 'User service 🧑'
 
 type UserCreatePayload = {
-  stripeCustomerId: string
-  stripeSubscriptionId: string
   password: string
   email: string
-}
+} & Partial<Pick<User, 'avatarUrl' | 'twitterId' | 'twitterHandle'>>
 
 export async function userSubscriptionStatus(id: User['id']) {
   try {
@@ -21,6 +19,8 @@ export async function userSubscriptionStatus(id: User['id']) {
       where: { id },
       select: { stripeSubscriptionId: true },
     })
+
+    if (!stripeSubscriptionId) return 'never_subscribed'
 
     const subscription = await stripe.subscriptions.retrieve(stripeSubscriptionId)
 
@@ -68,20 +68,19 @@ export async function getUserByEmail(email: User['email']) {
 }
 
 export async function createUserAccount(payload: UserCreatePayload) {
-  const { email, password, stripeCustomerId, stripeSubscriptionId } = payload
+  const { email, password, ...rest } = payload
 
   try {
     const { id: userId } = await createEmailAuthAccount(email, password)
     const authSession = await signInWithEmail(email, password)
-
-    await stripe.customers.update(stripeCustomerId, { email })
+    const { id } = await stripe.customers.create()
 
     await db.user.create({
       data: {
         email,
         id: userId,
-        stripeCustomerId,
-        stripeSubscriptionId,
+        stripeCustomerId: id,
+        ...rest,
       },
     })
 

@@ -39,14 +39,18 @@ export const resetDB = async () => {
   const price = await db.price.findFirst({})
   if (!price) throw new Error('No price found.  Make sure you have seeded Stripe')
 
+  const authSession = await createUserAccount({
+    email: DEFAULT_USER,
+    password: DEFAULT_PASSWORD,
+  })
+
+  const user = await db.user.findFirstOrThrow({ where: { id: authSession.userId } })
+
   // Create a default user
   const customerSearch = await stripe.customers.search({ query: `email:"${DEFAULT_USER}"` })
-  let customerId: string
+  let customerId: string = user.stripeCustomerId
   let stripeSubscriptionId: string
   if (customerSearch.data.length === 0) {
-    const customer = await stripe.customers.create({ email: DEFAULT_USER })
-    customerId = customer.id
-
     const paymentMethod = await stripe.paymentMethods.create({
       type: 'card',
       card: {
@@ -59,7 +63,7 @@ export const resetDB = async () => {
 
     await stripe.paymentMethods.attach(paymentMethod.id, { customer: customerId })
 
-    const subscription = await await stripe.subscriptions.create({
+    const subscription = await stripe.subscriptions.create({
       customer: customerId,
       default_payment_method: paymentMethod.id,
       items: [{ price: price.stripePriceId }],
@@ -76,15 +80,13 @@ export const resetDB = async () => {
     stripeSubscriptionId = customer.subscriptions!.data[0].id
   }
 
-  const user = await createUserAccount({
-    email: DEFAULT_USER,
-    password: DEFAULT_PASSWORD,
-    stripeCustomerId: customerId,
-    stripeSubscriptionId,
+  await db.user.update({
+    where: { id: authSession.userId },
+    data: { stripeSubscriptionId },
   })
 
   console.log(`Created default user: ${user.email} with password: ${DEFAULT_PASSWORD}`)
-  return user
+  return authSession
 }
 
 async function main() {
