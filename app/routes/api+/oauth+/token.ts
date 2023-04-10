@@ -20,7 +20,10 @@ export async function action({ request }: ActionArgs) {
       })
     }
 
-    const token = await getGuardedToken(code, TokenType.PARTNER_AUTH_TOKEN)
+    const {
+      id,
+      metadata: { userId },
+    } = await getGuardedToken(code, TokenType.PARTNER_AUTH_TOKEN)
 
     const partner = await db.oAuthPartner.findUnique({
       where: {
@@ -31,27 +34,28 @@ export async function action({ request }: ActionArgs) {
 
     if (!partner) return response.error('Incorrect Client ID or Secret.', { authSession: null })
 
-    await db.token.delete({
-      where: {
-        id: token.id,
-      },
-    })
-
-    const accessToken = await db.token.create({
-      data: {
-        token: createId(),
-        type: TokenType.PARTNER_ACCESS_TOKEN,
-        active: true,
-        // userId: token.metadata.userId,
-        metadata: {
-          clientId,
+    const [_, { token }] = await db.$transaction([
+      db.token.delete({
+        where: {
+          id,
         },
-      },
-    })
+      }),
+      db.token.create({
+        data: {
+          token: createId(),
+          type: TokenType.PARTNER_ACCESS_TOKEN,
+          active: true,
+          userId,
+          metadata: {
+            clientId,
+          },
+        },
+      }),
+    ])
 
     return response.ok(
       {
-        token: accessToken.token,
+        token,
         token_type: 'Bearer',
       },
       { authSession: null }

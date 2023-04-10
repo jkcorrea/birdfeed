@@ -58,7 +58,7 @@ export async function action({ request }: ActionArgs) {
       metadata: { redirectUri, state },
     } = await getGuardedToken(partnerOAuthToken, TokenType.PARTNER_VERIFY_ACCOUNT_TOKEN)
 
-    const redirectURLBuilt = await buildOAuthAuthorizationURL(redirectUri, state)
+    const redirectURLBuilt = await buildOAuthAuthorizationURL(authSession.userId, redirectUri, state)
 
     return response.redirect(redirectURLBuilt, { authSession: await createAuthSession({ request, authSession }) })
   } catch (cause) {
