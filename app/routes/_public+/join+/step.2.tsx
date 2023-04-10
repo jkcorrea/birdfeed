@@ -10,6 +10,7 @@ import { db } from '~/database'
 import { APP_ROUTES } from '~/lib/constants'
 import { useIsSubmitting } from '~/lib/hooks'
 import { response } from '~/lib/http.server'
+import type { OAuthAccessToken } from '~/lib/utils'
 import { AppError, celebrate, getGuardedToken, parseData, sendSlackEventMessage } from '~/lib/utils'
 import { createAuthSession, isAnonymousSession } from '~/services/auth'
 import { createUserAccount, getUserByEmail } from '~/services/user'
@@ -17,32 +18,15 @@ import { createUserAccount, getUserByEmail } from '~/services/user'
 export async function loader({ request }: LoaderArgs) {
   try {
     const isAnonymous = await isAnonymousSession(request)
-
-    if (!isAnonymous) {
-      return response.redirect(APP_ROUTES.HOME.href, { authSession: null })
-    }
+    if (!isAnonymous) return response.redirect(APP_ROUTES.HOME.href, { authSession: null })
 
     const url = new URL(request.url)
-
     const token = url.searchParams.get('token')
+    if (!token) return response.redirect(APP_ROUTES.JOIN(1).href, { authSession: null })
 
-    if (!token) {
-      return response.redirect(APP_ROUTES.JOIN(1).href, { authSession: null })
-    }
-
-    const { metadata } = await getGuardedToken(
-      {
-        token_type: {
-          token,
-          type: TokenType.TWITTER_OAUTH_TOKEN,
-        },
-      },
-      z
-        .object({
-          email: z.string(),
-        })
-        .passthrough()
-    )
+    // The initial twitter request token may have had an email attached to it
+    // If so we can pre-populate the email field
+    const { metadata } = await getGuardedToken(token, TokenType.OAUTH_REQUEST_TOKEN)
 
     return response.ok({ email: metadata.email || null }, { authSession: null })
   } catch (cause) {
@@ -60,21 +44,6 @@ const JoinFormSchema = z.object({
   redirectTo: z.string().optional(),
 })
 
-const TwitterTokenMeta = z.object({
-  twitterOAuthToken: z.string(),
-  twitterOAuthTokenSecret: z.string(),
-  id_str: z.string(),
-  followers_count: z.string(),
-  following: z.string(),
-  favourites_count: z.string(),
-  profile_image_url_https: z.string(),
-  screen_name: z.string(),
-  friends_count: z.string(),
-  email: z.string(),
-  location: z.string(),
-  lang: z.string(),
-})
-
 export async function action({ request }: ActionArgs) {
   try {
     const payload = await parseData(
@@ -83,19 +52,10 @@ export async function action({ request }: ActionArgs) {
       'Join form payload is invalid'
     )
 
-    const token = await getGuardedToken(
-      {
-        token_type: {
-          token: payload.twitterToken,
-          type: TokenType.TWITTER_OAUTH_TOKEN,
-        },
-      },
-      TwitterTokenMeta
-    )
-
+    const token = await getGuardedToken(payload.twitterToken, TokenType.OAUTH_ACCESS_TOKEN)
     if (!token.active) throw new AppError('token is not active')
     if (token.expiresAt! < new Date(Date.now())) throw new AppError('token is expired')
-    const { twitterOAuthToken, twitterOAuthTokenSecret, profile_image_url_https } = token.metadata
+    const { twitterOAuthToken, profile_image_url_https } = token.metadata
     const { email, password, redirectTo } = payload
     const existingUser = await getUserByEmail(email)
 
@@ -110,30 +70,29 @@ export async function action({ request }: ActionArgs) {
     const authSession = await createUserAccount({
       email,
       password,
-      image: profile_image_url_https === '' ? undefined : profile_image_url_https,
+      avatarUrl: profile_image_url_https === '' ? undefined : profile_image_url_https,
     })
 
     const { userId } = authSession
 
-    await db.twitterCredential.create({
-      data: {
-        user: {
-          connect: {
-            id: userId,
+    await db.$transaction([
+      // Create a long-lived OAuth access token for the user
+      db.token.create({
+        data: {
+          user: {
+            connect: {
+              id: userId,
+            },
           },
+          token: twitterOAuthToken,
+          type: TokenType.OAUTH_ACCESS_TOKEN,
+          active: true,
+          metadata: token.metadata satisfies OAuthAccessToken,
         },
-        twitterId: token.metadata.id_str,
-        handle: token.metadata.screen_name,
-        token: twitterOAuthToken,
-        secret: twitterOAuthTokenSecret,
-      },
-    })
-
-    await db.token.delete({
-      where: {
-        id: token.id,
-      },
-    })
+      }),
+      // Also, delete the temp/request token
+      db.token.delete({ where: { id: token.id } }),
+    ])
 
     sendSlackEventMessage(`New Subscription created for ${email}!`)
 

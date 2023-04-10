@@ -5,6 +5,7 @@ import { TokenType } from '@prisma/client'
 import { db } from '~/database'
 import { APP_ROUTES } from '~/lib/constants'
 import { response } from '~/lib/http.server'
+import type { OAuthAccessToken } from '~/lib/utils'
 import { sendSlackEventMessage } from '~/lib/utils'
 import { getOptionalAuthSession } from '~/services/auth/session.server'
 import { getTwitterKeys } from '~/services/twitter'
@@ -36,20 +37,20 @@ export async function loader({ request }: LoaderArgs) {
       const token = await db.token.create({
         data: {
           token: createId(),
-          type: TokenType.TWITTER_OAUTH_TOKEN,
+          type: TokenType.OAUTH_ACCESS_TOKEN,
           active: true,
           expiresAt: new Date(Date.now() + 3600 * 1000 * 24),
           metadata: {
             twitterOAuthToken,
             twitterOAuthTokenSecret,
             ...twitterProfileDataProcessed,
-          },
+          } satisfies OAuthAccessToken,
         },
       })
 
       const { screen_name, followers_count, url, email } = twitterProfileData
-      sendSlackEventMessage(`Twitter user ${screen_name} (${followers_count} followers) just signed up! 
-    
+      sendSlackEventMessage(`Twitter user ${screen_name} (${followers_count} followers) just signed up!
+
     email: ${email}
     url: ${url}`)
 

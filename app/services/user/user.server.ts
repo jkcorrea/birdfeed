@@ -11,19 +11,18 @@ const tag = 'User service 🧑'
 type UserCreatePayload = {
   password: string
   email: string
-  image?: string
-}
+} & Partial<Pick<User, 'avatarUrl' | 'twitterId' | 'twitterHandle'>>
 
 export async function userSubscriptionStatus(id: User['id']) {
   try {
-    const { subscriptionId } = await db.user.findUniqueOrThrow({
+    const { stripeSubscriptionId } = await db.user.findUniqueOrThrow({
       where: { id },
-      select: { subscriptionId: true },
+      select: { stripeSubscriptionId: true },
     })
 
-    if (!subscriptionId) return 'never_subscribed'
+    if (!stripeSubscriptionId) return 'never_subscribed'
 
-    const subscription = await stripe.subscriptions.retrieve(subscriptionId)
+    const subscription = await stripe.subscriptions.retrieve(stripeSubscriptionId)
 
     return subscription.status
   } catch (cause) {
@@ -69,7 +68,7 @@ export async function getUserByEmail(email: User['email']) {
 }
 
 export async function createUserAccount(payload: UserCreatePayload) {
-  const { email, password, image } = payload
+  const { email, password, ...rest } = payload
 
   try {
     const { id: userId } = await createEmailAuthAccount(email, password)
@@ -80,8 +79,8 @@ export async function createUserAccount(payload: UserCreatePayload) {
       data: {
         email,
         id: userId,
-        customerId: id,
-        image,
+        stripeCustomerId: id,
+        ...rest,
       },
     })
 
@@ -123,9 +122,9 @@ export async function updateUser(
 
 export async function deleteUser(id: User['id']) {
   try {
-    const { customerId } = await db.user.findUniqueOrThrow({ where: { id }, select: { customerId: true } })
+    const { stripeCustomerId } = await db.user.findUniqueOrThrow({ where: { id }, select: { stripeCustomerId: true } })
 
-    await stripe.customers.del(customerId)
+    await stripe.customers.del(stripeCustomerId)
     await deleteAuthAccount(id)
     await db.user.delete({ where: { id } })
 

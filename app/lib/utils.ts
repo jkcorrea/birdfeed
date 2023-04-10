@@ -1,9 +1,3 @@
-import _ from 'lodash'
-import type { ZodSchema } from 'zod'
-
-import type { Prisma, Token } from '@prisma/client'
-import { db } from '~/database'
-
 import { CLEANUP_WORDS } from './constants'
 import { NODE_ENV, SLACK_EVENTS_URL } from './env'
 
@@ -12,6 +6,7 @@ export * from './utils/celebrate'
 export * from './utils/cookies.server'
 export * from './utils/errors'
 export * from './utils/logger'
+export * from './utils/tokens'
 export * from './utils/types'
 export * from './utils/zod'
 
@@ -26,23 +21,6 @@ export const buildSendTweetUrl = (tweet: string, watermark = false) =>
   `https://twitter.com/intent/tweet?text=${encodeURIComponent(
     tweet + (watermark ? '\n\n🐣 via https://birdfeed.ai' : '')
   )}`
-
-export async function getGuardedToken<T = Record<string, any>>(
-  where: Prisma.TokenFindUniqueOrThrowArgs['where'],
-  schema?: ZodSchema<T>
-): Promise<Omit<Token, 'metadata'> & { metadata: T }> {
-  const token = await db.token.findUniqueOrThrow({
-    where,
-  })
-
-  if (!token.metadata || !_.isObject(token.metadata)) {
-    throw new Error('Token metadata is missing or not an object')
-  }
-
-  if (schema) schema.parse(token.metadata)
-
-  return token as Omit<Token, 'metadata'> & { metadata: T }
-}
 
 export const sendSlackEventMessage = (message: string) => {
   if (NODE_ENV !== 'production' || !SLACK_EVENTS_URL) return

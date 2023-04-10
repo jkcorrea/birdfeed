@@ -48,7 +48,7 @@ export const resetDB = async () => {
 
   // Create a default user
   const customerSearch = await stripe.customers.search({ query: `email:"${DEFAULT_USER}"` })
-  let customerId: string = user.customerId
+  let customerId: string = user.stripeCustomerId
   let stripeSubscriptionId: string
   if (customerSearch.data.length === 0) {
     const paymentMethod = await stripe.paymentMethods.create({
@@ -63,7 +63,7 @@ export const resetDB = async () => {
 
     await stripe.paymentMethods.attach(paymentMethod.id, { customer: customerId })
 
-    const subscription = await await stripe.subscriptions.create({
+    const subscription = await stripe.subscriptions.create({
       customer: customerId,
       default_payment_method: paymentMethod.id,
       items: [{ price: price.stripePriceId }],
@@ -82,9 +82,7 @@ export const resetDB = async () => {
 
   await db.user.update({
     where: { id: authSession.userId },
-    data: {
-      subscriptionId: stripeSubscriptionId,
-    },
+    data: { stripeSubscriptionId },
   })
 
   console.log(`Created default user: ${user.email} with password: ${DEFAULT_PASSWORD}`)

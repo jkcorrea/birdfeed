@@ -8,7 +8,6 @@ import type { ExternalScriptsFunction } from 'remix-utils'
 
 import { AnimatedWord } from '~/components/AnimatedWord'
 import { PublicFooter } from '~/components/PublicFooter'
-import { useSubscribeModal } from '~/components/SubscribeModal'
 import type { TranscriptUploaderHandle } from '~/components/TranscriptUploader'
 import TranscriptUploader from '~/components/TranscriptUploader'
 import { TweetCard } from '~/components/TweetCard'
@@ -68,7 +67,6 @@ export async function action({ request }: ActionArgs) {
 
 export default function Home() {
   const fetcher = useFetcher<typeof action>()
-  const { open: openSubscribeModal } = useSubscribeModal()
   const [isLoggedIn, setIsLoggedIn] = useState<boolean>(false)
 
   useEffect(() => {
