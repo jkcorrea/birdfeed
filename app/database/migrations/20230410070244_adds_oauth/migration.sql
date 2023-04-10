@@ -11,12 +11,12 @@ ALTER TYPE "TokenType" ADD VALUE 'PARTNER_AUTH_TOKEN';
 ALTER TYPE "TokenType" ADD VALUE 'PARTNER_VERIFY_ACCOUNT_TOKEN';
 
 -- CreateTable
-CREATE TABLE "OAuthPartner" (
+CREATE TABLE "oauth_partners" (
     "id" TEXT NOT NULL,
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updatedAt" TIMESTAMP(3) NOT NULL,
     "clientSecret" TEXT NOT NULL,
     "name" TEXT NOT NULL,
 
-    CONSTRAINT "OAuthPartner_pkey" PRIMARY KEY ("id")
+    CONSTRAINT "oauth_partners_pkey" PRIMARY KEY ("id")
 );
