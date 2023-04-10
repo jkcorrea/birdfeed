@@ -47,7 +47,7 @@ export const PartnerVerifyAccountTokenSchema = z
   .object({
     clientId: z.string(),
     redirectUri: z.string(),
-    state: z.string().nullable(),
+    state: z.string().optional(),
   })
   .passthrough()
 export type PartnerVerifyAccountToken = z.infer<typeof PartnerVerifyAccountTokenSchema>

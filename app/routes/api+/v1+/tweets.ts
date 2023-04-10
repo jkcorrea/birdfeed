@@ -4,7 +4,7 @@ import { zx } from 'zodix'
 
 import { db } from '~/database'
 import { apiResponse } from '~/lib/api.server'
-import { assertGet } from '~/lib/utils'
+import { AppError, assertGet } from '~/lib/utils'
 import { requireApiAuth } from '~/services/auth/api.server'
 
 const GetTweetsPayloadSchema = z.object({
@@ -18,7 +18,15 @@ export async function action({ request }: ActionArgs) {
     assertGet(request)
     const userId = await requireApiAuth(request)
 
-    const { transcriptId, limit, cursor } = zx.parseQuery(request, GetTweetsPayloadSchema)
+    const parsed = zx.parseQuerySafe(request, GetTweetsPayloadSchema)
+    if (!parsed.success) {
+      throw new AppError({
+        message: 'Invalid query parameters',
+        cause: parsed.error,
+        status: 400,
+      })
+    }
+    const { transcriptId, limit, cursor } = parsed.data
 
     await db.transcript.findUniqueOrThrow({
       where: {

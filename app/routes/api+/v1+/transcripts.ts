@@ -4,7 +4,7 @@ import { zx } from 'zodix'
 
 import { db } from '~/database'
 import { apiResponse } from '~/lib/api.server'
-import { assertGet } from '~/lib/utils'
+import { AppError, assertGet } from '~/lib/utils'
 import { requireApiAuth } from '~/services/auth'
 
 const GetTranscriptsPayloadSchema = z.object({
@@ -17,7 +17,15 @@ export async function action({ request }: ActionArgs) {
     assertGet(request)
     const userId = await requireApiAuth(request)
 
-    const { limit, cursor } = zx.parseQuery(request, GetTranscriptsPayloadSchema)
+    const parsed = zx.parseQuerySafe(request, GetTranscriptsPayloadSchema)
+    if (!parsed.success) {
+      throw new AppError({
+        message: 'Invalid query parameters',
+        cause: parsed.error,
+        status: 400,
+      })
+    }
+    const { limit, cursor } = parsed.data
 
     const transcripts = await db.transcript.findMany({
       where: {

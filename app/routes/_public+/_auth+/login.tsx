@@ -8,7 +8,7 @@ import { TextField } from '~/components/fields'
 import { APP_ROUTES } from '~/lib/constants'
 import { useIsSubmitting } from '~/lib/hooks'
 import { response } from '~/lib/http.server'
-import { getGuardedToken, parseData, tw } from '~/lib/utils'
+import { getGuardedToken, Logger, parseData, tw } from '~/lib/utils'
 import {
   buildOAuthRequestRedirectUrl,
   isAnonymousSession,
@@ -58,6 +58,7 @@ export async function action({ request }: ActionArgs) {
         metadata: { redirectUri, state },
       } = await getGuardedToken(partnerOAuthVerifyAccountToken, TokenType.PARTNER_VERIFY_ACCOUNT_TOKEN)
       redirectTo = await buildOAuthRequestRedirectUrl(authSession.userId, redirectUri, state)
+      Logger.log(`Redirecting to ${redirectTo} after partner OAuth verify account`)
     }
 
     return redirectWithNewAuthSession({ request, authSession, redirectTo })

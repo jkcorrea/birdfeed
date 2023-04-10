@@ -14,13 +14,21 @@ import { buildOAuthRequestRedirectUrl, getOptionalAuthSession } from '~/services
 const AuthorizePayloadSchema = z.object({
   client_id: z.string(),
   redirect_uri: z.string(),
-  state: z.string(),
+  state: z.string().optional(),
 })
 
 export async function loader({ request }: LoaderArgs) {
   try {
     assertGet(request)
-    const { client_id: clientId, redirect_uri: redirectUri, state } = zx.parseQuery(request, AuthorizePayloadSchema)
+    const parsed = zx.parseQuerySafe(request, AuthorizePayloadSchema)
+    if (!parsed.success) {
+      throw new AppError({
+        message: 'Invalid query parameters',
+        cause: parsed.error,
+        status: 400,
+      })
+    }
+    const { client_id: clientId, redirect_uri: redirectUri, state } = parsed.data
 
     const partner = await db.oAuthPartner.findUnique({
       where: { id: clientId },
