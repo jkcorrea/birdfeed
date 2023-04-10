@@ -30,7 +30,7 @@ async function twFetch(request: OAuth.RequestOptions, token?: OAuth.Token | unde
   })
 }
 
-export const getTwitterOAuthRedirectURL = async (partnerOAuthToken?: string) => {
+export const getTwitterOAuthRedirectURL = async (partnerOAuthVerifyAccountToken?: string) => {
   const tempOAuthToken = await twFetch({
     url: 'https://api.twitter.com/oauth/request_token',
     method: 'POST',
@@ -54,7 +54,7 @@ export const getTwitterOAuthRedirectURL = async (partnerOAuthToken?: string) => 
       expiresAt: new Date(Date.now() + 3600 * 1000),
       metadata: {
         lifecycle: 'setOnRedirectToTwitter',
-        partnerOAuthToken,
+        partnerOAuthVerifyAccountToken,
       },
     },
   })

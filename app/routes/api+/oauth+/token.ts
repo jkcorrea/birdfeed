@@ -1,10 +1,11 @@
 import { createId } from '@paralleldrive/cuid2'
 import type { ActionArgs } from '@remix-run/server-runtime'
+import { z } from 'zod'
 
 import { TokenType } from '@prisma/client'
 import { db } from '~/database'
 import { response } from '~/lib/http.server'
-import { getGuardedToken } from '~/lib/utils'
+import { getGuardedToken, parseData } from '~/lib/utils'
 
 export async function action({ request }: ActionArgs) {
   try {
@@ -12,13 +13,16 @@ export async function action({ request }: ActionArgs) {
       return response.error('Only JSON requests are allowed', { authSession: null })
     if (request.method !== 'POST') return response.error('Only POST requests are allowed', { authSession: null })
 
-    const { grantType, code, clientSecret, clientId } = await request.json()
-
-    if (grantType !== 'authorization_code' || !code || !clientId || !clientSecret) {
-      return response.error('Malformatted URL.  Birdfeed requires a grantType, code, clientSecret, clientId.', {
-        authSession: null,
-      })
-    }
+    const { code, clientSecret, clientId } = await parseData(
+      await request.json(),
+      z.object({
+        grantType: z.literal('authorization_code'),
+        code: z.string(),
+        clientSecret: z.string(),
+        clientId: z.string(),
+      }),
+      'Login form payload is invalid'
+    )
 
     const {
       id,

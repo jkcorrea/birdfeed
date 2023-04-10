@@ -2,7 +2,7 @@ import { createId } from '@paralleldrive/cuid2'
 import type { LoaderArgs } from '@remix-run/server-runtime'
 
 import { TokenType } from '@prisma/client'
-import { db } from '~/database'
+import { db } from '~/database/db.server'
 import { APP_ROUTES } from '~/lib/constants'
 import { response } from '~/lib/http.server'
 import { buildOAuthAuthorizationURL } from '~/lib/utils'
@@ -20,10 +20,8 @@ export async function loader({ request }: LoaderArgs) {
         authSession: null,
       })
 
-    const partner = await db.oAuthPartner.findUniqueOrThrow({
-      where: {
-        id: clientId,
-      },
+    const partner = await db.oAuthPartner.findUnique({
+      where: { id: clientId },
     })
 
     if (!partner) return response.error('Unable to find clientId', { authSession: null })
@@ -53,7 +51,7 @@ export async function loader({ request }: LoaderArgs) {
         },
       })
 
-      return response.redirect(`${APP_ROUTES.JOIN(1).href}?oauth_verify_account_token=${token}`, {
+      return response.redirect(`${APP_ROUTES.JOIN(1).href}?partner_oauth_verify_account_token=${token}`, {
         authSession: null,
       })
     }

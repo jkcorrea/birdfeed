@@ -32,7 +32,7 @@ const LoginFormSchema = z.object({
     .transform((email) => email.toLowerCase()),
   password: z.string().min(8, 'password-too-short'),
   redirectTo: z.string().optional(),
-  partnerOAuthToken: z.string().optional(),
+  partnerOAuthVerifyAccountToken: z.string().optional(),
 })
 
 export async function action({ request }: ActionArgs) {
@@ -43,11 +43,11 @@ export async function action({ request }: ActionArgs) {
       'Login form payload is invalid'
     )
 
-    const { email, password, redirectTo, partnerOAuthToken } = payload
+    const { email, password, redirectTo, partnerOAuthVerifyAccountToken } = payload
 
     const authSession = await signInWithEmail(email, password)
 
-    if (!partnerOAuthToken)
+    if (!partnerOAuthVerifyAccountToken)
       return redirectWithNewAuthSession({
         request,
         authSession,
@@ -56,7 +56,7 @@ export async function action({ request }: ActionArgs) {
 
     const {
       metadata: { redirectUri, state },
-    } = await getGuardedToken(partnerOAuthToken, TokenType.PARTNER_VERIFY_ACCOUNT_TOKEN)
+    } = await getGuardedToken(partnerOAuthVerifyAccountToken, TokenType.PARTNER_VERIFY_ACCOUNT_TOKEN)
 
     const redirectURLBuilt = await buildOAuthAuthorizationURL(authSession.userId, redirectUri, state)
 
@@ -71,7 +71,7 @@ export default function LoginPage() {
   const actionResponse = useActionData<typeof action>()
   const [searchParams] = useSearchParams()
   const redirectTo = searchParams.get('redirectTo') ?? undefined
-  const partnerOAuthToken = searchParams.get('partner_oauth_token') ?? undefined
+  const partnerOAuthVerifyAccountToken = searchParams.get('partner_oauth_verify_account_token') ?? undefined
   const nav = useNavigation()
   const isSubmitting = useIsSubmitting(nav)
 
@@ -101,7 +101,7 @@ export default function LoginPage() {
         />
 
         <input type="hidden" name={zo.fields.redirectTo()} value={redirectTo} />
-        <input type="hidden" name={zo.fields.partnerOAuthToken()} value={partnerOAuthToken} />
+        <input type="hidden" name={zo.fields.partnerOAuthVerifyAccountToken()} value={partnerOAuthVerifyAccountToken} />
       </div>
 
       {actionResponse?.error ? (

@@ -23,7 +23,7 @@ export async function loader({ request }: LoaderArgs) {
 
       const { metadata } = await getGuardedToken(oauthToken, TokenType.CLIENT_OAUTH_REQUEST_TOKEN)
 
-      const { partnerOAuthToken } = metadata
+      const { partnerOAuthVerifyAccountToken } = metadata
 
       const { twitterOAuthToken, twitterOAuthTokenSecret, twitterProfileData } = await getTwitterKeys(callbackUrl)
 
@@ -51,7 +51,7 @@ export async function loader({ request }: LoaderArgs) {
           expiresAt: new Date(Date.now() + 3600 * 1000 * 24),
           metadata: {
             lifecycle: 'setOnCallback',
-            partnerOAuthToken,
+            partnerOAuthVerifyAccountToken,
             twitterOAuthToken,
             twitterOAuthTokenSecret,
             ...twitterProfileDataProcessed,
@@ -67,7 +67,7 @@ export async function loader({ request }: LoaderArgs) {
 
       return response.redirect(
         `${APP_ROUTES.JOIN(2).href}?twitter_token=${updatedToken.token}${
-          partnerOAuthToken && `&partner_oauth_token=${partnerOAuthToken}`
+          partnerOAuthVerifyAccountToken && `&partner_oauth_verify_account_token=${partnerOAuthVerifyAccountToken}`
         }`,
         {
           authSession: null,

@@ -31,11 +31,11 @@ const TwitterVerifyPayload = z.object({
 export const ClientOAuthRequestTokenSchema = z.discriminatedUnion('lifecycle', [
   z.object({
     lifecycle: z.literal('setOnRedirectToTwitter'),
-    partnerOAuthToken: z.string().optional(),
+    partnerOAuthVerifyAccountToken: z.string().optional(),
   }),
   TwitterVerifyPayload.extend({
     lifecycle: z.literal('setOnCallback'),
-    partnerOAuthToken: z.string().optional(),
+    partnerOAuthVerifyAccountToken: z.string().optional(),
   }),
 ])
 export type ClientOAuthRequestToken = z.infer<typeof ClientOAuthRequestTokenSchema>

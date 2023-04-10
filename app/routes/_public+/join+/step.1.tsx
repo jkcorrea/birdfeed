@@ -30,15 +30,15 @@ export async function action({ request }: ActionArgs) {
     return response.redirect(APP_ROUTES.HOME.href, { authSession: null })
   }
   try {
-    const { oauthFlowToken } = await parseData(
+    const { partnerOAuthVerifyAccountToken } = await parseData(
       parseFormAny(await request.formData()),
       z.object({
-        oauthFlowToken: z.string().optional(),
+        partnerOAuthVerifyAccountToken: z.string().optional(),
       }),
-      'Form is malformed must only contain oauthFlowToken'
+      'Form is malformed must only contain partnerOAuthVerifyAccountToken'
     )
 
-    const redirectUrl = await getTwitterOAuthRedirectURL(oauthFlowToken)
+    const redirectUrl = await getTwitterOAuthRedirectURL(partnerOAuthVerifyAccountToken)
     return response.redirect(redirectUrl, { authSession: null })
   } catch (cause) {
     return response.error(cause, { authSession: null })
@@ -49,7 +49,7 @@ export default function Join() {
   const nav = useNavigation()
   const isSubmitting = useIsSubmitting(nav)
   const [searchParams] = useSearchParams()
-  const oauthFlowToken = searchParams.get('oauth_verify_account_token') ?? undefined
+  const partnerOAuthVerifyAccountToken = searchParams.get('partner_oauth_verify_account_token') ?? undefined
 
   return (
     <div className="space-y-6">
@@ -57,7 +57,7 @@ export default function Join() {
       <p className="mx-auto w-11/12">We turn your podcasts into tweets. Giving you great content ideas!</p>
 
       <Form method="post">
-        <input type="hidden" name="oauthFlowToken" value={oauthFlowToken} />
+        <input type="hidden" name="partnerOAuthVerifyAccountToken" value={partnerOAuthVerifyAccountToken} />
         <button
           disabled={isSubmitting}
           type="submit"

@@ -51,7 +51,7 @@ const JoinFormSchema = z.object({
   password: z.string().min(8, 'password-too-short'),
   twitterToken: z.string(),
   redirectTo: z.string().optional(),
-  partnerOAuthToken: z.string().optional(),
+  partnerOAuthVerifyAccountToken: z.string().optional(),
 })
 
 export async function action({ request }: ActionArgs) {
@@ -106,7 +106,7 @@ export async function action({ request }: ActionArgs) {
 
     sendSlackEventMessage(`New Subscription created for ${email}!`)
 
-    if (!payload.partnerOAuthToken)
+    if (!payload.partnerOAuthVerifyAccountToken)
       return redirectWithNewAuthSession({
         request,
         authSession,
@@ -115,7 +115,7 @@ export async function action({ request }: ActionArgs) {
 
     const {
       metadata: { redirectUri, state },
-    } = await getGuardedToken(payload.partnerOAuthToken, TokenType.PARTNER_VERIFY_ACCOUNT_TOKEN)
+    } = await getGuardedToken(payload.partnerOAuthVerifyAccountToken, TokenType.PARTNER_VERIFY_ACCOUNT_TOKEN)
 
     const redirectURLBuilt = await buildOAuthAuthorizationURL(userId, redirectUri, state)
 
@@ -132,7 +132,7 @@ export default function Join() {
   const [searchParams] = useSearchParams()
   const twitterToken = searchParams.get('twitter_token') ?? undefined
   const redirectTo = searchParams.get('redirectTo') ?? undefined
-  const partnerOAuthToken = searchParams.get('partner_oauth_token') ?? undefined
+  const partnerOAuthVerifyAccountToken = searchParams.get('partner_oauth_verify_account_token') ?? undefined
   const nav = useNavigation()
   const isSubmitting = useIsSubmitting(nav)
 
@@ -147,9 +147,6 @@ export default function Join() {
     <Form ref={zo.ref} method="post" className="space-y-6" replace>
       <div>
         <h1 className="whitespace-nowrap text-center text-4xl font-black leading-relaxed">Finish Up Free Account</h1>
-        <p className="align-right cursor-pointer text-xs text-gray-500" onClick={celebrate}>
-          More confetti!
-        </p>
       </div>
 
       <div className="space-y-1.5 pb-4">
@@ -177,7 +174,7 @@ export default function Join() {
 
         <input type="hidden" name={zo.fields.redirectTo()} value={redirectTo} />
         <input type="hidden" name={zo.fields.twitterToken()} value={twitterToken} />
-        <input type="hidden" name={zo.fields.partnerOAuthToken()} value={partnerOAuthToken} />
+        <input type="hidden" name={zo.fields.partnerOAuthVerifyAccountToken()} value={partnerOAuthVerifyAccountToken} />
         {actionResponse?.error && (
           <div className="text-error" id="name-error">
             {actionResponse.error.message}
