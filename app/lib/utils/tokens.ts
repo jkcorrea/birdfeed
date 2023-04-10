@@ -13,7 +13,7 @@ export const CheckoutTokenSchema = z.object({
 })
 export type CheckoutToken = z.infer<typeof CheckoutTokenSchema>
 
-export const OAuthAccessTokenSchema = z.object({
+export const ClientOAuthRequestTokenSchema = z.object({
   twitterOAuthToken: z.string(),
   twitterOAuthTokenSecret: z.string(),
   id_str: z.string(),
@@ -27,17 +27,16 @@ export const OAuthAccessTokenSchema = z.object({
   location: z.string(),
   lang: z.string(),
 })
-export type OAuthAccessToken = z.infer<typeof OAuthAccessTokenSchema>
+export type ClientOAuthRequestToken = z.infer<typeof ClientOAuthRequestTokenSchema>
 
-// TODO add back passthrough if it works
-export const OAuthRequestTokenSchema = z.object({ email: z.string() })
-export type OAuthRequestToken = z.infer<typeof OAuthRequestTokenSchema>
+export const ClientOAuthAccessTokenSchema = ClientOAuthRequestTokenSchema
+export type ClientOAuthAccessToken = z.infer<typeof ClientOAuthAccessTokenSchema>
 
 const metaSchemas = {
   [TokenType.ANON_CHECKOUT_TOKEN]: CheckoutTokenSchema,
   [TokenType.AUTH_CHECKOUT_TOKEN]: CheckoutTokenSchema,
-  [TokenType.OAUTH_ACCESS_TOKEN]: OAuthAccessTokenSchema,
-  [TokenType.OAUTH_REQUEST_TOKEN]: OAuthRequestTokenSchema,
+  [TokenType.CLIENT_OAUTH_ACCESS_TOKEN]: ClientOAuthAccessTokenSchema,
+  [TokenType.CLIENT_OAUTH_REQUEST_TOKEN]: ClientOAuthRequestTokenSchema,
 } as const satisfies Record<TokenType, z.AnyZodObject>
 
 /**

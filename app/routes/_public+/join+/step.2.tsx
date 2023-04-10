@@ -10,7 +10,7 @@ import { db } from '~/database'
 import { APP_ROUTES } from '~/lib/constants'
 import { useIsSubmitting } from '~/lib/hooks'
 import { response } from '~/lib/http.server'
-import type { OAuthAccessToken } from '~/lib/utils'
+import type { ClientOAuthAccessToken } from '~/lib/utils'
 import { AppError, celebrate, getGuardedToken, parseData, sendSlackEventMessage } from '~/lib/utils'
 import { createAuthSession, isAnonymousSession } from '~/services/auth'
 import { createUserAccount, getUserByEmail } from '~/services/user'
@@ -26,7 +26,7 @@ export async function loader({ request }: LoaderArgs) {
 
     // The initial twitter request token may have had an email attached to it
     // If so we can pre-populate the email field
-    const { metadata } = await getGuardedToken(token, TokenType.OAUTH_REQUEST_TOKEN)
+    const { metadata } = await getGuardedToken(token, TokenType.CLIENT_OAUTH_REQUEST_TOKEN)
 
     return response.ok({ email: metadata.email || null }, { authSession: null })
   } catch (cause) {
@@ -52,7 +52,7 @@ export async function action({ request }: ActionArgs) {
       'Join form payload is invalid'
     )
 
-    const token = await getGuardedToken(payload.twitterToken, TokenType.OAUTH_ACCESS_TOKEN)
+    const token = await getGuardedToken(payload.twitterToken, TokenType.CLIENT_OAUTH_REQUEST_TOKEN)
     if (!token.active) throw new AppError('token is not active')
     if (token.expiresAt! < new Date(Date.now())) throw new AppError('token is expired')
     const { twitterOAuthToken, profile_image_url_https } = token.metadata
@@ -85,9 +85,9 @@ export async function action({ request }: ActionArgs) {
             },
           },
           token: twitterOAuthToken,
-          type: TokenType.OAUTH_ACCESS_TOKEN,
+          type: TokenType.CLIENT_OAUTH_ACCESS_TOKEN,
           active: true,
-          metadata: token.metadata satisfies OAuthAccessToken,
+          metadata: token.metadata satisfies ClientOAuthAccessToken,
         },
       }),
       // Also, delete the temp/request token
