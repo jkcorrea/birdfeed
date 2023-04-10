@@ -6,7 +6,6 @@ import { APP_ROUTES } from '~/lib/constants'
 import { response } from '~/lib/http.server'
 import { AppError, getGuardedToken } from '~/lib/utils'
 import { requireAuthSession } from '~/services/auth'
-import { CheckoutTokenMeta } from '~/services/billing'
 
 // Callback for when checkout is completed
 // (anon checkout goes to /join)
@@ -18,23 +17,13 @@ export async function loader({ request }: LoaderArgs) {
   const checkoutToken = url.searchParams.get('token')
   if (!checkoutToken) throw new Error('No checkout token provided')
 
-  const token = await getGuardedToken(
-    {
-      token_type: {
-        token: checkoutToken,
-        type: TokenType.AUTH_CHECKOUT_TOKEN,
-      },
-    },
-    CheckoutTokenMeta
-  )
-
+  const token = await getGuardedToken(checkoutToken, TokenType.AUTH_CHECKOUT_TOKEN)
   if (!token.active) throw new AppError('token is not active')
 
   const { stripeSubscriptionId } = token.metadata
-
   await db.user.update({
     where: { id: userId },
-    data: { subscriptionId: stripeSubscriptionId },
+    data: { stripeSubscriptionId },
   })
 
   await db.token.delete({ where: { id: token.id } })

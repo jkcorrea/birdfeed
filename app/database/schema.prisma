@@ -23,34 +23,17 @@ model User {
   updatedAt DateTime @updatedAt
   email     String   @unique
 
-  image String?
+  avatarUrl            String?
+  twitterId            String?
+  twitterHandle        String?
+  stripeCustomerId     String  @unique // Stripe customer id
+  stripeSubscriptionId String?
 
-  transcript Transcript[]
-
-  
-  twitter   TwitterCredential[]
-
-  customerId     String @unique // Stripe customer id
-  subscriptionId String?
+  transcripts Transcript[]
+  tokens      Token[]
 
   @@map("users")
 }
-
-model TwitterCredential {
-  id        String   @id @default(cuid())
-
-  handle    String
-  twitterId String
-  token     String
-  secret    String
-
-  userId String
-  user   User @relation(fields: [userId], references: [id], onDelete: Cascade)
-
-  @@unique([twitterId, userId])
-  @@map("twitter_credentials")
-}
-
 
 model Price {
   stripePriceId   String @id
@@ -101,7 +84,8 @@ model Tweet {
 enum TokenType {
   ANON_CHECKOUT_TOKEN
   AUTH_CHECKOUT_TOKEN
-  TWITTER_OAUTH_TOKEN
+  OAUTH_REQUEST_TOKEN
+  OAUTH_ACCESS_TOKEN
 }
 
 // Tokens require a type.  The schema of the metadata is dependent on the type
@@ -115,6 +99,9 @@ model Token {
   type      TokenType
   expiresAt DateTime?
   metadata  Json      @default("{}")
+
+  user   User?   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId String?
 
   @@unique([token, type])
   @@map("tokens")

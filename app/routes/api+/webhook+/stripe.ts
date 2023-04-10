@@ -60,13 +60,7 @@ export async function action({ request }: ActionArgs) {
         )
 
         const { token, tokenType } = stripeMetadata
-
-        const { metadata, id } = await getGuardedToken({
-          token_type: {
-            token,
-            type: tokenType,
-          },
-        })
+        const { metadata, id } = await getGuardedToken(token, tokenType)
 
         await db.token.update({
           where: {
@@ -100,17 +94,13 @@ export async function action({ request }: ActionArgs) {
         )
 
         const user = await db.user.findUnique({
-          where: {
-            customerId: stripeCustomerId,
-          },
-          select: {
-            email: true,
-          },
+          where: { stripeCustomerId },
+          select: { email: true },
         })
 
         sendSlackEventMessage(
-          `Subscription ${event.type.split('.')[2]} for ${user?.email || 'unknown user'} 
-          
+          `Subscription ${event.type.split('.')[2]} for ${user?.email || 'unknown user'}
+
           Status: ${status}
           Cancel at period end: ${cancel_at_period_end}`
         )

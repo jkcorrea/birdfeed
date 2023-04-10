@@ -10,12 +10,12 @@ export async function action({ request }: ActionArgs) {
   const { userId } = authSession
 
   try {
-    const { customerId } = await db.user.findUniqueOrThrow({
+    const { stripeCustomerId } = await db.user.findUniqueOrThrow({
       where: {
         id: userId,
       },
     })
-    const { url } = await createBillingPortalSession(customerId)
+    const { url } = await createBillingPortalSession(stripeCustomerId)
 
     return response.redirect(url, { authSession })
   } catch (cause) {
