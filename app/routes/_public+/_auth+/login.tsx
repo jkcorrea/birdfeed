@@ -10,9 +10,9 @@ import { useIsSubmitting } from '~/lib/hooks'
 import { response } from '~/lib/http.server'
 import { getGuardedToken, parseData, tw } from '~/lib/utils'
 import {
-  buildOAuthPartnerRedirectUrl,
-  createAuthSession,
+  buildOAuthRequestRedirectUrl,
   isAnonymousSession,
+  redirectWithNewAuthSession,
   signInWithPassword,
 } from '~/services/auth'
 
@@ -57,10 +57,10 @@ export async function action({ request }: ActionArgs) {
       const {
         metadata: { redirectUri, state },
       } = await getGuardedToken(partnerOAuthVerifyAccountToken, TokenType.PARTNER_VERIFY_ACCOUNT_TOKEN)
-      redirectTo = await buildOAuthPartnerRedirectUrl(authSession.userId, redirectUri, state)
+      redirectTo = await buildOAuthRequestRedirectUrl(authSession.userId, redirectUri, state)
     }
 
-    return createAuthSession({ request, authSession, redirectTo })
+    return redirectWithNewAuthSession({ request, authSession, redirectTo })
   } catch (cause) {
     return response.error(cause, { authSession: null })
   }

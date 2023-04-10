@@ -35,7 +35,7 @@ export async function requireApiAuth(request: Request) {
 /**
  * Builds a redirect URL for an OAuth partner with a persisted temporary token
  */
-export const buildOAuthPartnerRedirectUrl = async (
+export const buildOAuthRequestRedirectUrl = async (
   userId: string,
   encodedRedirectUri: string,
   state: string | null
@@ -45,7 +45,7 @@ export const buildOAuthPartnerRedirectUrl = async (
   const { token } = await db.token.create({
     data: {
       token: createId(),
-      type: TokenType.PARTNER_AUTH_TOKEN,
+      type: TokenType.PARTNER_REQUEST_TOKEN,
       active: true,
       expiresAt: new Date(Date.now() + 3600 * 1000 * 24),
       metadata: {

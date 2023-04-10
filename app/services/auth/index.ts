@@ -7,10 +7,10 @@ export {
   updateAccountPassword,
 } from './auth.server'
 export {
-  createAuthSession,
   destroyAuthSession,
   getOptionalAuthSession,
   isAnonymousSession,
+  redirectWithNewAuthSession,
   requireAuthSession,
 } from './session.server'
 export * from './types'

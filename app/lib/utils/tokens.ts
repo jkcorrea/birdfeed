@@ -57,7 +57,7 @@ const metaSchemas = {
   [TokenType.AUTH_CHECKOUT_TOKEN]: CheckoutTokenSchema,
   [TokenType.CLIENT_OAUTH_ACCESS_TOKEN]: ClientOAuthAccessTokenSchema,
   [TokenType.CLIENT_OAUTH_REQUEST_TOKEN]: ClientOAuthRequestTokenSchema,
-  [TokenType.PARTNER_AUTH_TOKEN]: z.object({ userId: z.string() }),
+  [TokenType.PARTNER_REQUEST_TOKEN]: z.object({ userId: z.string() }),
   [TokenType.PARTNER_ACCESS_TOKEN]: z.object({ clientId: z.string() }),
   [TokenType.PARTNER_VERIFY_ACCOUNT_TOKEN]: PartnerVerifyAccountTokenSchema,
 } as const satisfies Record<TokenType, z.ZodTypeAny>

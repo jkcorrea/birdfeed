@@ -13,7 +13,7 @@ import { useIsSubmitting } from '~/lib/hooks'
 import { response } from '~/lib/http.server'
 import type { ClientOAuthAccessToken } from '~/lib/utils'
 import { AppError, celebrate, getGuardedToken, parseData, sendSlackEventMessage } from '~/lib/utils'
-import { buildOAuthPartnerRedirectUrl, createAuthSession, isAnonymousSession } from '~/services/auth'
+import { buildOAuthRequestRedirectUrl, isAnonymousSession, redirectWithNewAuthSession } from '~/services/auth'
 import { createUserAccount, getUserByEmail } from '~/services/user'
 
 export async function loader({ request }: LoaderArgs) {
@@ -106,10 +106,10 @@ export async function action({ request }: ActionArgs) {
         metadata: { redirectUri, state },
       } = await getGuardedToken(partnerOAuthVerifyAccountToken, TokenType.PARTNER_VERIFY_ACCOUNT_TOKEN)
 
-      redirectTo = await buildOAuthPartnerRedirectUrl(userId, redirectUri, state)
+      redirectTo = await buildOAuthRequestRedirectUrl(userId, redirectUri, state)
     }
 
-    return createAuthSession({ request, authSession, redirectTo })
+    return redirectWithNewAuthSession({ request, authSession, redirectTo })
   } catch (cause) {
     return response.error(cause, { authSession: null })
   }

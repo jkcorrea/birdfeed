@@ -29,7 +29,7 @@ const sessionStorage = createCookieSessionStorage({
   },
 })
 
-export async function createAuthSession({
+export async function redirectWithNewAuthSession({
   request,
   authSession,
   redirectTo,

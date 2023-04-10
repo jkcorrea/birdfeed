@@ -28,7 +28,7 @@ export async function action({ request }: ActionArgs) {
     const {
       id,
       metadata: { userId },
-    } = await getGuardedToken(code, TokenType.PARTNER_AUTH_TOKEN)
+    } = await getGuardedToken(code, TokenType.PARTNER_REQUEST_TOKEN)
 
     const partner = await db.oAuthPartner.findUnique({
       where: {
