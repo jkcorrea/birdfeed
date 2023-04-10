@@ -8,9 +8,13 @@ import { TextField } from '~/components/fields'
 import { APP_ROUTES } from '~/lib/constants'
 import { useIsSubmitting } from '~/lib/hooks'
 import { response } from '~/lib/http.server'
-import { getGuardedToken, parseData, tw } from '~/lib/utils'
-import { createAuthSession, isAnonymousSession, redirectWithNewAuthSession, signInWithEmail } from '~/services/auth'
-import { buildOAuthAuthorizationURL } from '~/services/auth/api.server'
+import { getGuardedToken, Logger, parseData, tw } from '~/lib/utils'
+import {
+  buildOAuthRequestRedirectUrl,
+  isAnonymousSession,
+  redirectWithNewAuthSession,
+  signInWithPassword,
+} from '~/services/auth'
 
 export async function loader({ request }: LoaderArgs) {
   try {
@@ -44,24 +48,20 @@ export async function action({ request }: ActionArgs) {
       'Login form payload is invalid'
     )
 
-    const { email, password, redirectTo, partnerOAuthVerifyAccountToken } = payload
+    const { email, password, partnerOAuthVerifyAccountToken } = payload
 
-    const authSession = await signInWithEmail(email, password)
+    const authSession = await signInWithPassword(email, password)
 
-    if (!partnerOAuthVerifyAccountToken)
-      return redirectWithNewAuthSession({
-        request,
-        authSession,
-        redirectTo: redirectTo || APP_ROUTES.HOME.href,
-      })
+    let redirectTo = payload.redirectTo || APP_ROUTES.HOME.href
+    if (partnerOAuthVerifyAccountToken) {
+      const {
+        metadata: { redirectUri, state },
+      } = await getGuardedToken(partnerOAuthVerifyAccountToken, TokenType.PARTNER_VERIFY_ACCOUNT_TOKEN)
+      redirectTo = await buildOAuthRequestRedirectUrl(authSession.userId, redirectUri, state)
+      Logger.log(`Redirecting to ${redirectTo} after partner OAuth verify account`)
+    }
 
-    const {
-      metadata: { redirectUri, state },
-    } = await getGuardedToken(partnerOAuthVerifyAccountToken, TokenType.PARTNER_VERIFY_ACCOUNT_TOKEN)
-
-    const redirectURLBuilt = await buildOAuthAuthorizationURL(authSession.userId, redirectUri, state)
-
-    return response.redirect(redirectURLBuilt, { authSession: await createAuthSession({ request, authSession }) })
+    return redirectWithNewAuthSession({ request, authSession, redirectTo })
   } catch (cause) {
     return response.error(cause, { authSession: null })
   }

@@ -88,10 +88,9 @@ model OAuthPartner {
 
   clientSecret String
   name         String
+
   @@map("oauth_partners")
 }
-
-
 
 enum TokenType {
   ANON_CHECKOUT_TOKEN
@@ -99,11 +98,11 @@ enum TokenType {
   CLIENT_OAUTH_ACCESS_TOKEN
   CLIENT_OAUTH_REQUEST_TOKEN
   PARTNER_ACCESS_TOKEN
-  PARTNER_AUTH_TOKEN
+  PARTNER_REQUEST_TOKEN
   PARTNER_VERIFY_ACCOUNT_TOKEN
 }
 
-// Tokens require a type.  The schema of the metadata is dependent on the type
+// Tokens require a type. The schema of the metadata is dependent on the type
 model Token {
   id        String   @id @default(cuid())
   createdAt DateTime @default(now())

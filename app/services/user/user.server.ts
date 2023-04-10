@@ -1,6 +1,6 @@
 import { db } from '~/database'
 import { AppError } from '~/lib/utils'
-import { createEmailAuthAccount, deleteAuthAccount, signInWithEmail } from '~/services/auth'
+import { createEmailAuthAccount, deleteAuthAccount, signInWithPassword } from '~/services/auth'
 import { stripe } from '~/services/billing'
 
 import { deleteAuthAccountByEmail } from '../auth/auth.server'
@@ -72,7 +72,7 @@ export async function createUserAccount(payload: UserCreatePayload) {
 
   try {
     const { id: userId } = await createEmailAuthAccount(email, password)
-    const authSession = await signInWithEmail(email, password)
+    const authSession = await signInWithPassword(email, password)
     const { id } = await stripe.customers.create()
 
     await db.user.create({

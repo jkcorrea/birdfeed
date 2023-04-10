@@ -1,13 +1,14 @@
-export { refreshAccessToken } from './auth.server'
+export * from './api.server'
 export {
   createEmailAuthAccount,
   deleteAuthAccount,
-  refreshAccessToken as refreshAuthAccessToken,
-  signInWithPassword as signInWithEmail,
+  refreshAccessToken,
+  signInWithPassword,
+  updateAccountPassword,
 } from './auth.server'
 export {
-  createAuthSession,
   destroyAuthSession,
+  getOptionalAuthSession,
   isAnonymousSession,
   redirectWithNewAuthSession,
   requireAuthSession,

@@ -4,30 +4,31 @@ import { z } from 'zod'
 
 import { TokenType } from '@prisma/client'
 import { db } from '~/database'
-import { response } from '~/lib/http.server'
-import { getGuardedToken, parseData } from '~/lib/utils'
+import { apiResponse } from '~/lib/api.server'
+import { AppError, assertJson, assertPost, getGuardedToken, parseData } from '~/lib/utils'
+
+const CreateTokenPayloadSchema = z.object({
+  grantType: z.literal('authorization_code'),
+  code: z.string(),
+  clientSecret: z.string(),
+  clientId: z.string(),
+})
 
 export async function action({ request }: ActionArgs) {
   try {
-    if (request.headers.get('Content-Type') !== 'application/json')
-      return response.error('Only JSON requests are allowed', { authSession: null })
-    if (request.method !== 'POST') return response.error('Only POST requests are allowed', { authSession: null })
+    assertPost(request)
+    assertJson(request)
 
     const { code, clientSecret, clientId } = await parseData(
       await request.json(),
-      z.object({
-        grantType: z.literal('authorization_code'),
-        code: z.string(),
-        clientSecret: z.string(),
-        clientId: z.string(),
-      }),
-      'Login form payload is invalid'
+      CreateTokenPayloadSchema,
+      'Payload is invalid'
     )
 
     const {
       id,
       metadata: { userId },
-    } = await getGuardedToken(code, TokenType.PARTNER_AUTH_TOKEN)
+    } = await getGuardedToken(code, TokenType.PARTNER_REQUEST_TOKEN)
 
     const partner = await db.oAuthPartner.findUnique({
       where: {
@@ -36,7 +37,11 @@ export async function action({ request }: ActionArgs) {
       },
     })
 
-    if (!partner) return response.error('Incorrect Client ID or Secret.', { authSession: null })
+    if (!partner)
+      throw new AppError({
+        message: 'Incorrect Client ID or Secret',
+        status: 401,
+      })
 
     const [_, { token }] = await db.$transaction([
       db.token.delete({
@@ -57,14 +62,8 @@ export async function action({ request }: ActionArgs) {
       }),
     ])
 
-    return response.ok(
-      {
-        token,
-        token_type: 'Bearer',
-      },
-      { authSession: null }
-    )
+    return apiResponse.ok({ token, token_type: 'Bearer' })
   } catch (cause) {
-    throw response.error(cause, { authSession: null })
+    return apiResponse.error(cause)
   }
 }

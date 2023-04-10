@@ -10,9 +10,7 @@ import { APP_ROUTES } from '~/lib/constants'
 import { useIsSubmitting } from '~/lib/hooks'
 import { response } from '~/lib/http.server'
 import { AppError, assertPost, parseData } from '~/lib/utils'
-import { refreshAccessToken } from '~/services/auth'
-import { updateAccountPassword } from '~/services/auth/auth.server'
-import { redirectWithNewAuthSession } from '~/services/auth/session.server'
+import { redirectWithNewAuthSession, refreshAccessToken, updateAccountPassword } from '~/services/auth'
 import { getSupabase } from '~/services/supabase'
 
 const ResetPasswordSchema = z

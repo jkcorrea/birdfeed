@@ -1,40 +1,50 @@
 import { createId } from '@paralleldrive/cuid2'
 import type { LoaderArgs } from '@remix-run/server-runtime'
+import { redirect } from '@remix-run/server-runtime'
+import { z } from 'zod'
+import { zx } from 'zodix'
 
 import { TokenType } from '@prisma/client'
 import { db } from '~/database/db.server'
 import { APP_ROUTES } from '~/lib/constants'
 import { response } from '~/lib/http.server'
-import { buildOAuthAuthorizationURL } from '~/services/auth/api.server'
-import { getOptionalAuthSession } from '~/services/auth/session.server'
+import { AppError, assertGet } from '~/lib/utils'
+import { buildOAuthRequestRedirectUrl, getOptionalAuthSession } from '~/services/auth'
+
+const AuthorizePayloadSchema = z.object({
+  client_id: z.string(),
+  redirect_uri: z.string(),
+  state: z.string().optional(),
+})
 
 export async function loader({ request }: LoaderArgs) {
   try {
-    const url = new URL(request.url)
-    const clientId = url.searchParams.get('client_id')
-    const redirectUri = url.searchParams.get('redirect_uri')
-    const state = url.searchParams.get('state')
-
-    if (!clientId || !redirectUri)
-      return response.error('Malformatted URL.  Birdfeed requires a clientId and a Redirect URI.', {
-        authSession: null,
+    assertGet(request)
+    const parsed = zx.parseQuerySafe(request, AuthorizePayloadSchema)
+    if (!parsed.success) {
+      throw new AppError({
+        message: 'Invalid query parameters',
+        cause: parsed.error,
+        status: 400,
       })
+    }
+    const { client_id: clientId, redirect_uri: redirectUri, state } = parsed.data
 
     const partner = await db.oAuthPartner.findUnique({
       where: { id: clientId },
     })
-
-    if (!partner) return response.error('Unable to find clientId', { authSession: null })
+    if (!partner)
+      throw new AppError({
+        message: 'Unable to find clientId',
+        status: 401,
+      })
 
     const authSession = await getOptionalAuthSession(request)
-
     if (authSession) {
       // User is already logged in, so we can just redirect them to the redirectUri with the authorization code
-      const redirectURLBuilt = await buildOAuthAuthorizationURL(authSession.userId, redirectUri, state)
+      const redirectURLBuilt = await buildOAuthRequestRedirectUrl(authSession.userId, redirectUri, state)
 
-      return response.redirect(redirectURLBuilt, {
-        authSession,
-      })
+      return redirect(redirectURLBuilt)
     } else {
       // User is not logged in, so we need to create an internal flow token and redirect them to the login page
       const { token } = await db.token.create({
@@ -51,9 +61,7 @@ export async function loader({ request }: LoaderArgs) {
         },
       })
 
-      return response.redirect(`${APP_ROUTES.JOIN(1).href}?partner_oauth_verify_account_token=${token}`, {
-        authSession: null,
-      })
+      return redirect(`${APP_ROUTES.JOIN(1).href}?partner_oauth_verify_account_token=${token}`)
     }
   } catch (cause) {
     throw response.error(cause, { authSession: null })

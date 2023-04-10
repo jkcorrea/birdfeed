@@ -13,6 +13,7 @@ module.exports = {
     'gpt-3-encoder',
     'gpt3-tokenizer',
     'eventemitter3',
+    'lodash-es',
   ],
   routes: (defineRoutes) => flatRoutes('routes', defineRoutes),
   future: {
