@@ -60,6 +60,7 @@ export async function action({ request }: ActionArgs) {
     if (metadata.lifecycle !== 'setOnCallback') throw new AppError('Invalid token lifecycle')
 
     const { profile_image_url_https } = metadata
+    const avatarUrl = profile_image_url_https === '' ? undefined : profile_image_url_https
     const { email, password, redirectTo } = payload
     const existingUser = await getUserByEmail(email)
 
@@ -74,13 +75,13 @@ export async function action({ request }: ActionArgs) {
     const authSession = await createUserAccount({
       email,
       password,
-      avatarUrl: profile_image_url_https === '' ? undefined : profile_image_url_https,
+      avatarUrl,
     })
 
     const { userId } = authSession
 
     await db.$transaction([
-      // Create a long-lived OAuth access token for the user
+      // Store the long-lived OAuth access token for the user
       db.token.create({
         data: {
           user: {

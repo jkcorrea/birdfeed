@@ -21,6 +21,9 @@ declare global {
       STRIPE_SECRET_KEY: string
       STRIPE_ENDPOINT_SECRET: string
       OPENAI_API_KEY: string
+      TWITTER_CONSUMER_KEY: string
+      TWITTER_CONSUMER_SECRET: string
+      TWITTER_CALLBACK_URL: string
       DEEPGRAM_API_KEY: string
       S3_ACCOUNT_ID?: string
       S3_ACCESS_KEY_ID?: string

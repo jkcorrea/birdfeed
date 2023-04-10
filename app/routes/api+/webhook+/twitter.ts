@@ -7,7 +7,7 @@ import { response } from '~/lib/http.server'
 import type { ClientOAuthRequestToken } from '~/lib/utils'
 import { getGuardedToken, sendSlackEventMessage } from '~/lib/utils'
 import { getOptionalAuthSession } from '~/services/auth/session.server'
-import { getTwitterKeys } from '~/services/twitter'
+import { completeTwitterOauth, parseOAuthTokensFromUrl } from '~/services/twitter'
 
 const safeToString = (value: number | boolean | string) => (value || '').toString()
 
@@ -16,16 +16,18 @@ export async function loader({ request }: LoaderArgs) {
 
   try {
     if (!authSession) {
-      const callbackUrl = new URL(request.url)
-      const oauthToken = callbackUrl.searchParams.get('oauth_token')
-
-      if (!oauthToken) return response.error('No oauth token from twitter', { authSession: null })
-
-      const { metadata } = await getGuardedToken(oauthToken, TokenType.CLIENT_OAUTH_REQUEST_TOKEN)
-
-      const { partnerOAuthVerifyAccountToken } = metadata
-
-      const { twitterOAuthToken, twitterOAuthTokenSecret, twitterProfileData } = await getTwitterKeys(callbackUrl)
+      // Retrieve tokens from querystring
+      const { oauth_token, oauth_verifier } = parseOAuthTokensFromUrl(request.url)
+      // Submit them to twitter to get a long-lived access token & profile data
+      const { twitterOAuthToken, twitterOAuthTokenSecret, twitterProfileData } = await completeTwitterOauth({
+        oauth_token,
+        oauth_verifier,
+      })
+      // Retrieve the temp token we created when the user first clicked the twitter button
+      // Which may contain info on which partner they were referred from
+      const {
+        metadata: { partnerOAuthVerifyAccountToken },
+      } = await getGuardedToken(oauth_token, TokenType.CLIENT_OAUTH_REQUEST_TOKEN)
 
       const twitterProfileDataProcessed = {
         id_str: safeToString(twitterProfileData.id_str),
@@ -40,10 +42,12 @@ export async function loader({ request }: LoaderArgs) {
         lang: safeToString(twitterProfileData.lang),
       }
 
+      // Create a temp token to store the twitter data
+      // We'll create a long lived access token when the user completes the signup process
       const updatedToken = await db.token.update({
         where: {
           token_type: {
-            token: oauthToken,
+            token: oauth_token,
             type: TokenType.CLIENT_OAUTH_REQUEST_TOKEN,
           },
         },
@@ -74,7 +78,7 @@ export async function loader({ request }: LoaderArgs) {
         }
       )
     } else {
-      //TODO: add twitter account to user if logged in
+      // TODO: add twitter account to user if logged in
       return response.redirect(APP_ROUTES.HOME.href, { authSession })
     }
   } catch (cause) {
