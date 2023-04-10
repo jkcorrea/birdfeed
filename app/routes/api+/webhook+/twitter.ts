@@ -6,7 +6,7 @@ import { APP_ROUTES } from '~/lib/constants'
 import { response } from '~/lib/http.server'
 import type { ClientOAuthRequestToken } from '~/lib/utils'
 import { getGuardedToken, sendSlackEventMessage } from '~/lib/utils'
-import { getOptionalAuthSession } from '~/services/auth/session.server'
+import { getOptionalAuthSession } from '~/services/auth'
 import { completeTwitterOauth, parseOAuthTokensFromUrl } from '~/services/twitter'
 
 const safeToString = (value: number | boolean | string) => (value || '').toString()

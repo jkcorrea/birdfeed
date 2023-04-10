@@ -13,8 +13,7 @@ import { useIsSubmitting } from '~/lib/hooks'
 import { response } from '~/lib/http.server'
 import type { ClientOAuthAccessToken } from '~/lib/utils'
 import { AppError, celebrate, getGuardedToken, parseData, sendSlackEventMessage } from '~/lib/utils'
-import { createAuthSession, isAnonymousSession, redirectWithNewAuthSession } from '~/services/auth'
-import { buildOAuthAuthorizationURL } from '~/services/auth/api.server'
+import { buildOAuthPartnerRedirectUrl, createAuthSession, isAnonymousSession } from '~/services/auth'
 import { createUserAccount, getUserByEmail } from '~/services/user'
 
 export async function loader({ request }: LoaderArgs) {
@@ -61,7 +60,7 @@ export async function action({ request }: ActionArgs) {
 
     const { profile_image_url_https } = metadata
     const avatarUrl = profile_image_url_https === '' ? undefined : profile_image_url_https
-    const { email, password, redirectTo } = payload
+    const { email, password, partnerOAuthVerifyAccountToken } = payload
     const existingUser = await getUserByEmail(email)
 
     if (existingUser) {
@@ -101,20 +100,16 @@ export async function action({ request }: ActionArgs) {
 
     sendSlackEventMessage(`New Subscription created for ${email}!`)
 
-    if (!payload.partnerOAuthVerifyAccountToken)
-      return redirectWithNewAuthSession({
-        request,
-        authSession,
-        redirectTo: redirectTo || APP_ROUTES.HOME.href,
-      })
+    let redirectTo = payload.redirectTo || APP_ROUTES.HOME.href
+    if (partnerOAuthVerifyAccountToken) {
+      const {
+        metadata: { redirectUri, state },
+      } = await getGuardedToken(partnerOAuthVerifyAccountToken, TokenType.PARTNER_VERIFY_ACCOUNT_TOKEN)
 
-    const {
-      metadata: { redirectUri, state },
-    } = await getGuardedToken(payload.partnerOAuthVerifyAccountToken, TokenType.PARTNER_VERIFY_ACCOUNT_TOKEN)
+      redirectTo = await buildOAuthPartnerRedirectUrl(userId, redirectUri, state)
+    }
 
-    const redirectURLBuilt = await buildOAuthAuthorizationURL(userId, redirectUri, state)
-
-    return response.redirect(redirectURLBuilt, { authSession: await createAuthSession({ request, authSession }) })
+    return createAuthSession({ request, authSession, redirectTo })
   } catch (cause) {
     return response.error(cause, { authSession: null })
   }

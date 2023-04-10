@@ -5,9 +5,10 @@ import { zx } from 'zodix'
 import { db } from '~/database'
 import { apiResponse } from '~/lib/api.server'
 import { assertGet } from '~/lib/utils'
-import { requireApiAuth } from '~/services/auth'
+import { requireApiAuth } from '~/services/auth/api.server'
 
-const GetTranscriptsPayloadSchema = z.object({
+const GetTweetsPayloadSchema = z.object({
+  transcriptId: z.string(),
   limit: zx.NumAsString.pipe(z.number().min(1).max(100).default(100)),
   cursor: z.string().optional(),
 })
@@ -17,11 +18,18 @@ export async function action({ request }: ActionArgs) {
     assertGet(request)
     const userId = await requireApiAuth(request)
 
-    const { limit, cursor } = zx.parseQuery(request, GetTranscriptsPayloadSchema)
+    const { transcriptId, limit, cursor } = zx.parseQuery(request, GetTweetsPayloadSchema)
 
-    const transcripts = await db.transcript.findMany({
+    await db.transcript.findUniqueOrThrow({
       where: {
+        id: transcriptId,
         userId,
+      },
+    })
+
+    const tweets = await db.tweet.findMany({
+      where: {
+        transcriptId,
       },
       take: limit,
       orderBy: {
@@ -31,7 +39,7 @@ export async function action({ request }: ActionArgs) {
       skip: cursor ? 1 : undefined,
     })
 
-    return apiResponse.ok({ transcripts })
+    return apiResponse.ok({ tweets })
   } catch (cause) {
     return apiResponse.error(cause)
   }

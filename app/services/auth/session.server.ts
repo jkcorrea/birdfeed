@@ -29,16 +29,7 @@ const sessionStorage = createCookieSessionStorage({
   },
 })
 
-export async function createAuthSession({ request, authSession }: { request: Request; authSession: AuthSession }) {
-  return {
-    ...authSession,
-    cookie: await commitAuthSession(request, authSession, {
-      flashErrorMessage: null,
-    }),
-  }
-}
-
-export async function redirectWithNewAuthSession({
+export async function createAuthSession({
   request,
   authSession,
   redirectTo,
@@ -48,7 +39,12 @@ export async function redirectWithNewAuthSession({
   redirectTo: string
 }) {
   return response.redirect(safeRedirect(redirectTo), {
-    authSession: await createAuthSession({ request, authSession }),
+    authSession: {
+      ...authSession,
+      cookie: await commitAuthSession(request, authSession, {
+        flashErrorMessage: null,
+      }),
+    },
   })
 }
 

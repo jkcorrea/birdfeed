@@ -6,26 +6,40 @@ import { AppError, getGuardedToken } from '~/lib/utils'
 
 import { userSubscriptionStatus } from '../user'
 
-export async function authenticateAPI(request: Request) {
-  if (request.headers.get('Content-Type') !== 'application/json') throw new AppError('Only JSON requests are allowed')
+export async function requireApiAuth(request: Request) {
   const bearerToken = request.headers.get('Authorization')
-
-  if (!bearerToken) throw new AppError('No Authorization header found')
+  if (!bearerToken)
+    throw new AppError({
+      message: 'No Authorization header found',
+      status: 400,
+    })
 
   const token = bearerToken.replace('Bearer ', '').trim()
-
   const { userId } = await getGuardedToken(token, TokenType.PARTNER_ACCESS_TOKEN)
-
-  if (!userId) throw new AppError('No userId in token')
+  if (!userId)
+    throw new AppError({
+      message: 'No userId in token',
+      status: 400,
+    })
 
   const status = await userSubscriptionStatus(userId)
-
-  if (status !== 'active' && status !== 'trialing') throw new AppError('User is not active')
+  if (status !== 'active' && status !== 'trialing')
+    throw new AppError({
+      message: 'User is not active',
+      status: 403,
+    })
 
   return userId
 }
 
-export const buildOAuthAuthorizationURL = async (userId: string, encodedRedirectUri: string, state: string | null) => {
+/**
+ * Builds a redirect URL for an OAuth partner with a persisted temporary token
+ */
+export const buildOAuthPartnerRedirectUrl = async (
+  userId: string,
+  encodedRedirectUri: string,
+  state: string | null
+) => {
   const redirectURL = new URL(decodeURIComponent(encodedRedirectUri))
 
   const { token } = await db.token.create({
@@ -40,7 +54,9 @@ export const buildOAuthAuthorizationURL = async (userId: string, encodedRedirect
     },
   })
 
-  const builtSearch = redirectURL.searchParams.toString() === '' ? '' : `&${redirectURL.searchParams.toString()}`
+  const params = new URLSearchParams(redirectURL.searchParams)
+  params.set('code', token)
+  if (state) params.set('state', state)
 
-  return `${redirectURL.protocol}//${redirectURL.host}?code=${token}${state && `&state=${state}`}${builtSearch}`
+  return `${redirectURL.origin}${redirectURL.pathname}?${params.toString()}`
 }

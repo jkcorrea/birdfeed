@@ -24,3 +24,12 @@ export function assertPut(request: Request) {
 export function assertDelete(request: Request) {
   assertHttpMethod(request, 'DELETE')
 }
+
+export function assertJson(request: Request) {
+  if (!request.headers.get('Content-Type')?.includes('application/json')) {
+    throw new AppError({
+      message: 'Content-Type must be application/json.',
+      status: 400,
+    })
+  }
+}
