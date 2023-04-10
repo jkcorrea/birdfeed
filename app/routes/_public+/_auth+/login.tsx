@@ -8,8 +8,9 @@ import { TextField } from '~/components/fields'
 import { APP_ROUTES } from '~/lib/constants'
 import { useIsSubmitting } from '~/lib/hooks'
 import { response } from '~/lib/http.server'
-import { buildOAuthAuthorizationURL, getGuardedToken, parseData, tw } from '~/lib/utils'
+import { getGuardedToken, parseData, tw } from '~/lib/utils'
 import { createAuthSession, isAnonymousSession, redirectWithNewAuthSession, signInWithEmail } from '~/services/auth'
+import { buildOAuthAuthorizationURL } from '~/services/auth/api.server'
 
 export async function loader({ request }: LoaderArgs) {
   try {

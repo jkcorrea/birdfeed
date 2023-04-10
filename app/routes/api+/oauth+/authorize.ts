@@ -5,7 +5,7 @@ import { TokenType } from '@prisma/client'
 import { db } from '~/database/db.server'
 import { APP_ROUTES } from '~/lib/constants'
 import { response } from '~/lib/http.server'
-import { buildOAuthAuthorizationURL } from '~/lib/utils'
+import { buildOAuthAuthorizationURL } from '~/services/auth/api.server'
 import { getOptionalAuthSession } from '~/services/auth/session.server'
 
 export async function loader({ request }: LoaderArgs) {
