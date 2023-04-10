@@ -88,6 +88,7 @@ model OAuthPartner {
 
   clientSecret String
   name         String
+  @@map("oauth_partners")
 }
 
 
