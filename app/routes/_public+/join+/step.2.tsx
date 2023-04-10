@@ -1,4 +1,5 @@
 import { useEffect } from 'react'
+import { createId } from '@paralleldrive/cuid2'
 import type { ActionArgs, LoaderArgs } from '@remix-run/node'
 import { Form, Link, useActionData, useLoaderData, useNavigation, useSearchParams } from '@remix-run/react'
 import { parseFormAny, useZorm } from 'react-zorm'
@@ -55,7 +56,7 @@ export async function action({ request }: ActionArgs) {
     const token = await getGuardedToken(payload.twitterToken, TokenType.CLIENT_OAUTH_REQUEST_TOKEN)
     if (!token.active) throw new AppError('token is not active')
     if (token.expiresAt! < new Date(Date.now())) throw new AppError('token is expired')
-    const { twitterOAuthToken, profile_image_url_https } = token.metadata
+    const { profile_image_url_https } = token.metadata
     const { email, password, redirectTo } = payload
     const existingUser = await getUserByEmail(email)
 
@@ -84,7 +85,7 @@ export async function action({ request }: ActionArgs) {
               id: userId,
             },
           },
-          token: twitterOAuthToken,
+          token: createId(),
           type: TokenType.CLIENT_OAUTH_ACCESS_TOKEN,
           active: true,
           metadata: token.metadata satisfies ClientOAuthAccessToken,
