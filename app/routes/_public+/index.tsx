@@ -205,8 +205,8 @@ function TweetGridWrapper({ tweets, isDemo }: { tweets: GeneratedTweet[]; isDemo
         <p className="mx-auto mt-6 max-w-screen-md text-center text-2xl text-gray-600">{subtitle}</p>
       </div>
 
-      <div className="relative mx-auto grid max-w-screen-md gap-4 overflow-y-clip md:grid-cols-2">
-        <div className="absolute top-3/4 right-1/2 z-10 translate-x-1/2">
+      <div className="relative">
+        <div className="absolute top-2/3 right-1/2 z-10 translate-x-1/2">
           <Link
             to={APP_ROUTES.JOIN(1).href}
             className="btn-secondary btn-lg btn pointer-events-auto px-6 font-bold shadow-xl"

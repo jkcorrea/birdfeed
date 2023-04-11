@@ -23,6 +23,8 @@ model User {
   updatedAt DateTime @updatedAt
   email     String   @unique
 
+  isAdmin    Boolean  @default(false)
+
   avatarUrl            String?
   twitterId            String?
   twitterHandle        String?

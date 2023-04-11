@@ -15,10 +15,12 @@ type UserCreatePayload = {
 
 export async function userSubscriptionStatus(id: User['id']) {
   try {
-    const { stripeSubscriptionId } = await db.user.findUniqueOrThrow({
+    const { stripeSubscriptionId, isAdmin } = await db.user.findUniqueOrThrow({
       where: { id },
-      select: { stripeSubscriptionId: true },
+      select: { stripeSubscriptionId: true, isAdmin: true },
     })
+
+    if (isAdmin) return 'active'
 
     if (!stripeSubscriptionId) return 'never_subscribed'
 
