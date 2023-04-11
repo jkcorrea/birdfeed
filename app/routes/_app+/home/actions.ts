@@ -65,7 +65,7 @@ export async function action({ request }: ActionArgs) {
   return response.ok({}, { authSession })
 }
 
-async function generateTweets({ transcriptId, __skip_openai }: IGenerateTweet) {
+export async function generateTweets({ transcriptId, __skip_openai }: IGenerateTweet) {
   const { content } = await db.transcript.findUniqueOrThrow({
     where: { id: transcriptId },
   })

@@ -2,7 +2,7 @@ import { createCookieSessionStorage } from '@remix-run/node'
 
 import { NODE_ENV, SESSION_SECRET } from '~/lib/env'
 import type { SessionWithCookie } from '~/lib/http.server'
-import { makeRedirectToFromHere, response, safeRedirect } from '~/lib/http.server'
+import { makeRedirectToFromHere, response } from '~/lib/http.server'
 import { Logger } from '~/lib/utils'
 
 import { refreshAccessToken, verifyAuthSession } from './auth.server'
@@ -29,7 +29,7 @@ const sessionStorage = createCookieSessionStorage({
   },
 })
 
-export async function createAuthSession({
+export async function redirectWithNewAuthSession({
   request,
   authSession,
   redirectTo,
@@ -38,7 +38,7 @@ export async function createAuthSession({
   authSession: AuthSession
   redirectTo: string
 }) {
-  return response.redirect(safeRedirect(redirectTo), {
+  return response.redirect(redirectTo, {
     authSession: {
       ...authSession,
       cookie: await commitAuthSession(request, authSession, {
@@ -72,7 +72,7 @@ export async function isAnonymousSession(request: Request): Promise<boolean> {
   return Boolean(!authSession)
 }
 
-async function commitAuthSession(
+export async function commitAuthSession(
   request: Request,
   authSession: AuthSession | null,
   options: {

@@ -250,7 +250,7 @@ function TweetColumn({ tweets, hasAd }: { tweets: GeneratedTweet[]; hasAd?: bool
     <div className="grid h-fit gap-4">
       {tweets.map((tweet, ix) => (
         <Fragment key={tweet.id}>
-          <TweetCard isPublic isBlurred={ix > 2} tweet={tweet} />
+          <TweetCard isPublic isBlurred={ix > 1} tweet={tweet} />
           {hasAd && ix === Math.floor((tweets.length * 2) / 4) - 1 && (
             <div className="flex h-20 w-full flex-col items-center justify-center rounded-lg bg-base-300 text-center shadow-inner">
               <h3 className="text-lg font-bold">More, better tweets</h3>

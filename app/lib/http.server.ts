@@ -62,8 +62,8 @@ function makeReason(cause: unknown) {
 
 export type CatchResponse = ReturnType<typeof makeErrorPayload>
 
-function makeErrorPayload({ message, metadata, traceId }: AppError) {
-  return { error: { message, metadata, traceId } }
+function makeErrorPayload({ cause, message, metadata, traceId }: AppError) {
+  return { error: { cause, message, metadata, traceId } }
 }
 
 function makeOkPayload<T extends ResponsePayload>(data: T) {
