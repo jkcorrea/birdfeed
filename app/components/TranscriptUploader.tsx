@@ -19,6 +19,8 @@ import { tw } from '~/lib/utils'
 import { uploadFile } from '~/services/storage'
 import type { CreateTranscriptSchema } from '~/services/transcription'
 
+import { TextField } from './fields'
+
 export interface TranscriptUploaderHandle {
   handleFileUpload: (file: File, isDemo?: boolean) => Promise<void>
 }
@@ -155,7 +157,7 @@ function TranscriptUploader({ userId, fetcher, className }: Props, ref: Forwarde
     <div
       key={fetcher.state}
       className={tw(
-        'grow rounded-lg bg-base-300 shadow-inner transition',
+        'grow rounded-lg bg-base-300 p-3 shadow-inner transition',
         className,
         uploadState.status === 'generating' && 'hover:bg-[rgb(226,221,218)]'
       )}
@@ -170,7 +172,7 @@ function TranscriptUploader({ userId, fetcher, className }: Props, ref: Forwarde
           className="flex h-full w-full items-center justify-center"
         >
           {uploadState.status !== 'error' && uploadState.status !== 'idle' ? (
-            <div className="h-full w-full p-3 text-center text-2xl font-black opacity-60">
+            <div className="h-full w-full text-center text-2xl font-black opacity-60">
               <div className="h-full rounded-lg border-2 border-dashed border-neutral p-6">
                 <div className="flex h-full flex-col justify-center">
                   <CloudArrowUpIcon className="h-14 w-full" />
@@ -181,18 +183,19 @@ function TranscriptUploader({ userId, fetcher, className }: Props, ref: Forwarde
               </div>
             </div>
           ) : (
-            <button
-              className="h-full w-full p-3 text-2xl font-black opacity-60"
-              onClick={() => fileInputRef.current?.click()}
-            >
-              <input
-                ref={fileInputRef}
-                type="file"
-                className="hidden"
-                onChange={({ currentTarget: { files } }) => files?.[0] && handleFileUpload(files[0])}
-              />
-              <div className="flex h-full items-center justify-center rounded-lg border-2 border-dashed border-neutral p-6">
-                <div className="flex flex-col justify-center">
+            <div className="h-full w-full text-2xl font-black opacity-60">
+              <div className="flex h-full flex-col items-center justify-center rounded-lg border-2 border-dashed border-neutral p-6">
+                <input
+                  ref={fileInputRef}
+                  type="file"
+                  className="hidden"
+                  onChange={({ currentTarget: { files } }) => files?.[0] && handleFileUpload(files[0])}
+                />
+                {/* Dropzone */}
+                <button
+                  className="flex w-full flex-col items-center justify-center"
+                  onClick={() => fileInputRef.current?.click()}
+                >
                   {uploadState.error ? (
                     <>
                       <SignalSlashIcon className="mb-3 h-14 w-full" />
@@ -208,12 +211,22 @@ function TranscriptUploader({ userId, fetcher, className }: Props, ref: Forwarde
                           <InformationCircleIcon className="inline h-5 w-5 opacity-80" />
                         </div>
                       </span>
-                      <span className="text-base">prefers audio, but takes vid and txt too (e.g. mp3, mp4)</span>
+                      <span className="text-base">prefers audio, but takes vid and txt too (e.g. mp3, mp4, txt)</span>
                     </>
                   )}
+                </button>
+
+                {/* Divider */}
+                <div className="divider">
+                  <span className="text-base">OR</span>
+                </div>
+
+                {/* YouTube */}
+                <div className="w-full">
+                  <TextField placeholder="Paste a YouTube link" className="input-ghost text-center" />
                 </div>
               </div>
-            </button>
+            </div>
           )}
         </motion.div>
       </AnimatePresence>
