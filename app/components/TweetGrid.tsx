@@ -43,7 +43,7 @@ function TweetColumn({ tweets, hasAd, isPublic }: Props & { hasAd?: boolean }) {
     <div className={columnClassName}>
       {tweets.map((tweet, ix) => (
         <Fragment key={tweet.id}>
-          <TweetCard isPublic={isPublic} isBlurred={ix > 1} tweet={tweet} />
+          <TweetCard isPublic={isPublic} isBlurred={isPublic && ix > 1} tweet={tweet} />
           {hasAd && ix === Math.floor((tweets.length * 2) / 4) - 1 && (
             <div className="flex h-20 w-full flex-col items-center justify-center rounded-lg bg-base-300 text-center shadow-inner">
               <h3 className="text-lg font-bold">More, better tweets</h3>
