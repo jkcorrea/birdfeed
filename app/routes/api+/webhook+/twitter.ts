@@ -2,7 +2,7 @@ import type { LoaderArgs } from '@remix-run/server-runtime'
 
 import { TokenType } from '@prisma/client'
 import { db } from '~/database'
-import { APP_ROUTES } from '~/lib/constants'
+import { APP_ROUTES, TWITTER_OAUTH_DENIED_KEY } from '~/lib/constants'
 import { response } from '~/lib/http.server'
 import type { ClientOAuthRequestToken } from '~/lib/utils'
 import { getGuardedToken, sendSlackEventMessage } from '~/lib/utils'
@@ -17,17 +17,31 @@ export async function loader({ request }: LoaderArgs) {
   try {
     if (!authSession) {
       // Retrieve tokens from querystring
-      const { oauth_token, oauth_verifier } = parseOAuthTokensFromUrl(request.url)
+      const tokens = parseOAuthTokensFromUrl(request.url)
+      if ('denied' in tokens) {
+        // User denied the request.
+
+        const params = new URLSearchParams()
+        params.append(TWITTER_OAUTH_DENIED_KEY, 'true')
+
+        // See if there was a partner verify token
+        const {
+          metadata: { partnerOAuthVerifyAccountToken },
+        } = await getGuardedToken(tokens.denied, TokenType.CLIENT_OAUTH_REQUEST_TOKEN)
+        if (partnerOAuthVerifyAccountToken)
+          // Found one! append it to the params so we can keep track of the partner
+          params.append('partner_oauth_verify_account_token', partnerOAuthVerifyAccountToken)
+
+        return response.redirect(`${APP_ROUTES.JOIN(1).href}?${params.toString()}`, { authSession: null })
+      }
+
       // Submit them to twitter to get a long-lived access token & profile data
-      const { twitterOAuthToken, twitterOAuthTokenSecret, twitterProfileData } = await completeTwitterOauth({
-        oauth_token,
-        oauth_verifier,
-      })
+      const { twitterOAuthToken, twitterOAuthTokenSecret, twitterProfileData } = await completeTwitterOauth(tokens)
       // Retrieve the temp token we created when the user first clicked the twitter button
       // Which may contain info on which partner they were referred from
       const {
         metadata: { partnerOAuthVerifyAccountToken },
-      } = await getGuardedToken(oauth_token, TokenType.CLIENT_OAUTH_REQUEST_TOKEN)
+      } = await getGuardedToken(tokens.oauth_token, TokenType.CLIENT_OAUTH_REQUEST_TOKEN)
 
       const twitterProfileDataProcessed = {
         id_str: safeToString(twitterProfileData.id_str),
@@ -47,7 +61,7 @@ export async function loader({ request }: LoaderArgs) {
       const updatedToken = await db.token.update({
         where: {
           token_type: {
-            token: oauth_token,
+            token: tokens.oauth_token,
             type: TokenType.CLIENT_OAUTH_REQUEST_TOKEN,
           },
         },
@@ -82,6 +96,6 @@ export async function loader({ request }: LoaderArgs) {
       return response.redirect(APP_ROUTES.HOME.href, { authSession })
     }
   } catch (cause) {
-    throw response.error(cause, { authSession: null })
+    return response.redirect(`${APP_ROUTES.JOIN(1).href}?${TWITTER_OAUTH_DENIED_KEY}=1`, { authSession: null })
   }
 }

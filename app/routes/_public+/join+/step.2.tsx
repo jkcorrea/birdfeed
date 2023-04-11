@@ -1,4 +1,3 @@
-import { useEffect } from 'react'
 import { createId } from '@paralleldrive/cuid2'
 import type { ActionArgs, LoaderArgs } from '@remix-run/node'
 import { Form, useActionData, useLoaderData, useNavigation, useSearchParams } from '@remix-run/react'
@@ -12,7 +11,7 @@ import { APP_ROUTES } from '~/lib/constants'
 import { useIsSubmitting } from '~/lib/hooks'
 import { response } from '~/lib/http.server'
 import type { ClientOAuthAccessToken } from '~/lib/utils'
-import { AppError, celebrate, getGuardedToken, parseData, sendSlackEventMessage } from '~/lib/utils'
+import { AppError, getGuardedToken, parseData, sendSlackEventMessage } from '~/lib/utils'
 import { buildOAuthRequestRedirectUrl, isAnonymousSession, redirectWithNewAuthSession } from '~/services/auth'
 import { createUserAccount, getUserByEmail } from '~/services/user'
 
@@ -125,13 +124,6 @@ export default function Join() {
   const partnerOAuthVerifyAccountToken = searchParams.get('partner_oauth_verify_account_token') ?? undefined
   const nav = useNavigation()
   const isSubmitting = useIsSubmitting(nav)
-
-  useEffect(() => {
-    if (twitterToken && !actionResponse?.error) {
-      celebrate()
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [])
 
   return (
     <Form ref={zo.ref} method="post" className="space-y-6" replace>

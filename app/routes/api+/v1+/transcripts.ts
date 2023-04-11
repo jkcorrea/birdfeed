@@ -1,20 +1,15 @@
-import type { ActionArgs } from '@remix-run/server-runtime'
-import { z } from 'zod'
+import type { LoaderArgs } from '@remix-run/server-runtime'
 import { zx } from 'zodix'
 
 import { db } from '~/database'
-import { apiResponse } from '~/lib/api.server'
-import { AppError, assertGet } from '~/lib/utils'
+import { apiResponse, PaginationSchema } from '~/lib/api.server'
+import { AppError } from '~/lib/utils'
 import { requireApiAuth } from '~/services/auth'
 
-const GetTranscriptsPayloadSchema = z.object({
-  limit: zx.NumAsString.pipe(z.number().min(1).max(100).default(100)),
-  cursor: z.string().optional(),
-})
+const GetTranscriptsPayloadSchema = PaginationSchema
 
-export async function action({ request }: ActionArgs) {
+export async function loader({ request }: LoaderArgs) {
   try {
-    assertGet(request)
     const userId = await requireApiAuth(request)
 
     const parsed = zx.parseQuerySafe(request, GetTranscriptsPayloadSchema)
@@ -28,13 +23,15 @@ export async function action({ request }: ActionArgs) {
     const { limit, cursor } = parsed.data
 
     const transcripts = await db.transcript.findMany({
-      where: {
-        userId,
+      select: {
+        id: true,
+        createdAt: true,
+        updatedAt: true,
+        name: true,
       },
+      where: { userId },
       take: limit,
-      orderBy: {
-        updatedAt: 'desc',
-      },
+      orderBy: { updatedAt: 'desc' },
       cursor: cursor ? { id: cursor } : undefined,
       skip: cursor ? 1 : undefined,
     })

@@ -1,6 +1,7 @@
 import type { ResponseInit } from '@remix-run/node'
 import { json } from '@remix-run/node'
 import { merge } from 'lodash-es'
+import { z } from 'zod'
 
 import { Logger } from './utils/logger'
 import { AppError } from './utils'
@@ -24,3 +25,8 @@ export const apiResponse = {
     return json({ data: null, error }, { status: error.status, ...merge(defaultInit, init) })
   },
 }
+
+export const PaginationSchema = z.object({
+  limit: z.preprocess((d) => (typeof d === 'string' ? Number(d) : d), z.number().min(1).max(100)).default('100'),
+  cursor: z.string().optional(),
+})

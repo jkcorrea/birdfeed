@@ -18,5 +18,6 @@ module.exports = {
   routes: (defineRoutes) => flatRoutes('routes', defineRoutes),
   future: {
     unstable_tailwind: true,
+    v2_errorBoundary: true,
   },
 }

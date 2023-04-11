@@ -1,34 +1,35 @@
+import { useEffect } from 'react'
 import type { ActionArgs, LoaderArgs } from '@remix-run/node'
 import { Form, useNavigation, useSearchParams } from '@remix-run/react'
 import twitterIcon from 'public/twitter_logo_white.svg'
+import { toast } from 'react-hot-toast'
 import { parseFormAny } from 'react-zorm'
 import { z } from 'zod'
 
-import { APP_ROUTES } from '~/lib/constants'
+import { APP_ROUTES, TWITTER_OAUTH_DENIED_KEY } from '~/lib/constants'
 import { useIsSubmitting } from '~/lib/hooks'
 import { response } from '~/lib/http.server'
 import { parseData } from '~/lib/utils/zod'
-import { isAnonymousSession } from '~/services/auth'
+import { requireAuthSession } from '~/services/auth'
 import { getTwitterOAuthRedirectURL } from '~/services/twitter'
 
 export async function loader({ request }: LoaderArgs) {
   try {
-    const isAnonymous = await isAnonymousSession(request)
-
-    if (!isAnonymous) {
-      return response.redirect(APP_ROUTES.HOME.href, { authSession: null })
-    }
-
-    return response.ok({}, { authSession: null })
+    const authSession = await requireAuthSession(request)
+    return response.redirect(APP_ROUTES.HOME.href, { authSession })
   } catch (cause) {
-    throw response.error(cause, { authSession: null })
+    return response.ok({}, { authSession: null })
   }
 }
 
 export async function action({ request }: ActionArgs) {
-  if (!(await isAnonymousSession(request))) {
-    return response.redirect(APP_ROUTES.HOME.href, { authSession: null })
+  try {
+    const authSession = await requireAuthSession(request)
+    return response.redirect(APP_ROUTES.HOME.href, { authSession })
+  } catch (cause) {
+    // noop
   }
+
   try {
     const { partnerOAuthVerifyAccountToken } = await parseData(
       parseFormAny(await request.formData()),
@@ -50,6 +51,12 @@ export default function Join() {
   const isSubmitting = useIsSubmitting(nav)
   const [searchParams] = useSearchParams()
   const partnerOAuthVerifyAccountToken = searchParams.get('partner_oauth_verify_account_token') ?? undefined
+
+  useEffect(() => {
+    if (searchParams.get(TWITTER_OAUTH_DENIED_KEY)) {
+      toast.error('Twitter authentication cancelled, please try again', { id: 'twitter-auth-cancelled' })
+    }
+  }, [searchParams])
 
   return (
     <div className="space-y-6">

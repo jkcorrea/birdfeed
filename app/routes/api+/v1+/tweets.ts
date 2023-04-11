@@ -1,21 +1,18 @@
-import type { ActionArgs } from '@remix-run/server-runtime'
+import type { LoaderArgs } from '@remix-run/server-runtime'
 import { z } from 'zod'
 import { zx } from 'zodix'
 
 import { db } from '~/database'
-import { apiResponse } from '~/lib/api.server'
-import { AppError, assertGet } from '~/lib/utils'
+import { apiResponse, PaginationSchema } from '~/lib/api.server'
+import { AppError } from '~/lib/utils'
 import { requireApiAuth } from '~/services/auth/api.server'
 
-const GetTweetsPayloadSchema = z.object({
+const GetTweetsPayloadSchema = PaginationSchema.extend({
   transcriptId: z.string(),
-  limit: zx.NumAsString.pipe(z.number().min(1).max(100).default(100)),
-  cursor: z.string().optional(),
 })
 
-export async function action({ request }: ActionArgs) {
+export async function loader({ request }: LoaderArgs) {
   try {
-    assertGet(request)
     const userId = await requireApiAuth(request)
 
     const parsed = zx.parseQuerySafe(request, GetTweetsPayloadSchema)
@@ -35,17 +32,27 @@ export async function action({ request }: ActionArgs) {
       },
     })
 
-    const tweets = await db.tweet.findMany({
-      where: {
-        transcriptId,
-      },
-      take: limit,
-      orderBy: {
-        updatedAt: 'desc',
-      },
-      cursor: cursor ? { id: cursor } : undefined,
-      skip: cursor ? 1 : undefined,
-    })
+    const tweets = await db.tweet
+      .findMany({
+        select: {
+          id: true,
+          createdAt: true,
+          updatedAt: true,
+          drafts: true,
+          archived: true,
+        },
+        where: { transcriptId },
+        take: limit,
+        orderBy: { updatedAt: 'desc' },
+        cursor: cursor ? { id: cursor } : undefined,
+        skip: cursor ? 1 : undefined,
+      })
+      .then((tweets) =>
+        tweets.map(({ drafts, ...tweet }) => ({
+          ...tweet,
+          text: drafts[0],
+        }))
+      )
 
     return apiResponse.ok({ tweets })
   } catch (cause) {

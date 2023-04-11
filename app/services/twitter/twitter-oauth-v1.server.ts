@@ -82,15 +82,12 @@ export async function getTwitterOAuthRedirectURL(partnerOAuthVerifyAccountToken?
  *
  * @param url The url we're currently at, which should contain the oauth_token and oauth_verifier params
  */
-export function parseOAuthTokensFromUrl(url: URL | string) {
+export function parseOAuthTokensFromUrl(
+  url: URL | string
+): { oauth_token: string; oauth_verifier: string } | { denied: string } {
   const _url = new URL(url)
   const denied = _url.searchParams.get('denied')
-
-  if (denied)
-    throw new AppError({
-      tag,
-      message: 'User denied access.',
-    })
+  if (denied) return { denied }
 
   const oauth_token = _url.searchParams.get('oauth_token')
   const oauth_verifier = _url.searchParams.get('oauth_verifier')

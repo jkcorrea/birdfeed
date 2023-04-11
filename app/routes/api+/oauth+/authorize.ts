@@ -12,9 +12,10 @@ import { AppError, assertGet } from '~/lib/utils'
 import { buildOAuthRequestRedirectUrl, getOptionalAuthSession } from '~/services/auth'
 
 const AuthorizePayloadSchema = z.object({
-  client_id: z.string(),
-  redirect_uri: z.string(),
+  clientId: z.string(),
+  redirectUri: z.string(),
   state: z.string().optional(),
+  responseType: z.literal('code').optional(),
 })
 
 export async function loader({ request }: LoaderArgs) {
@@ -28,7 +29,7 @@ export async function loader({ request }: LoaderArgs) {
         status: 400,
       })
     }
-    const { client_id: clientId, redirect_uri: redirectUri, state } = parsed.data
+    const { clientId, redirectUri, state } = parsed.data
 
     const partner = await db.oAuthPartner.findUnique({
       where: { id: clientId },
