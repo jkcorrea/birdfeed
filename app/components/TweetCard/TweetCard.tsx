@@ -37,7 +37,7 @@ export const TweetCard = ({ tweet, isPublic, isBlurred }: Props) => (
 
     <div className="divider divider-vertical mt-auto mb-0" />
     <div className="flex px-4">
-      <TweetActionBar isAuthed={!isPublic} canDelete={isPublic} tweet={tweet} />
+      <TweetActionBar isAuthed={!isPublic} canDelete={!isPublic} tweet={tweet} />
     </div>
   </li>
 )

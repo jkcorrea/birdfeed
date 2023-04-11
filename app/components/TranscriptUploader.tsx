@@ -204,7 +204,7 @@ function TranscriptUploader({ userId, fetcher, className }: Props, ref: Forwarde
                       <InboxArrowDownIcon className="mb-3 h-14 w-full" />
                       <span>
                         Drop file here{' '}
-                        <div className="tooltip" data-tip="keep file ~2gbs">
+                        <div className="tooltip" data-tip="keep file ~2gbs. no pdf plz.">
                           <InformationCircleIcon className="inline h-5 w-5 opacity-80" />
                         </div>
                       </span>

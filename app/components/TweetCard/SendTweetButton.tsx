@@ -1,5 +1,4 @@
 import { ChevronUpIcon, ClipboardDocumentIcon } from '@heroicons/react/24/outline'
-import { PaperAirplaneIcon } from '@heroicons/react/24/solid'
 import posthog from 'posthog-js'
 import { toast } from 'react-hot-toast'
 
@@ -25,10 +24,28 @@ const HypefuryIcon = ({ className }: { className?: string }) => (
   </svg>
 )
 
+const TwitterIcon = ({ className }: { className?: string }) => (
+  <svg version="1.1" className={className} xmlns="http://www.w3.org/2000/svg" viewBox="0 0 248 204">
+    <g>
+      <path
+        stroke="none"
+        fill="currentColor"
+        fillRule="evenodd"
+        d="M221.95,51.29c0.15,2.17,0.15,4.34,0.15,6.53c0,66.73-50.8,143.69-143.69,143.69v-0.04
+		C50.97,201.51,24.1,193.65,1,178.83c3.99,0.48,8,0.72,12.02,0.73c22.74,0.02,44.83-7.61,62.72-21.66
+		c-21.61-0.41-40.56-14.5-47.18-35.07c7.57,1.46,15.37,1.16,22.8-0.87C27.8,117.2,10.85,96.5,10.85,72.46c0-0.22,0-0.43,0-0.64
+		c7.02,3.91,14.88,6.08,22.92,6.32C11.58,63.31,4.74,33.79,18.14,10.71c25.64,31.55,63.47,50.73,104.08,52.76
+		c-4.07-17.54,1.49-35.92,14.61-48.25c20.34-19.12,52.33-18.14,71.45,2.19c11.31-2.23,22.15-6.38,32.07-12.26
+		c-3.77,11.69-11.66,21.62-22.2,27.93c10.01-1.18,19.79-3.86,29-7.95C240.37,35.29,231.83,44.14,221.95,51.29z"
+      />
+    </g>
+  </svg>
+)
+
 type TweetOutletMeta = { icon: JSX.Element; label: string; action: (content: string, isAuthed?: boolean) => any }
 const outletMeta: Record<TweetOutlet, TweetOutletMeta> = {
   [TweetOutlet.TWITTER]: {
-    icon: <PaperAirplaneIcon className="-mt-1 h-4 w-4 -rotate-45" />,
+    icon: <TwitterIcon className="h-4 w-4" />,
     label: 'Send to Twitter',
     action: (content, isAuthed) => window.open(buildSendTweetUrl(content, isAuthed), '_blank', 'noopener,noreferrer'),
   },
@@ -53,33 +70,47 @@ interface Props {
   isAuthed?: boolean
 }
 
+const SendTweetButtonElement = ({ body, tweetId, isAuthed }: Props) => {
+  const { lastUsedOutlet } = useUiStore()
+  const outlet = outletMeta[lastUsedOutlet]
+
+  return (
+    <button
+      type="button"
+      className={tw(
+        'btn-info btn-sm btn flex items-center gap-2 lowercase text-white',
+        !isAuthed && 'cursor-not-allowed'
+      )}
+      onClick={(e) => {
+        if (!isAuthed) return
+        e.preventDefault()
+        posthog.capture('tweet_send', { tweetId: tweetId, outlet: lastUsedOutlet })
+        outlet.action(body, isAuthed)
+      }}
+    >
+      {lastUsedOutlet}
+      {outlet.icon}
+    </button>
+  )
+}
+
 // TODO delete tweet after sending off
 // TODO track in db with a 5-star rating
 
 export const SendTweetButton = ({ body, tweetId, isAuthed }: Props) => {
-  const { lastUsedOutlet, setLastUsedOutlet } = useUiStore()
-  const outlet = outletMeta[lastUsedOutlet]
+  const { setLastUsedOutlet } = useUiStore()
 
   return (
     <div className="btn-group flex items-center rounded-full bg-info">
-      <button
-        type="button"
-        className={tw(
-          'btn-info btn-sm btn flex items-center gap-2 lowercase text-white',
-          !isAuthed && 'cursor-not-allowed'
-        )}
-        onClick={(e) => {
-          if (!isAuthed) return
-          e.preventDefault()
-          posthog.capture('tweet_send', { tweetId: tweetId, outlet: lastUsedOutlet })
-          outlet.action(body, isAuthed)
-        }}
-      >
-        {lastUsedOutlet}
-        {outlet.icon}
-      </button>
+      {isAuthed ? (
+        <SendTweetButtonElement body={body} tweetId={tweetId} isAuthed={isAuthed} />
+      ) : (
+        <div className="tooltip" data-tip="These buttons are for logged in users. 😔">
+          <SendTweetButtonElement body={body} tweetId={tweetId} isAuthed={isAuthed} />
+        </div>
+      )}
 
-      <div className="h-[75%] w-[2px] rounded-full bg-white/60" />
+      <div className="h-[68%] w-[2px] rounded-full bg-white/30" />
 
       {/* eslint-disable-next-line prettier/prettier */}
       <div className="dropdown-top dropdown-end dropdown rounded-full bg-transparent">
