@@ -9,6 +9,7 @@ import { toast } from 'react-hot-toast'
 
 import { useSubscribeModal } from '~/components/SubscribeModal'
 import { APP_ROUTES, NAV_ROUTES } from '~/lib/constants'
+import { NODE_ENV } from '~/lib/env'
 import { useIsSubmitting } from '~/lib/hooks'
 import { response } from '~/lib/http.server'
 import { celebrate, tw } from '~/lib/utils'
@@ -47,8 +48,10 @@ export default function AppLayout() {
   const { email, status } = useLoaderData<typeof loader>()
 
   useEffect(() => {
-    posthog.capture('$pageview')
-    posthog.identify(email)
+    if (NODE_ENV === 'production') {
+      posthog.capture('$pageview')
+      posthog.identify(email)
+    }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [location.key])
 
@@ -76,7 +79,7 @@ export default function AppLayout() {
     <>
       <Navbar key={location.key} />
 
-      <main className="mx-auto min-h-[500px] w-full min-w-[300px] max-w-screen-2xl grow py-4 px-8 md:px-4 lg:mt-5 2xl:px-0">
+      <main className="container mx-auto min-h-[500px] w-full min-w-[300px] max-w-screen-lg grow py-4 px-8 md:px-4 lg:mt-5 2xl:px-0">
         <Outlet />
       </main>
     </>
@@ -89,9 +92,12 @@ function Navbar() {
 
   return (
     <div>
-      <nav className="flex h-9 items-center justify-between p-10" aria-label="Global">
+      <nav className="mx-auto flex h-9 max-w-screen-xl items-center justify-between p-10" aria-label="Global">
         <div className="flex items-center space-x-2 lg:min-w-0 lg:flex-1" aria-label="Global">
-          <Link to="/" className="-m-1.5 flex items-center whitespace-nowrap p-1.5 text-2xl font-black">
+          <Link
+            to={APP_ROUTES.HOME.href}
+            className="-m-1.5 flex items-center whitespace-nowrap p-1.5 text-2xl font-black"
+          >
             <img src={birdfeedIcon} alt="Birdfeed AI" className="inline h-10 w-10" /> Birdfeed
           </Link>
         </div>
@@ -108,7 +114,8 @@ function Navbar() {
         </div>
 
         <div className="hidden lg:flex lg:min-w-0 lg:flex-1 lg:justify-center lg:gap-x-12">
-          {NAV_ROUTES.map(({ title, href }) => (
+          {/* NOTE - hiding ideas route for now. if we ever wanna try out ideas again, toggle this with a feature flag */}
+          {/* {NAV_ROUTES.map(({ title, href }) => (
             <NavLink
               prefetch="intent"
               key={title}
@@ -119,7 +126,7 @@ function Navbar() {
             >
               {title}
             </NavLink>
-          ))}
+          ))} */}
         </div>
 
         <div className="hidden lg:flex lg:min-w-0 lg:flex-1 lg:items-center lg:justify-end lg:space-x-4">
@@ -138,7 +145,10 @@ function Navbar() {
         <Dialog.Panel className="fixed inset-0 z-10 overflow-y-auto bg-white p-6 lg:hidden">
           <div className="flex h-9 items-center justify-between">
             <div className="flex">
-              <Link to="/" className="-m-1.5 p-1.5 text-2xl font-semibold text-gray-900 hover:text-gray-900">
+              <Link
+                to={APP_ROUTES.HOME.href}
+                className="-m-1.5 p-1.5 text-2xl font-semibold text-gray-900 hover:text-gray-900"
+              >
                 Birdfeed
               </Link>
             </div>

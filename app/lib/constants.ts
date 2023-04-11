@@ -8,13 +8,8 @@ interface AppRoute {
 
 export const APP_ROUTES = {
   LANDING: { title: 'Birdfeed', href: '/' },
-  HOME: { title: 'Home', href: '/home', showInNav: true },
-  HOME_TWEET: (tweetId: string) => ({ href: `/home/${tweetId}`, title: `Tweet ${tweetId}` }),
-  IDEAS: { title: 'Idea Bin', href: '/ideas', showInNav: true },
-  IDEAS_TWEET: (tweetId: string, params?: URLSearchParams) => ({
-    href: `/ideas/${tweetId}${params ? '?' + params.toString() : ''}`,
-    title: `Tweet ${tweetId}`,
-  }),
+  HOME: { title: 'Home', href: '/home' },
+  TRANSCRIPT: (transcriptId: string) => ({ title: 'Transcript', href: `/home/${transcriptId}` }),
   LOGIN: { title: 'Log In', href: '/login' },
   JOIN: (step: number) => ({ href: `/join/step/${step}`, title: `Join` }),
   LOGOUT: { title: 'Log Out', href: '/logout' },
@@ -60,3 +55,9 @@ export const UPLOAD_LIMIT_FREE_DURATION = 15 * 60 // 15 minutes
 export const UPLOAD_LIMIT_PRO_DURATION = 5 * 60 * 60 // 5 hours
 
 export const TWITTER_OAUTH_DENIED_KEY = 'twitter_oauth_denied'
+
+export enum TweetOutlet {
+  CLIPBOARD = 'copy',
+  TWITTER = 'tweet',
+  HYPEFURY = 'hypefury',
+}
