@@ -1,24 +1,23 @@
 import type { ActionArgs } from '@remix-run/server-runtime'
 import { z } from 'zod'
 
+import { response } from '~/lib/http.server'
+import { assertPost, parseData } from '~/lib/utils'
+import { fetchYoutubeCaptions } from '~/services/transcription/youtube.server'
+
 const PayloadSchema = z.object({
-  videoId: z.string(),
+  videoId: z.string().length(11, 'Invalid video ID'),
 })
+
 export type FetchYoutubeTranscriptPayload = z.infer<typeof PayloadSchema>
 
-// Action to fetch a youtube transcript from the official api
-export function action({ request }: ActionArgs) {
-  const { videoId } = PayloadSchema.parse(request.body)
-  return fetch(`https://video.google.com/timedtext?lang=en&v=${videoId}`)
-    .then((res) => res.text())
-    .then((text) => {
-      const parser = new DOMParser()
-      const doc = parser.parseFromString(text, 'text/xml')
-      const transcript = Array.from(doc.querySelectorAll('text')).map((el) => ({
-        text: el.textContent,
-        start: Number(el.getAttribute('start')),
-        dur: Number(el.getAttribute('dur')),
-      }))
-      return { json: transcript }
-    })
+export async function action({ request }: ActionArgs) {
+  try {
+    assertPost(request)
+    const { videoId } = await parseData(await request.json(), PayloadSchema, 'Invalid video ID')
+    const captions = await fetchYoutubeCaptions(videoId)
+    return response.ok({ transcript: captions.map((c) => c.text).join('\n') }, { authSession: null })
+  } catch (cause) {
+    return response.error(cause, { authSession: null })
+  }
 }

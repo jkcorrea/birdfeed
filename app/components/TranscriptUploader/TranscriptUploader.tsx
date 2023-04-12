@@ -16,6 +16,7 @@ import { UPLOAD_LIMIT_FREE_KB, UPLOAD_LIMIT_PRO_KB } from '~/lib/constants'
 import { convertToAudio } from '~/lib/ffmpeg'
 import { useIsSubmitting, useMockProgress, useRunAfterSubmission } from '~/lib/hooks'
 import { tw } from '~/lib/utils'
+import type { FetchYoutubeTranscriptPayload } from '~/routes/api+/fetch-youtube-transcript'
 import { uploadFile } from '~/services/storage/upload.client'
 import type { CreateTranscriptSchema } from '~/services/transcription'
 
@@ -77,15 +78,15 @@ function _TranscriptUploader({ userId, fetcher, className }: Props, ref: Forward
 
   // We have no idea how long the transcribing or generating steps will take, so just mock them
   const isGenerating = useIsSubmitting(fetcher)
-  const { start: startGeneratingProgress, finish: finishGeneratingProgress } = useMockProgress(4000, (progress) =>
+  const { start: startMockProgress, finish: finishMockProgress } = useMockProgress(4000, (progress) =>
     dispatch({ type: 'progress', progress })
   )
   useEffect(() => {
     if (!isGenerating && uploadState.status === 'generating') {
       dispatch({ type: 'reset' })
-      finishGeneratingProgress()
+      finishMockProgress()
     }
-  }, [uploadState.status, isGenerating, startGeneratingProgress, finishGeneratingProgress])
+  }, [uploadState.status, isGenerating, startMockProgress, finishMockProgress])
 
   const handleFileUpload = async (file: File, isDemo?: boolean) => {
     posthog.capture('transcript_start', { file_name: file.name })
@@ -132,7 +133,7 @@ function _TranscriptUploader({ userId, fetcher, className }: Props, ref: Forward
 
       // CREATE TRANSCRIPT & GENERATE TWEETS
       dispatch({ type: 'generating' })
-      startGeneratingProgress()
+      startMockProgress()
       fetcher.submit(
         {
           name: processedFile.name,
@@ -151,15 +152,23 @@ function _TranscriptUploader({ userId, fetcher, className }: Props, ref: Forward
   }
 
   const handleYoutubeUpload = async (id: string) => {
-    posthog.capture('transcript_start', { file_name: `https://youtube.com/watch?v=${id}` })
-    dispatch({ type: 'generating' })
-    startGeneratingProgress()
-    fetcher.submit(
-      {
-        youtubeId: id,
-      } satisfies (typeof CreateTranscriptSchema)['_input'],
-      { method: 'post' }
-    )
+    const file_name = `https://youtube.com/watch?v=${id}`
+    posthog.capture('transcript_start', { file_name })
+    // First grab the youtube video's transcript
+    dispatch({ type: 'uploading' })
+    startMockProgress()
+    const res = await fetch(`/api/fetch-youtube-transcript`, {
+      method: 'post',
+      body: JSON.stringify({ videoId: id } satisfies FetchYoutubeTranscriptPayload),
+    })
+    if (!res.ok)
+      dispatch({
+        type: 'error',
+        error: `Failed to fetch youtube transcript: ${res.statusText}`,
+      })
+
+    const { transcript } = (await res.json()) as { transcript: string }
+    handleFileUpload(new File([transcript], file_name, { type: 'text/plain' }))
   }
 
   // Allows us to pass control of the ref "back up" to the parent
@@ -233,7 +242,7 @@ function _TranscriptUploader({ userId, fetcher, className }: Props, ref: Forward
                   <span className="text-base">OR</span>
                 </div>
 
-                <YoutubeLinkInput />
+                <YoutubeLinkInput onSubmit={handleYoutubeUpload} />
               </div>
             </div>
           )}
