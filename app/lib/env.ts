@@ -29,7 +29,6 @@ declare global {
       S3_SECRET_ACCESS_KEY?: string
       S3_BUCKET_NAME?: string
       SLACK_EVENTS_URL?: string
-      GOOGLE_CLOUD_API_KEY: string
     }
   }
 }
@@ -72,7 +71,6 @@ export const S3_ACCESS_KEY_ID = getEnv('S3_ACCESS_KEY_ID', { isRequired: false }
 export const S3_SECRET_ACCESS_KEY = getEnv('S3_SECRET_ACCESS_KEY', { isRequired: false })
 export const S3_BUCKET_NAME = getEnv('S3_BUCKET_NAME', { isRequired: false })
 export const SLACK_EVENTS_URL = getEnv('SLACK_EVENTS_URL', { isRequired: false })
-export const GOOGLE_CLOUD_API_KEY = getEnv('GOOGLE_CLOUD_API_KEY', { isRequired: false })
 
 /**
  * Shared envs
