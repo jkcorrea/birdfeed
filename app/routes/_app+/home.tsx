@@ -8,7 +8,7 @@ import { motion } from 'framer-motion'
 import { parseFormAny } from 'react-zorm'
 
 import type { Transcript } from '@prisma/client'
-import TranscriptUploader from '~/components/TranscriptUploader'
+import { TranscriptUploader } from '~/components/TranscriptUploader'
 import { db } from '~/database'
 import { APP_ROUTES } from '~/lib/constants'
 import { response } from '~/lib/http.server'

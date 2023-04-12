@@ -37,3 +37,17 @@ export const sendSlackEventMessage = (message: string) => {
     }),
   })
 }
+
+const RE_YOUTUBE = /^.*(?:(?:youtu\.be\/|v\/|vi\/|u\/\w\/|embed\/)|(?:(?:watch)?\?v(?:i)?=|&v(?:i)?=))([^#&?]*).*/im
+/**
+ * Retrieve a YouTube video id from url or id string
+ *
+ * @param videoId video url or video id
+ * @returns The video ID or null if invalid
+ */
+export const getYoutubeVideoId = (url: string) => {
+  if (url.length === 11 && url.match(/^[a-zA-Z0-9_-]{11}$/)) return url
+  const match = url.match(RE_YOUTUBE)
+  if (match && match.length > 1) return match[1]
+  return null
+}

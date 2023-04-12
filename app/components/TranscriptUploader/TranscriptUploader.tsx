@@ -1,4 +1,4 @@
-import { forwardRef, useCallback, useEffect, useImperativeHandle, useReducer, useRef, useState } from 'react'
+import { forwardRef, useEffect, useImperativeHandle, useReducer, useRef } from 'react'
 import {
   CloudArrowUpIcon,
   InboxArrowDownIcon,
@@ -16,8 +16,12 @@ import { UPLOAD_LIMIT_FREE_KB, UPLOAD_LIMIT_PRO_KB } from '~/lib/constants'
 import { convertToAudio } from '~/lib/ffmpeg'
 import { useIsSubmitting, useMockProgress, useRunAfterSubmission } from '~/lib/hooks'
 import { tw } from '~/lib/utils'
-import { uploadFile } from '~/services/storage'
+import type { FetchYoutubeTranscriptPayload } from '~/routes/api+/fetch-youtube-transcript'
+import { uploadFile } from '~/services/storage/upload.client'
 import type { CreateTranscriptSchema } from '~/services/transcription'
+
+import { FileDropzone } from './FileDropzone'
+import { YoutubeLinkInput } from './YoutubeLinkInput'
 
 export interface TranscriptUploaderHandle {
   handleFileUpload: (file: File, isDemo?: boolean) => Promise<void>
@@ -66,24 +70,23 @@ interface Props {
   className?: string
 }
 
-function TranscriptUploader({ userId, fetcher, className }: Props, ref: ForwardedRef<TranscriptUploaderHandle>) {
-  const fileInputRef = useRef<HTMLInputElement>(null)
-
+function _TranscriptUploader({ userId, fetcher, className }: Props, ref: ForwardedRef<TranscriptUploaderHandle>) {
   useRunAfterSubmission(fetcher, () => posthog.capture('transcript_finish'))
 
+  const fileInputRef = useRef<HTMLInputElement>(null)
   const [uploadState, dispatch] = useReducer(uploadStateReducer, initialUploadState)
 
   // We have no idea how long the transcribing or generating steps will take, so just mock them
   const isGenerating = useIsSubmitting(fetcher)
-  const { start: startGeneratingProgress, finish: finishGeneratingProgress } = useMockProgress(4000, (progress) =>
+  const { start: startMockProgress, finish: finishMockProgress } = useMockProgress(4000, (progress) =>
     dispatch({ type: 'progress', progress })
   )
   useEffect(() => {
     if (!isGenerating && uploadState.status === 'generating') {
       dispatch({ type: 'reset' })
-      finishGeneratingProgress()
+      finishMockProgress()
     }
-  }, [uploadState.status, isGenerating, startGeneratingProgress, finishGeneratingProgress])
+  }, [uploadState.status, isGenerating, startMockProgress, finishMockProgress])
 
   const handleFileUpload = async (file: File, isDemo?: boolean) => {
     posthog.capture('transcript_start', { file_name: file.name })
@@ -130,7 +133,7 @@ function TranscriptUploader({ userId, fetcher, className }: Props, ref: Forwarde
 
       // CREATE TRANSCRIPT & GENERATE TWEETS
       dispatch({ type: 'generating' })
-      startGeneratingProgress()
+      startMockProgress()
       fetcher.submit(
         {
           name: processedFile.name,
@@ -148,6 +151,26 @@ function TranscriptUploader({ userId, fetcher, className }: Props, ref: Forwarde
     }
   }
 
+  const handleYoutubeUpload = async (id: string) => {
+    const file_name = `https://youtube.com/watch?v=${id}`
+    posthog.capture('transcript_start', { file_name })
+    // First grab the youtube video's transcript
+    dispatch({ type: 'uploading' })
+    startMockProgress()
+    const res = await fetch(`/api/fetch-youtube-transcript`, {
+      method: 'post',
+      body: JSON.stringify({ videoId: id } satisfies FetchYoutubeTranscriptPayload),
+    })
+    if (!res.ok)
+      dispatch({
+        type: 'error',
+        error: `Failed to fetch youtube transcript: ${res.statusText}`,
+      })
+
+    const { transcript } = (await res.json()) as { transcript: string }
+    handleFileUpload(new File([transcript], file_name, { type: 'text/plain' }))
+  }
+
   // Allows us to pass control of the ref "back up" to the parent
   useImperativeHandle(ref, () => ({ handleFileUpload }))
 
@@ -155,7 +178,7 @@ function TranscriptUploader({ userId, fetcher, className }: Props, ref: Forwarde
     <div
       key={fetcher.state}
       className={tw(
-        'grow rounded-lg bg-base-300 shadow-inner transition',
+        'grow rounded-lg bg-base-300 p-3 shadow-inner transition',
         className,
         uploadState.status === 'generating' && 'hover:bg-[rgb(226,221,218)]'
       )}
@@ -170,7 +193,7 @@ function TranscriptUploader({ userId, fetcher, className }: Props, ref: Forwarde
           className="flex h-full w-full items-center justify-center"
         >
           {uploadState.status !== 'error' && uploadState.status !== 'idle' ? (
-            <div className="h-full w-full p-3 text-center text-2xl font-black opacity-60">
+            <div className="h-full w-full text-center text-2xl font-black opacity-60">
               <div className="h-full rounded-lg border-2 border-dashed border-neutral p-6">
                 <div className="flex h-full flex-col justify-center">
                   <CloudArrowUpIcon className="h-14 w-full" />
@@ -181,18 +204,19 @@ function TranscriptUploader({ userId, fetcher, className }: Props, ref: Forwarde
               </div>
             </div>
           ) : (
-            <button
-              className="h-full w-full p-3 text-2xl font-black opacity-60"
-              onClick={() => fileInputRef.current?.click()}
-            >
-              <input
-                ref={fileInputRef}
-                type="file"
-                className="hidden"
-                onChange={({ currentTarget: { files } }) => files?.[0] && handleFileUpload(files[0])}
-              />
-              <div className="flex h-full items-center justify-center rounded-lg border-2 border-dashed border-neutral p-6">
-                <div className="flex flex-col justify-center">
+            <div className="h-full w-full text-2xl font-black">
+              <div className="flex h-full flex-col items-center justify-center rounded-lg border-2 border-dashed border-gray-400 p-6 text-gray-500">
+                <input
+                  ref={fileInputRef}
+                  type="file"
+                  className="hidden"
+                  onChange={({ currentTarget: { files } }) => files?.[0] && handleFileUpload(files[0])}
+                />
+                {/* Dropzone */}
+                <button
+                  className="flex w-full flex-col items-center justify-center"
+                  onClick={() => fileInputRef.current?.click()}
+                >
                   {uploadState.error ? (
                     <>
                       <SignalSlashIcon className="mb-3 h-14 w-full" />
@@ -208,86 +232,26 @@ function TranscriptUploader({ userId, fetcher, className }: Props, ref: Forwarde
                           <InformationCircleIcon className="inline h-5 w-5 opacity-80" />
                         </div>
                       </span>
-                      <span className="text-base">prefers audio, but takes vid and txt too (e.g. mp3, mp4)</span>
+                      <span className="text-base">prefers audio, but takes vid and txt too (e.g. mp3, mp4, txt)</span>
                     </>
                   )}
+                </button>
+
+                {/* Divider */}
+                <div className="divider">
+                  <span className="text-base">OR</span>
                 </div>
+
+                <YoutubeLinkInput onSubmit={handleYoutubeUpload} />
               </div>
-            </button>
+            </div>
           )}
         </motion.div>
       </AnimatePresence>
 
-      <Dropzone onFile={handleFileUpload} />
+      <FileDropzone onFile={handleFileUpload} />
     </div>
   )
 }
 
-export default forwardRef(TranscriptUploader)
-
-function Dropzone({ onFile }: { onFile: (file: File) => void }) {
-  const [isDragging, setIsDragging] = useState(false)
-  const dragCounter = useRef(0)
-  const onDrag = useCallback((e: DragEvent) => {
-    e.preventDefault()
-    e.stopPropagation()
-  }, [])
-  const onDragEnter = useCallback((e: DragEvent) => {
-    e.preventDefault()
-    e.stopPropagation()
-    dragCounter.current += 1
-    const { items } = e.dataTransfer ?? {}
-    if (items && items.length > 0) setIsDragging(true)
-  }, [])
-  const onDragLeave = useCallback((e: DragEvent) => {
-    e.preventDefault()
-    e.stopPropagation()
-    dragCounter.current -= 1
-    if (dragCounter.current <= 0) setIsDragging(false)
-  }, [])
-  const onDrop = useCallback(
-    (e: DragEvent) => {
-      e.preventDefault()
-      e.stopPropagation()
-      setIsDragging(false)
-      if (e.dataTransfer?.files && e.dataTransfer.files.length > 0) {
-        dragCounter.current = 0
-        onFile(e.dataTransfer.files[0])
-      }
-    },
-    [onFile]
-  )
-
-  useEffect(() => {
-    window.addEventListener('dragenter', onDragEnter)
-    window.addEventListener('dragleave', onDragLeave)
-    window.addEventListener('dragover', onDrag)
-    window.addEventListener('drop', onDrop)
-    return () => {
-      window.removeEventListener('dragenter', onDragEnter)
-      window.removeEventListener('dragleave', onDragLeave)
-      window.removeEventListener('dragover', onDrag)
-      window.removeEventListener('drop', onDrop)
-    }
-  }, [onDrag, onDragEnter, onDragLeave, onDrop])
-
-  return (
-    <AnimatePresence>
-      {isDragging && (
-        <motion.div
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          exit={{ opacity: 0 }}
-          className="pointer-events-none fixed inset-0 z-[999] bg-gray-800/25 transition"
-        >
-          <div className=" absolute inset-0 flex items-center justify-center text-2xl font-black opacity-40">
-            <div className="rounded-lg bg-base-100 shadow-lg">
-              <CloudArrowUpIcon className=" h-32 w-full pt-7 " />
-              <div className="px-9 pb-9 text-center">Drop to upload</div>
-            </div>
-          </div>
-        </motion.div>
-      )}
-    </AnimatePresence>
-  )
-}
+export const TranscriptUploader = forwardRef(_TranscriptUploader)
