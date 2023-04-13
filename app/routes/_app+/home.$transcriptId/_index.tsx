@@ -35,7 +35,11 @@ export async function loader({ request, params }: LoaderArgs) {
   }
 
   const _tweets = db.tweet.findMany({
-    where: { transcript: { userId, id: transcriptId }, archived: false },
+    where: {
+      transcript: { userId, id: transcriptId },
+      /** TODO add this back in if we have an ideas bin: **/
+      // archived: false ,
+    },
     orderBy: [{ createdAt: 'desc' }],
     take: 100,
   })
