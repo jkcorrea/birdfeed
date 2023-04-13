@@ -1,12 +1,12 @@
 import { Suspense, useEffect, useState } from 'react'
 import { PencilIcon } from '@heroicons/react/20/solid'
-import { ClipboardDocumentIcon } from '@heroicons/react/24/outline'
 import type { FetcherWithComponents } from '@remix-run/react'
 import { Await, Outlet, useFetcher, useLoaderData } from '@remix-run/react'
 import type { LoaderArgs } from '@remix-run/server-runtime'
 import { toast } from 'react-hot-toast'
 import { useZorm } from 'react-zorm'
 
+import { CopyToClipboardButton } from '~/components/CopyToClipboardButton'
 import { TextAreaField } from '~/components/fields'
 import IntentField from '~/components/fields/IntentField'
 import FormErrorCatchall from '~/components/FormErrorCatchall'
@@ -151,18 +151,7 @@ export default function TranscriptPage() {
           title="Transcript Preview"
           isOpen={showTranscript}
           onClose={() => setShowTranscript(false)}
-          rightAction={
-            <button
-              type="button"
-              className="btn-ghost btn-sm btn-circle btn flex items-center justify-center"
-              onClick={() => {
-                navigator.clipboard.writeText(data.transcript.content)
-                toast.success('Copied to clipboard!')
-              }}
-            >
-              <ClipboardDocumentIcon className="h-5 w-5" />
-            </button>
-          }
+          rightAction={<CopyToClipboardButton content={data.transcript.content} />}
         >
           <TextAreaField
             id="transcript-content"

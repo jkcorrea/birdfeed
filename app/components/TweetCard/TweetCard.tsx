@@ -1,8 +1,11 @@
-import type { ReactNode } from 'react'
+import { useMatches } from '@remix-run/react'
+import type { SerializeFrom } from '@remix-run/server-runtime'
 
 import { tw } from '~/lib/utils'
+import type { loader } from '~/routes/_app+/_layout'
 import type { GeneratedTweet } from '~/services/openai'
 
+import { CopyToClipboardButton } from '../CopyToClipboardButton'
 import { TweetActionBar } from './TweetActionBar'
 
 const BLURRED_TWEET_CONTENT = `
@@ -24,11 +27,7 @@ export const TweetCard = ({ tweet, isAuthed, isBlurred }: Props) => (
       isBlurred && 'blur'
     )}
   >
-    <TwitterAccountHeader
-      icon={<div className="bg-opacity/60 flex w-fit items-center rounded-full bg-base-300 p-1.5 px-3 text-xl">🐣</div>}
-      name="birdfeed"
-      handle="@birdfeed.ai"
-    />
+    <TwitterAccountHeader tweet={tweet} />
 
     {/* Tweet content */}
     <p className={tw(isBlurred && 'select-none', 'w-full p-4')}>
@@ -42,15 +41,33 @@ export const TweetCard = ({ tweet, isAuthed, isBlurred }: Props) => (
   </li>
 )
 
-const TwitterAccountHeader = ({ icon, name, handle }: { icon: ReactNode; name: string; handle: string }) => (
-  <>
-    <div className="flex flex-row gap-3 p-2">
-      {icon}
-      <div className="leading-tight">
-        <h2 className="font-bold">{name}</h2>
-        <h3 className="text-sm font-semibold opacity-60">{handle}</h3>
-      </div>
-    </div>
-    <div className="divider divider-vertical my-0" />
-  </>
+const defaultAvatar = (
+  <div className="bg-opacity/60 flex w-fit items-center rounded-full bg-base-300 p-1.5 px-3 text-xl">🐣</div>
 )
+const defaultName = 'birdfeed'
+const defaultHandle = 'birdfeed.ai'
+
+const TwitterAccountHeader = ({ tweet }: { tweet: GeneratedTweet }) => {
+  const match = useMatches().find((match) => match.id === 'routes/_app+/_layout')
+  const activeUser = (match?.data as SerializeFrom<typeof loader>).activeUser
+  const avatar = activeUser.avatarUrl ? (
+    <img crossOrigin="anonymous" className="h-10 w-10 rounded-full" src={activeUser.avatarUrl} alt="avatar" />
+  ) : (
+    defaultAvatar
+  )
+  const name = activeUser.email.split('@')[0] ?? defaultName
+
+  return (
+    <>
+      <div className="flex gap-3 p-2">
+        {avatar}
+        <div className="grow leading-tight">
+          <h2 className="font-bold">{name}</h2>
+          <h3 className="text-sm font-semibold opacity-60">@{activeUser.twitterHandle ?? defaultHandle}</h3>
+        </div>
+        <CopyToClipboardButton content={tweet.drafts[0]} />
+      </div>
+      <div className="divider divider-vertical my-0" />
+    </>
+  )
+}

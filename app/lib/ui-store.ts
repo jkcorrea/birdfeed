@@ -2,14 +2,18 @@ import { create } from 'zustand'
 import { devtools, persist } from 'zustand/middleware'
 import { immer } from 'zustand/middleware/immer'
 
+import type { User } from '@prisma/client'
+
 import { TweetOutlet } from './constants'
 
 export interface UiState {
   lastUsedOutlet: TweetOutlet
+  activeUser: Pick<User, 'id' | 'avatarUrl' | 'email' | 'twitterId' | 'twitterHandle'> | null
 }
 
 export interface UiActions {
   setLastUsedOutlet: (outlet: TweetOutlet) => void
+  setActiveUser: (user: UiState['activeUser']) => void
 }
 
 export const useUiStore = create<UiState & UiActions>()(
@@ -21,6 +25,12 @@ export const useUiStore = create<UiState & UiActions>()(
         setLastUsedOutlet: (outlet) => {
           set((state) => {
             state.lastUsedOutlet = outlet
+          })
+        },
+        activeUser: null,
+        setActiveUser: (user) => {
+          set((state) => {
+            state.activeUser = user
           })
         },
       })),

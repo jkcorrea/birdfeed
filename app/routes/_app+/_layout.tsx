@@ -14,6 +14,7 @@ import { NODE_ENV } from '~/lib/env'
 import { getUserFeature, UserFeatureFlag } from '~/lib/feature-flags'
 import { useIsSubmitting } from '~/lib/hooks'
 import { response } from '~/lib/http.server'
+import { useUiStore } from '~/lib/ui-store'
 import { celebrate, tw } from '~/lib/utils'
 import { isAnonymousSession, requireAuthSession } from '~/services/auth'
 import { userSubscriptionStatus } from '~/services/user'
@@ -29,18 +30,15 @@ export async function loader({ request }: LoaderArgs) {
     }
 
     const authSession = await requireAuthSession(request)
-    const { userId, email } = authSession
+    const { userId } = authSession
 
-    const user = await db.user.findUnique({
-      where: { id: userId },
-      select: { featureFlags: true, stripeSubscriptionId: true, isAdmin: true },
-    })
+    const user = await db.user.findUniqueOrThrow({ where: { id: userId } })
     const showNavRoutes = getUserFeature(user, UserFeatureFlag.Enum.IDEAS_BIN)
-    const status = await userSubscriptionStatus(user!)
+    const status = await userSubscriptionStatus(user)
 
     return response.ok(
       {
-        email,
+        activeUser: user,
         status,
         showNavRoutes,
       },
@@ -52,16 +50,22 @@ export async function loader({ request }: LoaderArgs) {
 }
 
 export default function AppLayout() {
+  const setActiveUser = useUiStore((s) => s.setActiveUser)
   const location = useLocation()
-  const { email, status, showNavRoutes } = useLoaderData<typeof loader>()
+  const { activeUser, status, showNavRoutes } = useLoaderData<typeof loader>()
 
   useEffect(() => {
     if (NODE_ENV === 'production') {
       posthog.capture('$pageview')
-      posthog.identify(email)
+      posthog.identify(activeUser.email)
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [location.key])
+
+  // Keep user data globally up to date for deeper components to use
+  useEffect(() => {
+    setActiveUser(activeUser)
+  }, [activeUser, setActiveUser])
 
   const { open: openSubscribeModal } = useSubscribeModal()
   const [hasClosedModal, setHasClosedModal] = useState(false) // dont be annoying with the modal popups..
@@ -117,7 +121,7 @@ function PlanBadge() {
 }
 
 function Navbar({ showNavRoutes = false }: { showNavRoutes?: boolean }) {
-  const { email } = useLoaderData<typeof loader>()
+  const { activeUser } = useLoaderData<typeof loader>()
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
 
   return (
@@ -163,7 +167,7 @@ function Navbar({ showNavRoutes = false }: { showNavRoutes?: boolean }) {
           <PlanBadge />
           <div className="dropdown-end dropdown">
             <label tabIndex={0} className="btn-ghost btn-sm btn inline-flex items-center gap-2 normal-case">
-              <span className="text-base ">{email}</span>
+              <span className="text-base ">{activeUser.email}</span>
               <ChevronDownIcon className="h-4 w-4" />
             </label>
             <DropdownActions />
@@ -212,7 +216,7 @@ function Navbar({ showNavRoutes = false }: { showNavRoutes?: boolean }) {
             <div className="divider" />
 
             <>
-              <span className="text-xl font-light opacity-75">{email}</span> <PlanBadge />
+              <span className="text-xl font-light opacity-75">{activeUser.email}</span> <PlanBadge />
               <DropdownActions isMobile />
             </>
           </div>
