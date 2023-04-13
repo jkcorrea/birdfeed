@@ -6,13 +6,13 @@ import { APP_ROUTES, TWITTER_OAUTH_DENIED_KEY } from '~/lib/constants'
 import { response } from '~/lib/http.server'
 import type { ClientOAuthRequestToken } from '~/lib/utils'
 import { getGuardedToken, sendSlackEventMessage } from '~/lib/utils'
-import { getOptionalAuthSession } from '~/services/auth'
+import { safeAuthSession } from '~/services/auth'
 import { completeTwitterOauth, parseOAuthTokensFromUrl } from '~/services/twitter'
 
 const safeToString = (value: number | boolean | string) => (value || '').toString()
 
 export async function loader({ request }: LoaderArgs) {
-  const authSession = await getOptionalAuthSession(request)
+  const authSession = await safeAuthSession(request)
 
   try {
     if (!authSession) {

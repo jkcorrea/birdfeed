@@ -9,7 +9,7 @@ import { db } from '~/database/db.server'
 import { APP_ROUTES } from '~/lib/constants'
 import { response } from '~/lib/http.server'
 import { AppError, assertGet } from '~/lib/utils'
-import { buildOAuthRequestRedirectUrl, getOptionalAuthSession } from '~/services/auth'
+import { buildOAuthRequestRedirectUrl, safeAuthSession } from '~/services/auth'
 
 const AuthorizePayloadSchema = z.object({
   clientId: z.string(),
@@ -40,7 +40,7 @@ export async function loader({ request }: LoaderArgs) {
         status: 401,
       })
 
-    const authSession = await getOptionalAuthSession(request)
+    const authSession = await safeAuthSession(request)
     if (authSession) {
       // User is already logged in, so we can just redirect them to the redirectUri with the authorization code
       const redirectURLBuilt = await buildOAuthRequestRedirectUrl(authSession.userId, redirectUri, state)

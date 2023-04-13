@@ -1,6 +1,6 @@
-import { Fragment, useEffect, useRef, useState } from 'react'
+import { Fragment, useRef, useState } from 'react'
 import { ArrowRightIcon } from '@heroicons/react/20/solid'
-import type { ActionArgs, HeadersFunction } from '@remix-run/node'
+import type { ActionArgs, HeadersFunction, LoaderArgs } from '@remix-run/node'
 import { Link, useFetcher } from '@remix-run/react'
 import type { HTMLAttributes, ReactNode } from 'react'
 import { parseFormAny } from 'react-zorm'
@@ -15,6 +15,7 @@ import { APP_ROUTES, UPSELL_FEATURES } from '~/lib/constants'
 import { NODE_ENV } from '~/lib/env'
 import { response } from '~/lib/http.server'
 import { parseData, tw } from '~/lib/utils'
+import { safeAuthSession } from '~/services/auth'
 import type { GeneratedTweet } from '~/services/openai'
 import { createTranscript, CreateTranscriptSchema } from '~/services/transcription'
 
@@ -38,6 +39,12 @@ export const headers: HeadersFunction = () => ({
   'cache-control': 'public, max-age=60, s-maxage=3600, stale-while-revalidate=59',
 })
 
+export async function loader({ request }: LoaderArgs) {
+  const authSession = await safeAuthSession(request)
+  if (authSession) return response.redirect(APP_ROUTES.HOME.href, { authSession })
+  return response.ok({}, { authSession: null })
+}
+
 export async function action({ request }: ActionArgs) {
   try {
     const raw = parseFormAny(await request.formData())
@@ -52,14 +59,14 @@ export async function action({ request }: ActionArgs) {
 
 export default function Home() {
   const fetcher = useFetcher<typeof action>()
-  const [isLoggedIn, setIsLoggedIn] = useState<boolean>(false)
+  const [isLoggedIn, _setIsLoggedIn] = useState<boolean>(false)
 
-  useEffect(() => {
-    fetch('/api/is-logged-in').then(async (res) => {
-      setIsLoggedIn(Boolean(await res.json()))
-    })
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [])
+  // useEffect(() => {
+  //   fetch('/api/is-logged-in').then(async (res) => {
+  //     setIsLoggedIn(Boolean(await res.json()))
+  //   })
+  //   // eslint-disable-next-line react-hooks/exhaustive-deps
+  // }, [])
 
   const uploaderHandle = useRef<TranscriptUploaderHandle>(null)
   const runDemo = async () => {
