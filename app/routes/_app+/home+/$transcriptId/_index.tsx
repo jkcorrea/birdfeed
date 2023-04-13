@@ -99,7 +99,7 @@ export default function TranscriptPage() {
       <div className="mx-auto flex w-full flex-col items-center justify-center gap-2">
         <input readOnly type="hidden" name="transcriptId" value={data.transcript.id} />
 
-        <div className="inline-flex text-2xl font-bold">
+        <div className="mb-2 text-center text-2xl font-bold md:inline-flex">
           Viewing tweets for{' '}
           <InlineNameForm
             key={data.transcript.id}
