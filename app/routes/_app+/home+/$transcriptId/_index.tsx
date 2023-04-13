@@ -40,7 +40,7 @@ export async function loader({ request, params }: LoaderArgs) {
       /** TODO add this back in if we have an ideas bin: **/
       // archived: false ,
     },
-    orderBy: [{ updatedAt: 'desc' }],
+    orderBy: [{ updatedAt: 'desc' }, { createdAt: 'desc' }],
     take: 100,
   })
   // NOTE: prisma does something funky with promises. Wrap in a native promise

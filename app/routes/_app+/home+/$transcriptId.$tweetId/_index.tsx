@@ -56,4 +56,4 @@ export default function TweetCard() {
   )
 }
 
-const HOME_OR_IDEAS_SUBPATH_REGEX = /^(\/home|ideas)\/.*/i
+const HOME_OR_IDEAS_SUBPATH_REGEX = /^(\/home\/.*|ideas)\/.*/i

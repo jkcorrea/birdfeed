@@ -14,7 +14,6 @@ import { NODE_ENV } from '~/lib/env'
 import { getUserFeature, UserFeatureFlag } from '~/lib/feature-flags'
 import { useIsSubmitting } from '~/lib/hooks'
 import { response } from '~/lib/http.server'
-import { useUiStore } from '~/lib/ui-store'
 import { celebrate, tw } from '~/lib/utils'
 import { isAnonymousSession, requireAuthSession } from '~/services/auth'
 import { userSubscriptionStatus } from '~/services/user'
@@ -50,7 +49,6 @@ export async function loader({ request }: LoaderArgs) {
 }
 
 export default function AppLayout() {
-  const setActiveUser = useUiStore((s) => s.setActiveUser)
   const location = useLocation()
   const { activeUser, status, showNavRoutes } = useLoaderData<typeof loader>()
 
@@ -61,11 +59,6 @@ export default function AppLayout() {
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [location.key])
-
-  // Keep user data globally up to date for deeper components to use
-  useEffect(() => {
-    setActiveUser(activeUser)
-  }, [activeUser, setActiveUser])
 
   const { open: openSubscribeModal } = useSubscribeModal()
   const [hasClosedModal, setHasClosedModal] = useState(false) // dont be annoying with the modal popups..
