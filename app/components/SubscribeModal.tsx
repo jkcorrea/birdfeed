@@ -5,7 +5,7 @@ import posthog from 'posthog-js'
 import { useZorm } from 'react-zorm'
 import type { z } from 'zod'
 
-import { UPSELL_FEATURES } from '~/lib/constants'
+import { FREE_DISCLAIMER, TRIAL_DAYS, UPSELL_FEATURES } from '~/lib/constants'
 import { useIsSubmitting } from '~/lib/hooks'
 import { tw } from '~/lib/utils'
 import type { SubscriptionInterval } from '~/routes/api+/billing+/subscribe'
@@ -62,8 +62,9 @@ const SubscribeModal = ({ mode, referer, onClose }: SubscribeModalProps) => {
 
   return (
     <FullscreenModal isOpen={mode !== null} leftAction={<></>} onClose={onClose}>
-      <div className="flex flex-col rounded-lg p-4 sm:p-6">
-        <h2 className="text-xl font-bold sm:text-3xl">Birdfeed Pro Free Trial 🐣</h2>
+      <div className="flex flex-col space-y-2 rounded-lg p-4 sm:space-y-4">
+        <h2 className="text-2xl font-bold sm:text-3xl">Try Birdfeed Pro Free 🐣</h2>
+        <p className="mx-auto w-10/12 opacity-70 sm:text-lg">{FREE_DISCLAIMER}</p>
 
         <div className="form-control mt-5">
           <label className="label cursor-pointer justify-center gap-2">
@@ -74,23 +75,27 @@ const SubscribeModal = ({ mode, referer, onClose }: SubscribeModalProps) => {
               onChange={(e) => setPlan(e.currentTarget.checked ? 'year' : 'month')}
             />
             <span className="label-text text-sm sm:text-lg">
-              Annual billing <span className={tw('badge-success badge', plan === 'month' && 'invisible')}>60% OFF</span>
+              Annual billing{' '}
+              <span className={tw('badge badge-success font-bold', plan === 'month' && 'invisible')}>60% OFF</span>
             </span>
           </label>
         </div>
 
-        <div className="mx-auto mt-3 w-4/6 ">
+        <div className="mx-auto mt-2 w-4/6 ">
           <p>
-            <span className="text-3xl font-bold  tracking-tight sm:text-5xl">
+            <span className="text-4xl font-bold  tracking-tight sm:text-5xl">
               {plan === 'year' ? '$7.49' : '$18.99'}
             </span>{' '}
             <span className="text-lg font-medium opacity-80">/ month</span>
           </p>
         </div>
 
-        <ul className="text mx-auto my-6 max-w-xs list-disc text-left font-medium sm:my-10 sm:text-lg">
+        <ul className="text mx-auto max-w-md list-disc py-2 text-left font-medium sm:text-lg">
           {UPSELL_FEATURES.map((f) => (
-            <li key={f}>{f}</li>
+            <li className="text-md list-none" key={f.content}>
+              <span className="mr-2.5 ">{f.badge}</span>
+              {f.content}
+            </li>
           ))}
         </ul>
 
@@ -100,12 +105,12 @@ const SubscribeModal = ({ mode, referer, onClose }: SubscribeModalProps) => {
           <button
             disabled={isRedirectingToStripe}
             onClick={() => posthog.capture('subscribeModal_success', { referer, mode })}
-            className={tw('btn-secondary btn text-lg font-black', isRedirectingToStripe && 'opacity-50')}
+            className={tw('btn-secondary btn-lg btn text-lg font-black', isRedirectingToStripe && 'opacity-50')}
           >
-            {mode === 'resubscribe' ? `Resubscribe` : `Try 7 days for free`}
+            {mode === 'resubscribe' ? `Resubscribe` : `Try ${TRIAL_DAYS} days for free`}
           </button>
         </fetcher.Form>
-        <button className="mt-5" onClick={onClose}>
+        <button className="mt-5 pb-2 text-sm underline opacity-40" onClick={onClose}>
           Not right now, thanks.
         </button>
       </div>

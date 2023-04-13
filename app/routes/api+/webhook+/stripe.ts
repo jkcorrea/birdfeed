@@ -5,6 +5,7 @@ import { TokenType } from '@prisma/client'
 import { db } from '~/database'
 import { STRIPE_ENDPOINT_SECRET } from '~/lib/env'
 import { response } from '~/lib/http.server'
+import type { CheckoutToken } from '~/lib/utils'
 import { AppError, getGuardedToken, parseData, sendSlackEventMessage } from '~/lib/utils'
 import { stripe } from '~/services/billing'
 
@@ -40,6 +41,14 @@ async function getStripeEvent(request: Request) {
   }
 }
 
+const StripeMetadataCheckoutSchema = z.object({
+  id: z.string(),
+  metadata: z.object({
+    token: z.string(),
+    tokenType: z.union([z.literal(TokenType.ANON_CHECKOUT_TOKEN), z.literal(TokenType.AUTH_CHECKOUT_TOKEN)]),
+  }),
+})
+
 export async function action({ request }: ActionArgs) {
   const event = await getStripeEvent(request)
   const eventId = event.id
@@ -49,18 +58,15 @@ export async function action({ request }: ActionArgs) {
       case 'customer.subscription.created': {
         const { id: stripeId, metadata: stripeMetadata } = await parseData(
           event.data.object,
-          z.object({
-            id: z.string(),
-            metadata: z.object({
-              token: z.string(),
-              tokenType: z.nativeEnum(TokenType),
-            }),
-          }),
+          StripeMetadataCheckoutSchema,
           `${event.type} payload is malformed`
         )
 
         const { token, tokenType } = stripeMetadata
-        const { metadata, id } = await getGuardedToken(token, tokenType)
+        const {
+          metadata: { stripeCustomerId },
+          id,
+        } = await getGuardedToken(token, tokenType, { allowInactive: true })
 
         await db.token.update({
           where: {
@@ -69,9 +75,10 @@ export async function action({ request }: ActionArgs) {
           data: {
             active: true,
             metadata: {
-              ...metadata,
+              stripeCustomerId,
+              lifecycle: 'setOnStripeWebhook',
               stripeSubscriptionId: stripeId,
-            },
+            } satisfies CheckoutToken,
           },
         })
 

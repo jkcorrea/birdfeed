@@ -4,7 +4,7 @@ import { createEmailAuthAccount, deleteAuthAccount, signInWithPassword } from '~
 import { stripe } from '~/services/billing'
 
 import { deleteAuthAccountByEmail } from '../auth/auth.server'
-import type { User } from './types'
+import type { SubscriptionStatus, User } from './types'
 
 const tag = 'User service 🧑'
 
@@ -13,7 +13,7 @@ type UserCreatePayload = {
   email: string
 } & Partial<Pick<User, 'avatarUrl' | 'twitterId' | 'twitterHandle'>>
 
-export async function userSubscriptionStatus(id: User['id']) {
+export async function userSubscriptionStatus(id: User['id']): Promise<SubscriptionStatus> {
   try {
     const { stripeSubscriptionId, isAdmin } = await db.user.findUniqueOrThrow({
       where: { id },
