@@ -49,6 +49,7 @@ export function TweetActionBar({ tweet, isAuthed, onDelete }: Props) {
             <Link
               className="btn-outline btn-info btn-sm btn lowercase"
               to={APP_ROUTES.TWEET(tweet.transcriptId, tweet.id).href}
+              preventScrollReset
             >
               edit
             </Link>

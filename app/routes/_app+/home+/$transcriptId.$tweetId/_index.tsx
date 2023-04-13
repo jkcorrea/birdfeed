@@ -46,7 +46,7 @@ export default function TweetCard() {
     if (data.canGoBack) navigate(-1)
     // Otherwise, go back up a level or fallback to home
     const to = pathname.match(HOME_OR_IDEAS_SUBPATH_REGEX)?.[1] ?? APP_ROUTES.HOME.href
-    navigate(to)
+    navigate(to, { preventScrollReset: true })
   }
 
   return (

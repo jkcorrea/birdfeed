@@ -35,7 +35,7 @@ const scripts: ExternalScriptsFunction = () =>
 export const handle = { scripts }
 
 export const headers: HeadersFunction = () => ({
-  'cache-control': 'public, max-age=60, s-maxage=120, stale-while-revalidate',
+  'cache-control': 'public, max-age=60, s-maxage=3600, stale-while-revalidate=59',
 })
 
 export async function action({ request }: ActionArgs) {
