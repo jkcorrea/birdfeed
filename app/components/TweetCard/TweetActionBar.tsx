@@ -13,12 +13,17 @@ import { SendTweetButton } from './SendTweetButton'
 interface Props {
   tweet: GeneratedTweet
   canDelete?: boolean
+  onDelete?: () => void
   isAuthed?: boolean
 }
 
-function TweetActionBar({ tweet, canDelete, isAuthed }: Props) {
+function TweetActionBar({ tweet, canDelete, isAuthed, onDelete }: Props) {
   const fetcher = useFetcher()
-  const zoDelete = useZorm('delete', DeleteTweetSchema)
+  const zoDelete = useZorm('delete', DeleteTweetSchema, {
+    onValidSubmit() {
+      onDelete?.()
+    },
+  })
   const isDeleting = useIsSubmitting(
     fetcher,
     (f) => (f.get('intent') as IDeleteTweet['intent']) === 'delete-tweet' && f.get('tweetId') === tweet.id

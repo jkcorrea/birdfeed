@@ -35,14 +35,14 @@ export async function loader({ request }: LoaderArgs) {
       where: { id: userId },
       select: { featureFlags: true, stripeSubscriptionId: true, isAdmin: true },
     })
-    const showIdeaBin = getUserFeature(user, UserFeatureFlag.Enum.IDEA_BIN)
+    const showNavRoutes = getUserFeature(user, UserFeatureFlag.Enum.IDEAS_BIN)
     const status = await userSubscriptionStatus(user!)
 
     return response.ok(
       {
         email,
         status,
-        showIdeaBin,
+        showNavRoutes,
       },
       { authSession }
     )
@@ -53,7 +53,7 @@ export async function loader({ request }: LoaderArgs) {
 
 export default function AppLayout() {
   const location = useLocation()
-  const { email, status } = useLoaderData<typeof loader>()
+  const { email, status, showNavRoutes } = useLoaderData<typeof loader>()
 
   useEffect(() => {
     if (NODE_ENV === 'production') {
@@ -85,7 +85,7 @@ export default function AppLayout() {
 
   return (
     <>
-      <Navbar key={location.key} />
+      <Navbar showNavRoutes={Boolean(showNavRoutes)} key={location.key} />
 
       <main className="container mx-auto min-h-[500px] w-full min-w-[300px] max-w-screen-lg grow py-4 px-8 md:px-4 lg:mt-5 2xl:px-0">
         <Outlet />
@@ -102,7 +102,7 @@ function PlanBadge() {
     case 'active':
     case 'trialing':
       // eslint-disable-next-line prettier/prettier
-      return <button className="badge-primary badge badge-sm font-black uppercase">Pro</button>
+      return <button className="badge-primary badge-outline badge badge-sm uppercase">Pro Plan</button>
     default:
       return (
         <button
@@ -116,7 +116,7 @@ function PlanBadge() {
   }
 }
 
-function Navbar() {
+function Navbar({ showNavRoutes = false }: { showNavRoutes?: boolean }) {
   const { email } = useLoaderData<typeof loader>()
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
 
@@ -144,19 +144,19 @@ function Navbar() {
         </div>
 
         <div className="hidden lg:flex lg:min-w-0 lg:flex-1 lg:justify-center lg:gap-x-12">
-          {/* NOTE - hiding ideas route for now. if we ever wanna try out ideas again, toggle this with a feature flag */}
-          {/* {NAV_ROUTES.map(({ title, href }) => (
-            <NavLink
-              prefetch="intent"
-              key={title}
-              to={href}
-              className={({ isActive }) =>
-                tw('font-bold text-gray-900 transition hover:text-primary', isActive && 'text-primary')
-              }
-            >
-              {title}
-            </NavLink>
-          ))} */}
+          {showNavRoutes &&
+            NAV_ROUTES.map(({ title, href }) => (
+              <NavLink
+                prefetch="intent"
+                key={title}
+                to={href}
+                className={({ isActive }) =>
+                  tw('font-bold text-gray-900 transition hover:text-primary', isActive && 'text-primary')
+                }
+              >
+                {title}
+              </NavLink>
+            ))}
         </div>
 
         <div className="hidden gap-2 lg:flex lg:min-w-0 lg:flex-1 lg:items-center lg:justify-end">

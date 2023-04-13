@@ -1,7 +1,5 @@
-import { Fragment, useMemo } from 'react'
-import { Link } from '@remix-run/react'
+import { useMemo } from 'react'
 
-import { APP_ROUTES } from '~/lib/constants'
 import { tw } from '~/lib/utils'
 import type { GeneratedTweet } from '~/services/openai'
 
@@ -32,27 +30,17 @@ export function TweetGrid({ tweets, isPublic, className }: Props) {
 
   return (
     <div className={tw(wrapperClassName, className)}>
-      <TweetColumn isPublic={isPublic} hasAd={isPublic} tweets={left} />
+      <TweetColumn isPublic={isPublic} tweets={left} />
       <TweetColumn isPublic={isPublic} tweets={right} />
     </div>
   )
 }
 
-function TweetColumn({ tweets, hasAd, isPublic }: Props & { hasAd?: boolean }) {
+function TweetColumn({ tweets, isPublic }: Props) {
   return (
     <div className={columnClassName}>
       {tweets.map((tweet, ix) => (
-        <Fragment key={tweet.id}>
-          <TweetCard isPublic={isPublic} isBlurred={isPublic && ix > 1} tweet={tweet} />
-          {hasAd && ix === Math.floor((tweets.length * 2) / 4) - 1 && (
-            <div className="flex h-20 w-full flex-col items-center justify-center rounded-lg bg-base-300 text-center shadow-inner">
-              <h3 className="text-lg font-bold">More, better tweets</h3>
-              <Link to={APP_ROUTES.JOIN(1).href} className="link-info link no-underline">
-                Sign up here!
-              </Link>
-            </div>
-          )}
-        </Fragment>
+        <TweetCard key={tweet.id} isPublic={isPublic} isBlurred={isPublic && ix > 1} tweet={tweet} />
       ))}
     </div>
   )

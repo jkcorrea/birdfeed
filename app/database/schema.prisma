@@ -10,12 +10,6 @@ generator client {
   previewFeatures = ["extendedWhereUnique", "orderByNulls"]
 }
 
-// Disclaimer: This schema is designed for a 3 tiers subscription app (free, tier_1, tier_2)
-// Each tier has a monthly and yearly price in usd and eur
-// Adapt it to your needs and don't forget to prisma generate after changes
-// You certainly will need to adapt the code, the seeding script and other stripe scripts I made (in the scripts folder)
-// It will be easier to start from scratch if you made a lot of changes (recreating Supabase DB and erasing Stripe tests data)
-
 // Models
 model User {
   id        String   @id
@@ -23,7 +17,8 @@ model User {
   updatedAt DateTime @updatedAt
   email     String   @unique
 
-  isAdmin    Boolean  @default(false)
+  isAdmin      Boolean @default(false)
+  featureFlags Json    @default("[]")
 
   avatarUrl            String?
   twitterId            String?

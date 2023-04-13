@@ -8,7 +8,12 @@ interface AppRoute {
 
 export const APP_ROUTES = {
   LANDING: { title: 'Birdfeed', href: '/' },
-  HOME: { title: 'Home', href: '/home' },
+  HOME: { title: 'Home', href: '/home', showInNav: true },
+  IDEAS: { title: 'Ideas', href: '/ideas', showInNav: true },
+  IDEAS_TWEET: (tweetId: string, params?: URLSearchParams) => ({
+    href: `/ideas/${tweetId}${params ? '?' + params.toString() : ''}`,
+    title: `Tweet ${tweetId}`,
+  }),
   TRANSCRIPT: (transcriptId: string) => ({ title: 'Transcript', href: `/home/${transcriptId}` }),
   LOGIN: { title: 'Log In', href: '/login' },
   JOIN: (step: number) => ({ href: `/join/step/${step}`, title: `Join` }),

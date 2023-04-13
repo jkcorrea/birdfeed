@@ -6,27 +6,34 @@ import { stripe } from '~/services/billing'
 import { deleteAuthAccountByEmail } from '../auth/auth.server'
 import type { SubscriptionStatus, User } from './types'
 
-const tag = 'User service 🧑'
+const tag = '🧑 User service'
 
 type UserCreatePayload = {
   password: string
   email: string
 } & Partial<Pick<User, 'avatarUrl' | 'twitterId' | 'twitterHandle'>>
 
-export async function userSubscriptionStatus(id: User['id']): Promise<SubscriptionStatus> {
+type UserWithSubscription = Partial<User> & Pick<User, 'stripeSubscriptionId' | 'isAdmin'>
+
+async function getSubscriptionStatus(user: UserWithSubscription) {
+  if (user.isAdmin) return 'active'
+
+  if (!user.stripeSubscriptionId) return 'never_subscribed'
+
+  const subscription = await stripe.subscriptions.retrieve(user.stripeSubscriptionId)
+  return subscription.status
+}
+
+export async function userSubscriptionStatus(userOrId: User['id'] | UserWithSubscription): Promise<SubscriptionStatus> {
+  if (typeof userOrId === 'object') return getSubscriptionStatus(userOrId)
+
   try {
-    const { stripeSubscriptionId, isAdmin } = await db.user.findUniqueOrThrow({
-      where: { id },
+    const user = await db.user.findUniqueOrThrow({
+      where: { id: userOrId },
       select: { stripeSubscriptionId: true, isAdmin: true },
     })
 
-    if (isAdmin) return 'active'
-
-    if (!stripeSubscriptionId) return 'never_subscribed'
-
-    const subscription = await stripe.subscriptions.retrieve(stripeSubscriptionId)
-
-    return subscription.status
+    return getSubscriptionStatus(user)
   } catch (cause) {
     throw new AppError({
       cause,
@@ -105,7 +112,7 @@ export async function createUserAccount(payload: UserCreatePayload) {
 
 export async function updateUser(
   id: User['id'],
-  data: Partial<Omit<User, 'id' | 'customerId' | 'createdAt' | 'updatedAt'>>
+  data: Partial<Omit<User, 'id' | 'customerId' | 'createdAt' | 'updatedAt' | 'featureFlags'>>
 ) {
   try {
     return db.user.update({
