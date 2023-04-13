@@ -39,7 +39,7 @@ export async function loader({ request }: LoaderArgs) {
       archived: true,
       transcript: { userId },
     },
-    orderBy: [{ rating: { sort: 'desc', nulls: 'last' } }, { updatedAt: 'desc' }],
+    orderBy: [{ rating: { sort: 'desc', nulls: 'last' } }, { updatedAt: 'desc' }, { id: 'desc' }],
   })
   // NOTE: prisma has does something funky with promises. Wrap in a native promise
   // see: https://github.com/remix-run/remix/issues/5153
