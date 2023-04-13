@@ -1,6 +1,5 @@
-import { ChevronUpIcon, ClipboardDocumentIcon } from '@heroicons/react/24/outline'
+import { ChevronUpIcon } from '@heroicons/react/24/outline'
 import posthog from 'posthog-js'
-import { toast } from 'react-hot-toast'
 
 import { TweetOutlet } from '~/lib/constants'
 import { useUiStore } from '~/lib/ui-store'
@@ -48,14 +47,6 @@ const outletMeta: Record<TweetOutlet, TweetOutletMeta> = {
     icon: <TwitterIcon className="h-4 w-4" />,
     label: 'Send to Twitter',
     action: (content, isAuthed) => window.open(buildSendTweetUrl(content, isAuthed), '_blank', 'noopener,noreferrer'),
-  },
-  [TweetOutlet.CLIPBOARD]: {
-    icon: <ClipboardDocumentIcon className="h-4 w-4" />,
-    label: 'Copy to clipboard',
-    action: (content) => {
-      navigator.clipboard.writeText(content)
-      toast.success('Copied to clipboard!')
-    },
   },
   [TweetOutlet.HYPEFURY]: {
     icon: <HypefuryIcon className="h-5 w-5" />,

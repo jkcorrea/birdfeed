@@ -64,7 +64,6 @@ export const TRIAL_DAYS = 0
 export const TWITTER_OAUTH_DENIED_KEY = 'twitter_oauth_denied'
 
 export enum TweetOutlet {
-  CLIPBOARD = 'copy',
   TWITTER = 'tweet',
   HYPEFURY = 'hypefury',
 }
