@@ -1,7 +1,8 @@
 import { createId } from '@paralleldrive/cuid2'
 
-import { TokenType } from '@prisma/client'
+import type { TokenType } from '@prisma/client'
 import { db } from '~/database'
+import { TRIAL_DAYS } from '~/lib/constants'
 import { SERVER_URL } from '~/lib/env'
 import { AppError } from '~/lib/utils'
 
@@ -27,6 +28,7 @@ export async function createCheckoutSession({
         type: tokenType,
         active: false,
         metadata: {
+          lifecycle: 'setOnCreateCheckoutSession',
           stripeCustomerId: customerId,
         },
       },
@@ -46,7 +48,7 @@ export async function createCheckoutSession({
       ],
       mode: 'subscription',
       subscription_data: {
-        ...(tokenType === TokenType.ANON_CHECKOUT_TOKEN && { trial_period_days: 7 }),
+        trial_period_days: TRIAL_DAYS,
         metadata: {
           token,
           tokenType,

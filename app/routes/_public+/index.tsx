@@ -130,9 +130,7 @@ export default function Home() {
               You can use Birdfeed right now, <em>for free</em>! If you create an an account, you'll get access to:
             </p>
             <ul className="list-inside list-disc py-3">
-              {UPSELL_FEATURES.map((feature) => (
-                <li key={feature}>{feature}</li>
-              ))}
+              {UPSELL_FEATURES.map((feature, ix) => ix < 5 && <li key={feature.content}>{feature.content}</li>)}
             </ul>
 
             <Link

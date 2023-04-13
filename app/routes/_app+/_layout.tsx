@@ -59,7 +59,7 @@ export default function AppLayout() {
   const [hasClosedModal, setHasClosedModal] = useState(false) // dont be annoying with the modal popups..
   useEffect(() => {
     if (!hasClosedModal && status !== 'active' && status !== 'trialing') {
-      openSubscribeModal('resubscribe', 'automatic', () => {
+      openSubscribeModal('signup', 'automatic', () => {
         setHasClosedModal(true)
       })
     }
@@ -68,7 +68,7 @@ export default function AppLayout() {
   const loc = useLocation()
   useEffect(() => {
     if (loc.hash === '#success') {
-      toast.success('Success! Thank you for re-subscribing!', { id: 'checkout-success' })
+      toast.success('Success! Thank you for subscribing!', { id: 'checkout-success' })
       celebrate()
       window.location.hash = ''
     }
@@ -84,6 +84,28 @@ export default function AppLayout() {
       </main>
     </>
   )
+}
+
+function PlanBadge() {
+  const { status } = useLoaderData<typeof loader>()
+  const { open: openSubscribeModal } = useSubscribeModal()
+
+  switch (status) {
+    case 'active':
+    case 'trialing':
+      // eslint-disable-next-line prettier/prettier
+      return <button className="self-top badge-accent badge badge-sm font-black leading-relaxed">PRO</button>
+    default:
+      return (
+        <button
+          onClick={() => openSubscribeModal('signup', 'badge_click')}
+          // eslint-disable-next-line prettier/prettier
+          className="self-top badge-accent badge badge-sm font-black leading-relaxed"
+        >
+          FREE
+        </button>
+      )
+  }
 }
 
 function Navbar() {
@@ -129,7 +151,8 @@ function Navbar() {
           ))} */}
         </div>
 
-        <div className="hidden lg:flex lg:min-w-0 lg:flex-1 lg:items-center lg:justify-end lg:space-x-4">
+        <div className="hidden lg:flex lg:min-w-0 lg:flex-1 lg:items-center lg:justify-end">
+          <PlanBadge />
           <div className="dropdown-end dropdown">
             <label tabIndex={0} className="btn-ghost btn-sm btn inline-flex items-center gap-2 normal-case">
               <span className="text-base ">{email}</span>
@@ -181,8 +204,7 @@ function Navbar() {
             <div className="divider" />
 
             <>
-              <span className="text-xl font-light opacity-75">{email}</span>
-
+              <span className="text-xl font-light opacity-75">{email}</span> <PlanBadge />
               <DropdownActions isMobile />
             </>
           </div>

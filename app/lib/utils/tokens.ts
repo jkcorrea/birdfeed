@@ -7,10 +7,17 @@ import { db } from '~/database'
 
 import { AppError } from './errors'
 
-export const CheckoutTokenSchema = z.object({
-  stripeSubscriptionId: z.string(),
-  stripeCustomerId: z.string(),
-})
+export const CheckoutTokenSchema = z.discriminatedUnion('lifecycle', [
+  z.object({
+    lifecycle: z.literal('setOnCreateCheckoutSession'),
+    stripeCustomerId: z.string(),
+  }),
+  z.object({
+    lifecycle: z.literal('setOnStripeWebhook'),
+    stripeSubscriptionId: z.string(),
+    stripeCustomerId: z.string(),
+  }),
+])
 export type CheckoutToken = z.infer<typeof CheckoutTokenSchema>
 
 const TwitterVerifyPayload = z.object({
@@ -68,11 +75,12 @@ const metaSchemas = {
  */
 export async function getGuardedToken<TType extends TokenType>(
   token: string,
-  type: TType
+  type: TType,
+  opts: { allowInactive?: boolean } = { allowInactive: false }
 ): Promise<Omit<Token, 'metadata'> & { metadata: z.infer<(typeof metaSchemas)[TType]> }> {
   const { metadata, ...rest } = await db.token.findUniqueOrThrow({ where: { token_type: { token, type } } })
 
-  if (!rest.active) {
+  if (!rest.active && !opts.allowInactive) {
     await db.token.delete({
       where: {
         id: rest.id,
