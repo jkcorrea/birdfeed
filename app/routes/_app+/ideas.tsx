@@ -96,7 +96,7 @@ function IdeaBin() {
             ) : tweets.length === 0 ? (
               <Empty />
             ) : (
-              <TweetGrid tweets={tweets} className="max-w-screen-lg" />
+              <TweetGrid isAuthed tweets={tweets} className="max-w-screen-lg" />
             )
           }
         </Await>

@@ -20,7 +20,7 @@ const CHUNK_SIZE = 8000 // 10min * 150wpm * 5char/word
 
 const cleanup = (str: string) => str.replaceAll('"', '').replaceAll(HASHTAGS_REGEX, '').trim()
 
-export type GeneratedTweet = Pick<Tweet, 'id' | 'drafts' | 'document'>
+export type GeneratedTweet = Pick<Tweet, 'id' | 'drafts' | 'document'> & Partial<Pick<Tweet, 'transcriptId'>>
 
 const clamp = (num: number, min: number, max: number) => Math.min(Math.max(num, min), max)
 

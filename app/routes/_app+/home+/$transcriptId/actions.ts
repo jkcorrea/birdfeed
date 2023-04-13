@@ -9,14 +9,7 @@ import { AppError, assertPost, parseData } from '~/lib/utils'
 import { requireAuthSession } from '~/services/auth'
 import { generateTweetsFromContent } from '~/services/openai'
 
-import type {
-  IDeleteTranscript,
-  IDeleteTweet,
-  IGenerateTweets,
-  IRestoreDraft,
-  IUpdateTranscript,
-  IUpdateTweet,
-} from './schemas'
+import type { IDeleteTranscript, IDeleteTweet, IGenerateTweets, IUpdateTranscript } from './schemas'
 import { ActionSchema } from './schemas'
 
 export async function action({ request }: ActionArgs) {
@@ -37,12 +30,6 @@ export async function action({ request }: ActionArgs) {
         return response.redirect(APP_ROUTES.HOME.href, { authSession })
       case 'generate-tweets':
         await generateTweets(data)
-        break
-      case 'update-tweet':
-        await updateTweet(data)
-        break
-      case 'restore-draft':
-        await restoreDraft(data)
         break
       default:
         throw new AppError({ message: `Unknown action: ${data satisfies never}` })
@@ -95,38 +82,5 @@ async function deleteTweet({ tweetId }: IDeleteTweet, userId: string) {
 async function deleteTranscript({ transcriptId }: IDeleteTranscript, userId: string) {
   await db.transcript.delete({
     where: { id: transcriptId, userId },
-  })
-}
-
-async function updateTweet({ tweetId, archived, draft, rating }: IUpdateTweet) {
-  const { drafts } = await db.tweet.findUniqueOrThrow({
-    where: { id: tweetId },
-    select: { drafts: true },
-  })
-
-  await db.tweet.update({
-    where: { id: tweetId },
-    data: {
-      archived,
-      drafts: draft ? { set: [draft, ...drafts.slice(1)] } : undefined,
-      rating: rating && rating <= 0 ? null : rating,
-    },
-  })
-}
-
-async function restoreDraft({ draftIndex, tweetId }: IRestoreDraft) {
-  const tweet = await db.tweet.findUniqueOrThrow({
-    where: { id: tweetId },
-    include: { transcript: true },
-  })
-
-  const draft = tweet.drafts[draftIndex]
-  if (!draft) throw new Error('Draft not found')
-
-  const drafts = [draft, ...tweet.drafts.filter((_, i) => i !== draftIndex)]
-
-  await db.tweet.update({
-    where: { id: tweetId },
-    data: { drafts: { set: drafts } },
   })
 }

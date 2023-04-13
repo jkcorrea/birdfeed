@@ -4,7 +4,7 @@ import { z } from 'zod'
 import { db } from '~/database'
 import { apiResponse } from '~/lib/api.server'
 import { assertPost, parseData } from '~/lib/utils'
-import { generateTweets } from '~/routes/_app+/home.$transcriptId/actions'
+import { generateTweets } from '~/routes/_app+/home+/$transcriptId/actions'
 import { requireApiAuth } from '~/services/auth/api.server'
 
 const GenerateTweetsPayloadSchema = z.object({

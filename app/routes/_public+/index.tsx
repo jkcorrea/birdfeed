@@ -213,7 +213,7 @@ function TweetGridWrapper({ tweets, isDemo }: { tweets: GeneratedTweet[]; isDemo
           </Link>
         </div>
 
-        <TweetGrid isPublic tweets={tweets} />
+        <TweetGrid tweets={tweets} />
       </div>
     </>
   )

@@ -15,6 +15,10 @@ export const APP_ROUTES = {
     title: `Tweet ${tweetId}`,
   }),
   TRANSCRIPT: (transcriptId: string) => ({ title: 'Transcript', href: `/home/${transcriptId}` }),
+  TWEET: (transcriptId: string, tweetId: string) => ({
+    title: 'Tweet',
+    href: `/home/${transcriptId}/${tweetId}`,
+  }),
   LOGIN: { title: 'Log In', href: '/login' },
   JOIN: (step: number) => ({ href: `/join/step/${step}`, title: `Join` }),
   LOGOUT: { title: 'Log Out', href: '/logout' },

@@ -1,10 +1,11 @@
-import { useFetcher } from '@remix-run/react'
+import { Link, useFetcher } from '@remix-run/react'
 import { useZorm } from 'react-zorm'
 
+import { APP_ROUTES } from '~/lib/constants'
 import { useIsSubmitting } from '~/lib/hooks'
 import { tw } from '~/lib/utils'
-import type { IAction as ITweetsAction, IDeleteTweet } from '~/routes/_app+/home.$transcriptId/schemas'
-import { DeleteTweetSchema } from '~/routes/_app+/home.$transcriptId/schemas'
+import type { IAction as ITweetsAction, IDeleteTweet } from '~/routes/_app+/home+/$transcriptId/schemas'
+import { DeleteTweetSchema } from '~/routes/_app+/home+/$transcriptId/schemas'
 import type { GeneratedTweet } from '~/services/openai'
 
 import IntentField from '../fields/IntentField'
@@ -12,12 +13,11 @@ import { SendTweetButton } from './SendTweetButton'
 
 interface Props {
   tweet: GeneratedTweet
-  canDelete?: boolean
   onDelete?: () => void
   isAuthed?: boolean
 }
 
-function TweetActionBar({ tweet, canDelete, isAuthed, onDelete }: Props) {
+export function TweetActionBar({ tweet, isAuthed, onDelete }: Props) {
   const fetcher = useFetcher()
   const zoDelete = useZorm('delete', DeleteTweetSchema, {
     onValidSubmit() {
@@ -31,26 +31,32 @@ function TweetActionBar({ tweet, canDelete, isAuthed, onDelete }: Props) {
 
   return (
     <div className="inline-flex w-full justify-end gap-2 py-2">
-      <div className="inline-flex items-center gap-3">
-        {/* Delete */}
-        {canDelete && (
+      {isAuthed && (
+        <>
           <fetcher.Form method="post" ref={zoDelete.ref} className="flex items-center">
             <IntentField<ITweetsAction> value="delete-tweet" />
             <input name={zoDelete.fields.tweetId()} type="hidden" value={tweet.id} />
             <button
-              className={tw('btn-outline btn-error btn-sm btn lowercase', isDeleting && 'loading')}
+              className={tw('btn-link btn-sm btn lowercase text-error', isDeleting && 'loading')}
               data-tip="Delete"
               disabled={isDeleting}
             >
               Delete
             </button>
           </fetcher.Form>
-        )}
-      </div>
+
+          {tweet.transcriptId && (
+            <Link
+              className="btn-outline btn-info btn-sm btn lowercase"
+              to={APP_ROUTES.TWEET(tweet.transcriptId, tweet.id).href}
+            >
+              edit
+            </Link>
+          )}
+        </>
+      )}
 
       <SendTweetButton isAuthed={isAuthed} body={tweet.drafts[0]} tweetId={tweet.id} />
     </div>
   )
 }
-
-export default TweetActionBar

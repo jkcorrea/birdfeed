@@ -2,7 +2,7 @@ import { Suspense, useEffect, useState } from 'react'
 import { PencilIcon } from '@heroicons/react/20/solid'
 import { ClipboardDocumentIcon } from '@heroicons/react/24/outline'
 import type { FetcherWithComponents } from '@remix-run/react'
-import { Await, useFetcher, useLoaderData } from '@remix-run/react'
+import { Await, Outlet, useFetcher, useLoaderData } from '@remix-run/react'
 import type { LoaderArgs } from '@remix-run/server-runtime'
 import { toast } from 'react-hot-toast'
 import { useZorm } from 'react-zorm'
@@ -40,7 +40,7 @@ export async function loader({ request, params }: LoaderArgs) {
       /** TODO add this back in if we have an ideas bin: **/
       // archived: false ,
     },
-    orderBy: [{ createdAt: 'desc' }],
+    orderBy: [{ updatedAt: 'desc' }],
     take: 100,
   })
   // NOTE: prisma does something funky with promises. Wrap in a native promise
@@ -135,7 +135,9 @@ export default function TranscriptPage() {
 
       <Suspense fallback={<TweetGridLoading />}>
         <Await resolve={data.tweets} errorElement={<Error />}>
-          {(tweets) => (tweets.length === 0 ? <Empty /> : <TweetGrid tweets={tweets} className="max-w-screen-lg" />)}
+          {(tweets) =>
+            tweets.length === 0 ? <Empty /> : <TweetGrid isAuthed tweets={tweets} className="max-w-screen-lg" />
+          }
         </Await>
       </Suspense>
 
@@ -166,6 +168,8 @@ export default function TranscriptPage() {
           />
         </FullscreenModal>
       )}
+
+      <Outlet />
     </>
   )
 }

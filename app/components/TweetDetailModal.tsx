@@ -14,11 +14,9 @@ import FullscreenModal from '~/components/FullscreenModal'
 import { APP_ROUTES, TWEET_CHAR_LIMIT } from '~/lib/constants'
 import { useIsSubmitting } from '~/lib/hooks'
 import { tw } from '~/lib/utils'
-import type { IAction as IHomeAction, IUpdateTweet } from '~/routes/_app+/home.$transcriptId/schemas'
-import { RestoreDraftSchema, UpdateTweetSchema } from '~/routes/_app+/home.$transcriptId/schemas'
+import type { IAction as ITweetAction, IUpdateTweet } from '~/routes/_app+/home+/$transcriptId.$tweetId/schemas'
+import { RestoreDraftSchema, UpdateTweetSchema } from '~/routes/_app+/home+/$transcriptId.$tweetId/schemas'
 import type { GeneratedTweet } from '~/services/openai'
-
-import TweetActionBar from './TweetCard/TweetActionBar'
 
 dayjs.extend(relativeTime)
 
@@ -31,6 +29,7 @@ export function TweetDetailModal({ tweet, onClose: _onClose }: Props) {
   const [showHistory, setShowHistory] = useState(false)
 
   const fetcher = useFetcher()
+  const action = !tweet ? '' : APP_ROUTES.TWEET(tweet.transcriptId!, tweet.id).href
   const updateFormId = 'update-tweet'
   const zoUpdate = useZorm(updateFormId, UpdateTweetSchema)
   const zoRestore = useZorm('restore', RestoreDraftSchema)
@@ -38,7 +37,7 @@ export function TweetDetailModal({ tweet, onClose: _onClose }: Props) {
   const isSaving = useIsSubmitting(
     fetcher,
     (f) =>
-      (f.get('intent') as IUpdateTweet['intent']) === ('update-tweet' satisfies IUpdateTweet['intent']) &&
+      (f.get('intent') as ITweetAction['intent']) === ('update-tweet' satisfies IUpdateTweet['intent']) &&
       f.get('tweetId') === tweet?.id
   )
 
@@ -53,11 +52,14 @@ export function TweetDetailModal({ tweet, onClose: _onClose }: Props) {
   useEffect(expandTextArea, [tweet, showHistory])
 
   const onClose = () => {
-    const res = zoUpdate.validate()
-    if (res.success && res.data.draft !== tweet?.drafts[0]) {
-      toast.loading('Saving...')
-      zoUpdate.form?.submit()
-    }
+    try {
+      const res = zoUpdate.validate()
+      if (res.success && res.data.draft !== tweet?.drafts[0]) {
+        toast.loading('Saving...')
+        zoUpdate.form?.submit()
+      }
+    } catch {}
+
     setShowHistory(false)
     _onClose()
   }
@@ -91,8 +93,8 @@ export function TweetDetailModal({ tweet, onClose: _onClose }: Props) {
           {tweet.drafts.slice(1).map((draft, index) => (
             <li key={draft} className="flex items-center justify-between gap-2 text-left">
               <p className="w-full resize-none rounded text-sm">{draft}</p>
-              <fetcher.Form action={APP_ROUTES.HOME.href} method="post" ref={zoRestore.ref}>
-                <IntentField<IHomeAction> value="restore-draft" />
+              <fetcher.Form action={action} method="post" ref={zoRestore.ref}>
+                <IntentField<ITweetAction> value="restore-draft" />
                 <input name={zoRestore.fields.tweetId()} type="hidden" value={tweet.id} />
                 <input name={zoRestore.fields.draftIndex()} type="hidden" value={index + 1} />
                 <button
@@ -109,8 +111,8 @@ export function TweetDetailModal({ tweet, onClose: _onClose }: Props) {
         </ul>
       ) : (
         <div className="mx-auto flex w-full max-w-md flex-col">
-          <fetcher.Form action={APP_ROUTES.HOME.href} id={updateFormId} method="post" ref={zoUpdate.ref}>
-            <IntentField<IHomeAction> value="update-tweet" />
+          <fetcher.Form action={action} id={updateFormId} method="post" ref={zoUpdate.ref}>
+            <IntentField<ITweetAction> value="update-tweet" />
             <input name={zoUpdate.fields.tweetId()} type="hidden" value={tweet.id} />
             <TextAreaField
               ref={textAreaRef}
@@ -134,9 +136,7 @@ export function TweetDetailModal({ tweet, onClose: _onClose }: Props) {
 
           <div className="divider my-3" />
 
-          <div className="flex items-center justify-between">
-            <TweetActionBar tweet={tweet} onDelete={() => setTimeout(onClose, 0)} />
-
+          <div className="flex items-center justify-end">
             <Value zorm={zoUpdate} name={zoUpdate.fields.draft()}>
               {(draft) => {
                 const remainingChars = TWEET_CHAR_LIMIT - draft.length
