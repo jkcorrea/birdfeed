@@ -8,8 +8,10 @@ import type { DetailedHTMLProps, FC } from 'react'
 import { toast } from 'react-hot-toast'
 
 import { useSubscribeModal } from '~/components/SubscribeModal'
+import { db } from '~/database'
 import { APP_ROUTES, NAV_ROUTES } from '~/lib/constants'
 import { NODE_ENV } from '~/lib/env'
+import { getUserFeature, UserFeatureFlag } from '~/lib/feature-flags'
 import { useIsSubmitting } from '~/lib/hooks'
 import { response } from '~/lib/http.server'
 import { celebrate, tw } from '~/lib/utils'
@@ -29,12 +31,18 @@ export async function loader({ request }: LoaderArgs) {
     const authSession = await requireAuthSession(request)
     const { userId, email } = authSession
 
-    const status = await userSubscriptionStatus(userId)
+    const user = await db.user.findUnique({
+      where: { id: userId },
+      select: { featureFlags: true, stripeSubscriptionId: true, isAdmin: true },
+    })
+    const showIdeaBin = getUserFeature(user, UserFeatureFlag.Enum.IDEA_BIN)
+    const status = await userSubscriptionStatus(user!)
 
     return response.ok(
       {
         email,
         status,
+        showIdeaBin,
       },
       { authSession }
     )
@@ -93,18 +101,18 @@ function PlanBadge() {
   switch (status) {
     case 'active':
     case 'trialing':
+      // eslint-disable-next-line prettier/prettier
+      return <button className="badge-primary badge badge-sm font-black uppercase">Pro</button>
+    default:
       return (
         <button
           onClick={() => openSubscribeModal('signup', 'badge_click')}
           // eslint-disable-next-line prettier/prettier
           className="badge-accent badge badge-sm font-black uppercase"
         >
-          Free Trial
+          Free Plan
         </button>
       )
-    default:
-      // eslint-disable-next-line prettier/prettier
-      return <button className="badge-primary badge badge-sm font-black uppercase">Pro</button>
   }
 }
 
