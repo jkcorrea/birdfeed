@@ -5,7 +5,7 @@ import posthog from 'posthog-js'
 import { useZorm } from 'react-zorm'
 import type { z } from 'zod'
 
-import { FREE_DISCLAIMER, TRIAL_DAYS, UPSELL_FEATURES } from '~/lib/constants'
+import { TRIAL_DAYS, UPSELL_FEATURES } from '~/lib/constants'
 import { useIsSubmitting } from '~/lib/hooks'
 import { tw } from '~/lib/utils'
 import type { SubscriptionInterval } from '~/routes/api+/billing+/subscribe'
@@ -61,10 +61,13 @@ const SubscribeModal = ({ mode, referer, onClose }: SubscribeModalProps) => {
   const [plan, setPlan] = useState<z.infer<typeof SubscriptionInterval>>('year')
 
   return (
-    <FullscreenModal isOpen={mode !== null} leftAction={<></>} onClose={onClose}>
+    <FullscreenModal isOpen={mode !== null} onClose={onClose}>
       <div className="flex flex-col space-y-2 rounded-lg p-4 sm:space-y-4">
-        <h2 className="text-2xl font-bold sm:text-3xl">Try Birdfeed Pro Free 🐣</h2>
-        <p className="mx-auto w-10/12 opacity-70 sm:text-lg">{FREE_DISCLAIMER}</p>
+        <h2 className="text-2xl font-bold sm:text-3xl">Upgrade to Birdfeed Pro 🐥</h2>
+        <p className="mx-auto w-10/12 opacity-70 sm:text-lg">
+          You're currently on the free plan, with a max of 3 transcripts and 15 minutes per upload. Upgrade to pro to
+          get the full experience.
+        </p>
 
         <div className="form-control mt-5">
           <label className="label cursor-pointer justify-center gap-2">
@@ -76,7 +79,9 @@ const SubscribeModal = ({ mode, referer, onClose }: SubscribeModalProps) => {
             />
             <span className="label-text text-sm sm:text-lg">
               Annual billing{' '}
-              <span className={tw('badge badge-success font-bold', plan === 'month' && 'invisible')}>60% OFF</span>
+              <span className={tw('badge badge-success font-bold leading-tight', plan === 'month' && 'invisible')}>
+                60% OFF
+              </span>
             </span>
           </label>
         </div>
@@ -107,7 +112,11 @@ const SubscribeModal = ({ mode, referer, onClose }: SubscribeModalProps) => {
             onClick={() => posthog.capture('subscribeModal_success', { referer, mode })}
             className={tw('btn-secondary btn-lg btn text-lg font-black', isRedirectingToStripe && 'opacity-50')}
           >
-            {mode === 'resubscribe' ? `Resubscribe` : `Try ${TRIAL_DAYS} days for free`}
+            {mode === 'resubscribe'
+              ? `Resubscribe`
+              : TRIAL_DAYS && TRIAL_DAYS > 0
+              ? `Try ${TRIAL_DAYS} days for free`
+              : 'Upgrade now'}
           </button>
         </fetcher.Form>
         <button className="mt-5 pb-2 text-sm underline opacity-40" onClick={onClose}>

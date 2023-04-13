@@ -136,7 +136,7 @@ const TranscriptHistory = ({ transcripts, activeTranscriptId }: Props) => (
                   {t.name}
                   {t.neverGenerated && (
                     // eslint-disable-next-line tailwindcss/classnames-order
-                    <span className="badge badge-secondary badge-sm ml-2 justify-end">NEW</span>
+                    <span className="justify-ender badge badge-secondary badge-sm ml-2">NEW</span>
                   )}
                 </h3>
               </span>

@@ -93,18 +93,18 @@ function PlanBadge() {
   switch (status) {
     case 'active':
     case 'trialing':
-      // eslint-disable-next-line prettier/prettier
-      return <button className="self-top badge-accent badge badge-sm font-black leading-relaxed">PRO</button>
-    default:
       return (
         <button
           onClick={() => openSubscribeModal('signup', 'badge_click')}
           // eslint-disable-next-line prettier/prettier
-          className="self-top badge-accent badge badge-sm font-black leading-relaxed"
+          className="badge-accent badge badge-sm font-black uppercase"
         >
-          FREE
+          Free Trial
         </button>
       )
+    default:
+      // eslint-disable-next-line prettier/prettier
+      return <button className="badge-primary badge badge-sm font-black uppercase">Pro</button>
   }
 }
 
@@ -151,7 +151,7 @@ function Navbar() {
           ))} */}
         </div>
 
-        <div className="hidden lg:flex lg:min-w-0 lg:flex-1 lg:items-center lg:justify-end">
+        <div className="hidden gap-2 lg:flex lg:min-w-0 lg:flex-1 lg:items-center lg:justify-end">
           <PlanBadge />
           <div className="dropdown-end dropdown">
             <label tabIndex={0} className="btn-ghost btn-sm btn inline-flex items-center gap-2 normal-case">

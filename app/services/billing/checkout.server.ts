@@ -48,7 +48,7 @@ export async function createCheckoutSession({
       ],
       mode: 'subscription',
       subscription_data: {
-        trial_period_days: TRIAL_DAYS,
+        trial_period_days: TRIAL_DAYS > 0 ? TRIAL_DAYS : undefined,
         metadata: {
           token,
           tokenType,

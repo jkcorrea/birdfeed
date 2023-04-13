@@ -43,17 +43,14 @@ export const UPSELL_FEATURES = [
   { badge: '✅', content: '3 hour long transcripts' },
   { badge: '✅', content: '3rd party integrations' },
   { badge: '✅', content: 'Slack channel w/ founders' },
-  { badge: '❌', content: 'No Birdfeed branded bird feeder' },
 ]
-
-export const FREE_DISCLAIMER = 'With a free plan, you only get 3 15-min long transcripts and 4 tweets per transcripts.'
 
 export const UPLOAD_LIMIT_FREE_KB = 5 * 1000 * 1000 * 1000 // 5GB
 export const UPLOAD_LIMIT_PRO_KB = 20 * 1000 * 1000 * 1000 // 20GB
 export const UPLOAD_LIMIT_FREE_DURATION = 15 * 60 // 15 minutes
 export const UPLOAD_LIMIT_PRO_DURATION = 5 * 60 * 60 // 5 hours
 
-export const TRIAL_DAYS = 3
+export const TRIAL_DAYS = 0
 
 export const TWITTER_OAUTH_DENIED_KEY = 'twitter_oauth_denied'
 
@@ -62,3 +59,5 @@ export enum TweetOutlet {
   TWITTER = 'tweet',
   HYPEFURY = 'hypefury',
 }
+
+export const FEATURE_FLAGS = {}
