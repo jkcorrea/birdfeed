@@ -49,7 +49,7 @@ const defaultHandle = 'birdfeed.ai'
 
 const TwitterAccountHeader = ({ tweet }: { tweet: GeneratedTweet }) => {
   const match = useMatches().find((match) => match.id === 'routes/_app+/_layout')
-  const activeUser = (match?.data as SerializeFrom<typeof loader>).activeUser
+  const activeUser = (match?.data as SerializeFrom<typeof loader>).activeUser ?? {}
   const avatar = activeUser.avatarUrl ? (
     <img crossOrigin="anonymous" className="h-10 w-10 rounded-full" src={activeUser.avatarUrl} alt="avatar" />
   ) : (
