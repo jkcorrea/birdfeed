@@ -1,6 +1,11 @@
 import { Link, Outlet } from '@remix-run/react'
+import type { HeadersFunction } from '@remix-run/server-runtime'
 
 import birdfeedIcon from '~/assets/birdfeed-icon.png'
+
+export const headers: HeadersFunction = () => ({
+  'cache-control': 'public, max-age=60, s-maxage=3600, stale-while-revalidate=59',
+})
 
 export default function AuthLayout() {
   return (

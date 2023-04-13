@@ -85,10 +85,11 @@ export const handleDataRequest: HandleDataRequestFunction = async (response, { r
       response.headers.set('Cache-Control', 'private, max-age=5')
     }
 
-    response.headers.set('etag', etag(body))
+    const etagValue = etag(body)
+    response.headers.set('etag', etagValue)
     // As with document requests, check the `If-None-Match` header
     // and compare it with the Etag, if they match, send the empty 304 Response
-    if (request.headers.get('If-None-Match') === response.headers.get('ETag')) {
+    if (request.headers.get('If-None-Match') === etagValue) {
       return new Response('', { status: 304, headers: response.headers })
     }
   }
