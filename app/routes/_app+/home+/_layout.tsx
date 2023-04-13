@@ -24,7 +24,7 @@ export async function loader({ request }: LoaderArgs) {
 
   const _transcripts = db.transcript.findMany({
     where: { userId },
-    orderBy: { createdAt: 'desc' },
+    orderBy: [{ createdAt: 'desc' }, { updatedAt: 'desc' }],
     select: { id: true, name: true, createdAt: true, neverGenerated: true },
     take: 100,
   })

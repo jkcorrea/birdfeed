@@ -101,7 +101,12 @@ export default function TranscriptPage() {
 
         <div className="inline-flex text-2xl font-bold">
           Viewing tweets for{' '}
-          <InlineNameForm name={data.transcript.name} transcriptId={data.transcript.id} fetcher={fetcher} />
+          <InlineNameForm
+            key={data.transcript.id}
+            name={data.transcript.name}
+            transcriptId={data.transcript.id}
+            fetcher={fetcher}
+          />
         </div>
 
         <div className="flex items-center justify-center gap-2">
