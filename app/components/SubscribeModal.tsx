@@ -65,7 +65,7 @@ const SubscribeModal = ({ mode, referer, onClose }: SubscribeModalProps) => {
       <div className="flex flex-col space-y-2 rounded-lg p-4 sm:space-y-4">
         <h2 className="text-2xl font-bold sm:text-3xl">Upgrade to Birdfeed Pro 🐥</h2>
         <p className="sm:text-md mx-auto w-10/12 text-lg opacity-70">
-          You're currently on the free plan, with a max of 3 transcripts and 4 tweets per transcript.
+          You're currently on the free plan, with a max of 3 transcripts and 6 tweets per transcript.
         </p>
 
         <div className="form-control mt-5">

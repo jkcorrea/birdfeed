@@ -41,7 +41,12 @@ function TweetColumn({ tweets, isAuthed, isFree }: Props) {
   return (
     <div className={columnClassName}>
       {tweets.map((tweet, ix) => (
-        <TweetCard key={tweet.id} isAuthed={isAuthed} isBlurred={(!isAuthed || isFree) && ix > 1} tweet={tweet} />
+        <TweetCard
+          key={tweet.id}
+          isAuthed={isAuthed}
+          isBlurred={(!isAuthed && ix > 1) || (isFree && ix > 2)}
+          tweet={tweet}
+        />
       ))}
     </div>
   )
