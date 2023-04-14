@@ -8,6 +8,7 @@ import type { DetailedHTMLProps, FC } from 'react'
 import { toast } from 'react-hot-toast'
 
 import { useSubscribeModal } from '~/components/SubscribeModal'
+import { UserProvider } from '~/components/UserContext'
 import { db } from '~/database'
 import { APP_ROUTES, NAV_ROUTES } from '~/lib/constants'
 import { NODE_ENV } from '~/lib/env'
@@ -81,13 +82,13 @@ export default function AppLayout() {
   }, [])
 
   return (
-    <>
+    <UserProvider activeUser={{ status, activeUser }}>
       <Navbar showNavRoutes={Boolean(showNavRoutes)} key={location.key} />
 
       <main className="container mx-auto min-h-[500px] w-full min-w-[300px] max-w-screen-lg grow py-4 px-8 md:px-4 lg:mt-5 2xl:px-0">
         <Outlet />
       </main>
-    </>
+    </UserProvider>
   )
 }
 

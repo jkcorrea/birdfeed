@@ -64,7 +64,7 @@ const SubscribeModal = ({ mode, referer, onClose }: SubscribeModalProps) => {
     <FullscreenModal isOpen={mode !== null} onClose={onClose}>
       <div className="flex flex-col space-y-2 rounded-lg p-4 sm:space-y-4">
         <h2 className="text-2xl font-bold sm:text-3xl">Upgrade to Birdfeed Pro 🐥</h2>
-        <p className="mx-auto w-10/12 opacity-70 sm:text-lg">
+        <p className="sm:text-md mx-auto w-10/12 opacity-70">
           You're currently on the free plan, with a max of 3 transcripts and 15 minutes per upload. Upgrade to pro to
           get the full experience.
         </p>
@@ -79,7 +79,7 @@ const SubscribeModal = ({ mode, referer, onClose }: SubscribeModalProps) => {
             />
             <span className="label-text text-sm sm:text-lg">
               Annual billing{' '}
-              <span className={tw('badge badge-success font-bold leading-tight', plan === 'month' && 'invisible')}>
+              <span className={tw('badge-success badge font-bold leading-tight', plan === 'month' && 'invisible')}>
                 60% OFF
               </span>
             </span>

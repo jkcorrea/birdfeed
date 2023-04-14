@@ -5,6 +5,7 @@ import {
   InformationCircleIcon,
   SignalSlashIcon,
 } from '@heroicons/react/24/outline'
+import { ArrowTrendingUpIcon } from '@heroicons/react/24/solid'
 import type { FetcherWithComponents } from '@remix-run/react'
 import { capitalCase } from 'change-case'
 import { AnimatePresence, motion } from 'framer-motion'
@@ -20,6 +21,7 @@ import type { FetchYoutubeTranscriptPayload } from '~/routes/api+/fetch-youtube-
 import { uploadFile } from '~/services/storage/upload.client'
 import type { CreateTranscriptSchema } from '~/services/transcription'
 
+import { useSubscribeModal } from '../SubscribeModal'
 import { FileDropzone } from './FileDropzone'
 import { YoutubeLinkInput } from './YoutubeLinkInput'
 
@@ -68,12 +70,111 @@ interface Props {
   userId?: string | null
   fetcher: FetcherWithComponents<any>
   className?: string
+  isLocked?: boolean
 }
 
-function _TranscriptUploader({ userId, fetcher, className }: Props, ref: ForwardedRef<TranscriptUploaderHandle>) {
+const Uploader = ({
+  uploadState,
+  handleFileUpload,
+  handleYoutubeUpload,
+  isLocked,
+}: {
+  uploadState: UploadState
+  handleFileUpload: (file: File, isDemo?: boolean) => Promise<void>
+  handleYoutubeUpload: (id: string) => Promise<void>
+  isLocked?: boolean
+}) => {
+  const fileInputRef = useRef<HTMLInputElement>(null)
+
+  const { open: openSubscribeModal } = useSubscribeModal()
+
+  if (isLocked)
+    return (
+      <div className="h-full w-full text-center text-2xl font-black opacity-60">
+        <div className="h-full rounded-lg border-2 border-dashed border-neutral p-6">
+          <div className="flex h-full flex-col justify-center">
+            <ArrowTrendingUpIcon className="h-14 w-full" />
+            <span>You're on a Free Plan</span>
+            <span className="mb-4 text-base">The free plan comes with a max of 3 transcripts.</span>
+            <button
+              onClick={() => openSubscribeModal('signup', 'uploader')}
+              className={tw('btn-primary btn-lg btn text-lg font-black')}
+            >
+              Upgrade to Pro
+            </button>
+          </div>
+        </div>
+      </div>
+    )
+
+  switch (uploadState.status) {
+    case 'error':
+    case 'idle':
+      return (
+        <div className="h-full w-full text-2xl font-black">
+          <div className="flex h-full flex-col items-center justify-center rounded-lg border-2 border-dashed border-gray-400 p-6 text-gray-500">
+            <input
+              ref={fileInputRef}
+              type="file"
+              className="hidden"
+              onChange={({ currentTarget: { files } }) => files?.[0] && handleFileUpload(files[0])}
+            />
+            {/* Dropzone */}
+            <button
+              className="flex w-full flex-col items-center justify-center"
+              onClick={() => fileInputRef.current?.click()}
+            >
+              {uploadState.error ? (
+                <>
+                  <SignalSlashIcon className="mb-3 h-14 w-full" />
+                  <span>Sorry, try that again?</span>
+                  <span className="text-base">{uploadState.error}</span>
+                </>
+              ) : (
+                <>
+                  <InboxArrowDownIcon className="mb-3 h-14 w-full" />
+                  <span>
+                    Drop file here{' '}
+                    <div className="tooltip" data-tip="keep file ~2gbs. no pdf plz.">
+                      <InformationCircleIcon className="inline h-5 w-5 opacity-80" />
+                    </div>
+                  </span>
+                  <span className="text-base">prefers audio, but takes vid and txt too (e.g. mp3, mp4, txt)</span>
+                </>
+              )}
+            </button>
+
+            {/* Divider */}
+            <div className="divider">
+              <span className="text-base">OR</span>
+            </div>
+
+            <YoutubeLinkInput onSubmit={handleYoutubeUpload} />
+          </div>
+        </div>
+      )
+    default:
+      return (
+        <div className="h-full w-full text-center text-2xl font-black opacity-60">
+          <div className="h-full rounded-lg border-2 border-dashed border-neutral p-6">
+            <div className="flex h-full flex-col justify-center">
+              <CloudArrowUpIcon className="h-14 w-full" />
+              <span>{capitalCase(uploadState.status)}</span>
+              <span className="mb-4 text-base">tweets incoming! just give us a sec...</span>
+              <progress className="progress" value={uploadState.progress} max={1} />
+            </div>
+          </div>
+        </div>
+      )
+  }
+}
+
+function _TranscriptUploader(
+  { userId, fetcher, className, isLocked }: Props,
+  ref: ForwardedRef<TranscriptUploaderHandle>
+) {
   useRunAfterSubmission(fetcher, () => posthog.capture('transcript_finish'))
 
-  const fileInputRef = useRef<HTMLInputElement>(null)
   const [uploadState, dispatch] = useReducer(uploadStateReducer, initialUploadState)
 
   // We have no idea how long the transcribing or generating steps will take, so just mock them
@@ -192,60 +293,12 @@ function _TranscriptUploader({ userId, fetcher, className }: Props, ref: Forward
           transition={{ duration: 0.2 }}
           className="flex h-full w-full items-center justify-center"
         >
-          {uploadState.status !== 'error' && uploadState.status !== 'idle' ? (
-            <div className="h-full w-full text-center text-2xl font-black opacity-60">
-              <div className="h-full rounded-lg border-2 border-dashed border-neutral p-6">
-                <div className="flex h-full flex-col justify-center">
-                  <CloudArrowUpIcon className="h-14 w-full" />
-                  <span>{capitalCase(uploadState.status)}</span>
-                  <span className="mb-4 text-base">tweets incoming! just give us a sec...</span>
-                  <progress className="progress" value={uploadState.progress} max={1} />
-                </div>
-              </div>
-            </div>
-          ) : (
-            <div className="h-full w-full text-2xl font-black">
-              <div className="flex h-full flex-col items-center justify-center rounded-lg border-2 border-dashed border-gray-400 p-6 text-gray-500">
-                <input
-                  ref={fileInputRef}
-                  type="file"
-                  className="hidden"
-                  onChange={({ currentTarget: { files } }) => files?.[0] && handleFileUpload(files[0])}
-                />
-                {/* Dropzone */}
-                <button
-                  className="flex w-full flex-col items-center justify-center"
-                  onClick={() => fileInputRef.current?.click()}
-                >
-                  {uploadState.error ? (
-                    <>
-                      <SignalSlashIcon className="mb-3 h-14 w-full" />
-                      <span>Sorry, try that again?</span>
-                      <span className="text-base">{uploadState.error}</span>
-                    </>
-                  ) : (
-                    <>
-                      <InboxArrowDownIcon className="mb-3 h-14 w-full" />
-                      <span>
-                        Drop file here{' '}
-                        <div className="tooltip" data-tip="keep file ~2gbs. no pdf plz.">
-                          <InformationCircleIcon className="inline h-5 w-5 opacity-80" />
-                        </div>
-                      </span>
-                      <span className="text-base">prefers audio, but takes vid and txt too (e.g. mp3, mp4, txt)</span>
-                    </>
-                  )}
-                </button>
-
-                {/* Divider */}
-                <div className="divider">
-                  <span className="text-base">OR</span>
-                </div>
-
-                <YoutubeLinkInput onSubmit={handleYoutubeUpload} />
-              </div>
-            </div>
-          )}
+          <Uploader
+            uploadState={uploadState}
+            handleFileUpload={handleFileUpload}
+            handleYoutubeUpload={handleYoutubeUpload}
+            isLocked={isLocked}
+          />
         </motion.div>
       </AnimatePresence>
 
