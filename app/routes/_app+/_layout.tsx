@@ -7,7 +7,8 @@ import { posthog } from 'posthog-js'
 import type { DetailedHTMLProps, FC } from 'react'
 import { toast } from 'react-hot-toast'
 
-import { useSubscribeModal } from '~/components/SubscribeModal'
+import { useSubscribeModal } from '~/components/Subscription/SubscribeModal'
+import { SubscriptionStatusProvider, useSubscriptionStatus } from '~/components/Subscription/SubscriptionStatusContext'
 import { APP_ROUTES, NAV_ROUTES } from '~/lib/constants'
 import { NODE_ENV } from '~/lib/env'
 import { useIsSubmitting } from '~/lib/hooks'
@@ -76,18 +77,18 @@ export default function AppLayout() {
   }, [])
 
   return (
-    <>
+    <SubscriptionStatusProvider status={status}>
       <Navbar key={location.key} />
 
       <main className="container mx-auto min-h-[500px] w-full min-w-[300px] max-w-screen-lg grow py-4 px-8 md:px-4 lg:mt-5 2xl:px-0">
         <Outlet />
       </main>
-    </>
+    </SubscriptionStatusProvider>
   )
 }
 
 function PlanBadge() {
-  const { status } = useLoaderData<typeof loader>()
+  const status = useSubscriptionStatus()
   const { open: openSubscribeModal } = useSubscribeModal()
 
   switch (status) {

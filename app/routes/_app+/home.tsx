@@ -8,6 +8,7 @@ import { motion } from 'framer-motion'
 import { parseFormAny } from 'react-zorm'
 
 import type { Transcript } from '@prisma/client'
+import { useSubscriptionStatus } from '~/components/Subscription/SubscriptionStatusContext'
 import { TranscriptUploader } from '~/components/TranscriptUploader'
 import { db } from '~/database'
 import { APP_ROUTES } from '~/lib/constants'
@@ -58,8 +59,13 @@ export default function HomePage() {
   const data = useLoaderData<typeof loader>()
   const fetcher = useFetcher()
   const outlet = useOutlet()
+  const status = useSubscriptionStatus()
 
   const [activeTab, setActiveTab] = useState<'transcripts' | 'upload'>('upload')
+
+  const [transcriptCount, setTranscriptCount] = useState<number>(0)
+
+  data.transcripts.then((t) => setTranscriptCount(t.length))
 
   return (
     <div className="gap-4 lg:gap-8">
@@ -99,6 +105,7 @@ export default function HomePage() {
           userId={data.userId}
           fetcher={fetcher}
           className={tw(activeTab !== 'upload' && 'hidden md:block')}
+          isLocked={status === 'free' && transcriptCount >= 2}
         />
       </div>
 
@@ -136,7 +143,7 @@ const TranscriptHistory = ({ transcripts, activeTranscriptId }: Props) => (
                   {t.name}
                   {t.neverGenerated && (
                     // eslint-disable-next-line tailwindcss/classnames-order
-                    <span className="badge badge-secondary badge-sm ml-2 justify-end">NEW</span>
+                    <span className="badge-secondary badge badge-sm ml-2 justify-end">NEW</span>
                   )}
                 </h3>
               </span>

@@ -6,7 +6,7 @@ import { parseFormAny, useZorm } from 'react-zorm'
 import { z } from 'zod'
 
 import { TextField } from '~/components/fields'
-import { useSubscribeModal } from '~/components/SubscribeModal'
+import { useSubscribeModal } from '~/components/Subscription/SubscribeModal'
 import { APP_ROUTES } from '~/lib/constants'
 import { SERVER_URL } from '~/lib/env'
 import { useIsSubmitting } from '~/lib/hooks'

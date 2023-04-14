@@ -22,7 +22,7 @@ export async function userSubscriptionStatus(id: User['id']): Promise<Subscripti
 
     if (isAdmin) return 'active'
 
-    if (!stripeSubscriptionId) return 'never_subscribed'
+    if (!stripeSubscriptionId) return 'free'
 
     const subscription = await stripe.subscriptions.retrieve(stripeSubscriptionId)
 

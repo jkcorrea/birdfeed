@@ -16,7 +16,7 @@ import { toast, Toaster } from 'react-hot-toast'
 import { ExternalScripts } from 'remix-utils'
 
 import { NotificationToast } from './components/NotificationToast'
-import { SubscribeModalProvider } from './components/SubscribeModal'
+import { SubscribeModalProvider } from './components/Subscription/SubscribeModal'
 import { initAnalytics } from './lib/analytics'
 import { APP_THEME } from './lib/constants'
 import { getBrowserEnv, NODE_ENV } from './lib/env'

@@ -11,7 +11,7 @@ import { tw } from '~/lib/utils'
 import type { SubscriptionInterval } from '~/routes/api+/billing+/subscribe'
 import { SubscribeFormSchema } from '~/routes/api+/billing+/subscribe'
 
-import FullscreenModal from './FullscreenModal'
+import FullscreenModal from '../FullscreenModal'
 
 type SubscribeModalMode = 'signup' | 'resubscribe' | null
 type OpenFn = (mode: Exclude<SubscribeModalMode, null>, referer: string | null, onClose?: () => void) => void
@@ -76,7 +76,7 @@ const SubscribeModal = ({ mode, referer, onClose }: SubscribeModalProps) => {
             />
             <span className="label-text text-sm sm:text-lg">
               Annual billing{' '}
-              <span className={tw('badge badge-success font-bold', plan === 'month' && 'invisible')}>60% OFF</span>
+              <span className={tw('badge-success badge font-bold', plan === 'month' && 'invisible')}>60% OFF</span>
             </span>
           </label>
         </div>

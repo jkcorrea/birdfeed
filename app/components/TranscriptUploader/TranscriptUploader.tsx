@@ -68,9 +68,13 @@ interface Props {
   userId?: string | null
   fetcher: FetcherWithComponents<any>
   className?: string
+  isLocked?: boolean
 }
 
-function _TranscriptUploader({ userId, fetcher, className }: Props, ref: ForwardedRef<TranscriptUploaderHandle>) {
+function _TranscriptUploader(
+  { userId, fetcher, className, isLocked }: Props,
+  ref: ForwardedRef<TranscriptUploaderHandle>
+) {
   useRunAfterSubmission(fetcher, () => posthog.capture('transcript_finish'))
 
   const fileInputRef = useRef<HTMLInputElement>(null)
