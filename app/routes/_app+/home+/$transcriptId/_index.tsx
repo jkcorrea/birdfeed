@@ -12,6 +12,7 @@ import IntentField from '~/components/fields/IntentField'
 import FormErrorCatchall from '~/components/FormErrorCatchall'
 import FullscreenModal from '~/components/FullscreenModal'
 import { TweetGrid, TweetGridLoading } from '~/components/TweetGrid'
+import { useUser } from '~/components/UserContext'
 import { db } from '~/database'
 import { APP_ROUTES } from '~/lib/constants'
 import { useIsSubmitting } from '~/lib/hooks'
@@ -94,6 +95,8 @@ export default function TranscriptPage() {
     }
   }, [isSubmitting, fetcher.formData])
 
+  const { status } = useUser()
+
   return (
     <>
       <div className="mx-auto flex w-full flex-col items-center justify-center gap-2">
@@ -114,7 +117,15 @@ export default function TranscriptPage() {
             <IntentField<IGenerateTweets> value="generate-tweets" />
             <input type="hidden" name={zoGenerate.fields.transcriptId()} value={data.transcript.id} />
 
-            <button className="btn-outline btn-primary btn-xs btn">Generate More</button>
+            {status === 'free' ? (
+              <div className="tooltip" data-tip="Upgrade to pro to generate more tweets for this transcript">
+                <button disabled={status === 'free'} className="btn-outline btn-primary btn-xs btn">
+                  Generate More
+                </button>
+              </div>
+            ) : (
+              <button className="btn-outline btn-primary btn-xs btn">Generate More</button>
+            )}
           </fetcher.Form>
 
           <button
@@ -141,7 +152,11 @@ export default function TranscriptPage() {
       <Suspense fallback={<TweetGridLoading />}>
         <Await resolve={data.tweets} errorElement={<Error />}>
           {(tweets) =>
-            tweets.length === 0 ? <Empty /> : <TweetGrid isAuthed tweets={tweets} className="max-w-screen-lg" />
+            tweets.length === 0 ? (
+              <Empty />
+            ) : (
+              <TweetGrid isFree={status == 'free'} isAuthed tweets={tweets} className="max-w-screen-lg" />
+            )
           }
         </Await>
       </Suspense>

@@ -11,10 +11,11 @@ const columnClassName = 'grid h-fit gap-4 py-4'
 interface Props {
   tweets: GeneratedTweet[]
   isAuthed?: boolean
+  isFree?: boolean
   className?: string
 }
 
-export function TweetGrid({ tweets, isAuthed, className }: Props) {
+export function TweetGrid({ tweets, isAuthed, isFree, className }: Props) {
   const [odd, even] = useMemo(
     () =>
       tweets.reduce<[GeneratedTweet[], GeneratedTweet[]]>(
@@ -30,17 +31,17 @@ export function TweetGrid({ tweets, isAuthed, className }: Props) {
 
   return (
     <div className={tw(wrapperClassName, className)}>
-      <TweetColumn isAuthed={isAuthed} tweets={even} />
-      <TweetColumn isAuthed={isAuthed} tweets={odd} />
+      <TweetColumn isAuthed={isAuthed} isFree={isFree} tweets={even} />
+      <TweetColumn isAuthed={isAuthed} isFree={isFree} tweets={odd} />
     </div>
   )
 }
 
-function TweetColumn({ tweets, isAuthed }: Props) {
+function TweetColumn({ tweets, isAuthed, isFree }: Props) {
   return (
     <div className={columnClassName}>
       {tweets.map((tweet, ix) => (
-        <TweetCard key={tweet.id} isAuthed={isAuthed} isBlurred={!isAuthed && ix > 1} tweet={tweet} />
+        <TweetCard key={tweet.id} isAuthed={isAuthed} isBlurred={(!isAuthed || isFree) && ix > 1} tweet={tweet} />
       ))}
     </div>
   )

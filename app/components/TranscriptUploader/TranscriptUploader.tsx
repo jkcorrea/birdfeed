@@ -20,6 +20,7 @@ import { tw } from '~/lib/utils'
 import type { FetchYoutubeTranscriptPayload } from '~/routes/api+/fetch-youtube-transcript'
 import { uploadFile } from '~/services/storage/upload.client'
 import type { CreateTranscriptSchema } from '~/services/transcription'
+import type { SubscriptionStatus } from '~/services/user'
 
 import { useSubscribeModal } from '../SubscribeModal'
 import { FileDropzone } from './FileDropzone'
@@ -70,7 +71,147 @@ interface Props {
   userId?: string | null
   fetcher: FetcherWithComponents<any>
   className?: string
+  plan?: SubscriptionStatus
   isLocked?: boolean
+}
+
+function _TranscriptUploader(
+  { userId, fetcher, className, plan, isLocked }: Props,
+  ref: ForwardedRef<TranscriptUploaderHandle>
+) {
+  useRunAfterSubmission(fetcher, () => posthog.capture('transcript_finish'))
+
+  const [uploadState, dispatch] = useReducer(uploadStateReducer, initialUploadState)
+
+  // We have no idea how long the transcribing or generating steps will take, so just mock them
+  const isGenerating = useIsSubmitting(fetcher)
+  const { start: startMockProgress, finish: finishMockProgress } = useMockProgress(4000, (progress) =>
+    dispatch({ type: 'progress', progress })
+  )
+  useEffect(() => {
+    if (!isGenerating && uploadState.status === 'generating') {
+      dispatch({ type: 'reset' })
+      finishMockProgress()
+    }
+  }, [uploadState.status, isGenerating, startMockProgress, finishMockProgress])
+
+  const handleFileUpload = async (file: File, isDemo?: boolean) => {
+    posthog.capture('transcript_start', { file_name: file.name })
+
+    // if greater than 2gb, warn them it might not work
+    if (file.size > 2_000_000_000) {
+      const resolution = file.type.startsWith('video/')
+        ? 'convert it to an audio format (mp3, wav, etc..) and try again'
+        : 'try chopping it into smaller files.'
+      toast.error(`Sorry, this file may be too large! If it's not working, ${resolution}.`, { duration: 10_000 })
+    }
+
+    const limit = userId ? UPLOAD_LIMIT_PRO_KB : UPLOAD_LIMIT_FREE_KB
+    if (file.size > limit) {
+      dispatch({
+        type: 'error',
+        error: `File size is too large. Please upload a file smaller than ${Math.floor(limit / 1_000_000_000)} GB.`,
+      })
+      posthog.capture('transcript_fail', { reason: 'too_large', file_name: file.name })
+      return
+    }
+
+    try {
+      // PROCESS & UPLOAD BLOB
+      dispatch({ type: 'uploading' })
+      // Use ffmpeg to convert the file to a wav & chomp it to 15min (if no userId)
+      let processedFile = file
+      if (file.type.startsWith('video/') || file.type.startsWith('audio/')) {
+        try {
+          const userIsProPlan = Boolean(userId) && plan !== 'free'
+          processedFile = await convertToAudio(file, userIsProPlan, (progress) =>
+            dispatch({ type: 'progress', progress })
+          )
+        } catch (error) {
+          processedFile = file
+          dispatch({
+            type: 'error',
+            error: (error as Error).message,
+          })
+        }
+      }
+      const pathInBucket = await uploadFile(processedFile, userId, (progress) =>
+        dispatch({ type: 'progress', progress })
+      )
+
+      // CREATE TRANSCRIPT & GENERATE TWEETS
+      dispatch({ type: 'generating' })
+      startMockProgress()
+      fetcher.submit(
+        {
+          name: processedFile.name,
+          mimetype: processedFile.type,
+          pathInBucket,
+          ...(isDemo ? { isDemo: 'true' } : {}),
+        } satisfies (typeof CreateTranscriptSchema)['_input'],
+        { method: 'post' }
+      )
+    } catch (error) {
+      dispatch({
+        type: 'error',
+        error: (error as Error).message,
+      })
+    }
+  }
+
+  const handleYoutubeUpload = async (id: string) => {
+    const file_name = `https://youtube.com/watch?v=${id}`
+    posthog.capture('transcript_start', { file_name })
+    // First grab the youtube video's transcript
+    dispatch({ type: 'uploading' })
+    startMockProgress()
+    const res = await fetch(`/api/fetch-youtube-transcript`, {
+      method: 'post',
+      body: JSON.stringify({ videoId: id } satisfies FetchYoutubeTranscriptPayload),
+    })
+    if (!res.ok)
+      dispatch({
+        type: 'error',
+        error: `Failed to fetch youtube transcript: ${res.statusText}`,
+      })
+
+    const { transcript } = (await res.json()) as { transcript: string }
+    handleFileUpload(new File([transcript], file_name, { type: 'text/plain' }))
+  }
+
+  // Allows us to pass control of the ref "back up" to the parent
+  useImperativeHandle(ref, () => ({ handleFileUpload }))
+
+  return (
+    <div
+      key={fetcher.state}
+      className={tw(
+        'grow rounded-lg bg-base-300 p-3 shadow-inner transition',
+        className,
+        uploadState.status === 'generating' && 'hover:bg-[rgb(226,221,218)]'
+      )}
+    >
+      <AnimatePresence mode="wait" initial={false}>
+        <motion.div
+          key={uploadState.status}
+          initial={{ y: 10, opacity: 0 }}
+          animate={{ y: 0, opacity: 1 }}
+          exit={{ y: 10, opacity: 0 }}
+          transition={{ duration: 0.2 }}
+          className="flex h-full w-full items-center justify-center"
+        >
+          <Uploader
+            uploadState={uploadState}
+            handleFileUpload={handleFileUpload}
+            handleYoutubeUpload={handleYoutubeUpload}
+            isLocked={isLocked}
+          />
+        </motion.div>
+      </AnimatePresence>
+
+      <FileDropzone onFile={handleFileUpload} />
+    </div>
+  )
 }
 
 const Uploader = ({
@@ -167,144 +308,6 @@ const Uploader = ({
         </div>
       )
   }
-}
-
-function _TranscriptUploader(
-  { userId, fetcher, className, isLocked }: Props,
-  ref: ForwardedRef<TranscriptUploaderHandle>
-) {
-  useRunAfterSubmission(fetcher, () => posthog.capture('transcript_finish'))
-
-  const [uploadState, dispatch] = useReducer(uploadStateReducer, initialUploadState)
-
-  // We have no idea how long the transcribing or generating steps will take, so just mock them
-  const isGenerating = useIsSubmitting(fetcher)
-  const { start: startMockProgress, finish: finishMockProgress } = useMockProgress(4000, (progress) =>
-    dispatch({ type: 'progress', progress })
-  )
-  useEffect(() => {
-    if (!isGenerating && uploadState.status === 'generating') {
-      dispatch({ type: 'reset' })
-      finishMockProgress()
-    }
-  }, [uploadState.status, isGenerating, startMockProgress, finishMockProgress])
-
-  const handleFileUpload = async (file: File, isDemo?: boolean) => {
-    posthog.capture('transcript_start', { file_name: file.name })
-
-    // if greater than 2gb, warn them it might not work
-    if (file.size > 2_000_000_000) {
-      const resolution = file.type.startsWith('video/')
-        ? 'convert it to an audio format (mp3, wav, etc..) and try again'
-        : 'try chopping it into smaller files.'
-      toast.error(`Sorry, this file may be too large! If it's not working, ${resolution}.`, { duration: 10_000 })
-    }
-
-    const limit = userId ? UPLOAD_LIMIT_PRO_KB : UPLOAD_LIMIT_FREE_KB
-    if (file.size > limit) {
-      dispatch({
-        type: 'error',
-        error: `File size is too large. Please upload a file smaller than ${Math.floor(limit / 1_000_000_000)} GB.`,
-      })
-      posthog.capture('transcript_fail', { reason: 'too_large', file_name: file.name })
-      return
-    }
-
-    try {
-      // PROCESS & UPLOAD BLOB
-      dispatch({ type: 'uploading' })
-      // Use ffmpeg to convert the file to a wav & chomp it to 15min (if no userId)
-      let processedFile = file
-      if (file.type.startsWith('video/') || file.type.startsWith('audio/')) {
-        try {
-          processedFile = await convertToAudio(file, Boolean(userId), (progress) =>
-            dispatch({ type: 'progress', progress })
-          )
-        } catch (error) {
-          processedFile = file
-          dispatch({
-            type: 'error',
-            error: (error as Error).message,
-          })
-        }
-      }
-      const pathInBucket = await uploadFile(processedFile, userId, (progress) =>
-        dispatch({ type: 'progress', progress })
-      )
-
-      // CREATE TRANSCRIPT & GENERATE TWEETS
-      dispatch({ type: 'generating' })
-      startMockProgress()
-      fetcher.submit(
-        {
-          name: processedFile.name,
-          mimetype: processedFile.type,
-          pathInBucket,
-          ...(isDemo ? { isDemo: 'true' } : {}),
-        } satisfies (typeof CreateTranscriptSchema)['_input'],
-        { method: 'post' }
-      )
-    } catch (error) {
-      dispatch({
-        type: 'error',
-        error: (error as Error).message,
-      })
-    }
-  }
-
-  const handleYoutubeUpload = async (id: string) => {
-    const file_name = `https://youtube.com/watch?v=${id}`
-    posthog.capture('transcript_start', { file_name })
-    // First grab the youtube video's transcript
-    dispatch({ type: 'uploading' })
-    startMockProgress()
-    const res = await fetch(`/api/fetch-youtube-transcript`, {
-      method: 'post',
-      body: JSON.stringify({ videoId: id } satisfies FetchYoutubeTranscriptPayload),
-    })
-    if (!res.ok)
-      dispatch({
-        type: 'error',
-        error: `Failed to fetch youtube transcript: ${res.statusText}`,
-      })
-
-    const { transcript } = (await res.json()) as { transcript: string }
-    handleFileUpload(new File([transcript], file_name, { type: 'text/plain' }))
-  }
-
-  // Allows us to pass control of the ref "back up" to the parent
-  useImperativeHandle(ref, () => ({ handleFileUpload }))
-
-  return (
-    <div
-      key={fetcher.state}
-      className={tw(
-        'grow rounded-lg bg-base-300 p-3 shadow-inner transition',
-        className,
-        uploadState.status === 'generating' && 'hover:bg-[rgb(226,221,218)]'
-      )}
-    >
-      <AnimatePresence mode="wait" initial={false}>
-        <motion.div
-          key={uploadState.status}
-          initial={{ y: 10, opacity: 0 }}
-          animate={{ y: 0, opacity: 1 }}
-          exit={{ y: 10, opacity: 0 }}
-          transition={{ duration: 0.2 }}
-          className="flex h-full w-full items-center justify-center"
-        >
-          <Uploader
-            uploadState={uploadState}
-            handleFileUpload={handleFileUpload}
-            handleYoutubeUpload={handleYoutubeUpload}
-            isLocked={isLocked}
-          />
-        </motion.div>
-      </AnimatePresence>
-
-      <FileDropzone onFile={handleFileUpload} />
-    </div>
-  )
 }
 
 export const TranscriptUploader = forwardRef(_TranscriptUploader)

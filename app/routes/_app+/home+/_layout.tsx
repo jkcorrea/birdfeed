@@ -107,6 +107,7 @@ export default function HomePage() {
         <TranscriptUploader
           userId={data.userId}
           fetcher={fetcher}
+          plan={status}
           className={tw(activeTab !== 'upload' && 'hidden md:block')}
           isLocked={status === 'free' && transcriptCount > FREE_TRANSCRIPT_LIMIT - 1}
         />
