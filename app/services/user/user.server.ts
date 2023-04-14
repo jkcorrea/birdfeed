@@ -18,7 +18,7 @@ type UserWithSubscription = Partial<User> & Pick<User, 'stripeSubscriptionId' | 
 async function getSubscriptionStatus(user: UserWithSubscription) {
   if (user.isAdmin) return 'active'
 
-  if (!user.stripeSubscriptionId) return 'never_subscribed'
+  if (!user.stripeSubscriptionId) return 'free'
 
   const subscription = await stripe.subscriptions.retrieve(user.stripeSubscriptionId)
   return subscription.status

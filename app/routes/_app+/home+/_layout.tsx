@@ -1,4 +1,4 @@
-import { Suspense, useState } from 'react'
+import { Suspense, useEffect, useState } from 'react'
 import type { LoaderArgs } from '@remix-run/node'
 import { Await, Link, useFetcher, useLoaderData, useOutlet, useParams } from '@remix-run/react'
 import type { ActionArgs, SerializeFrom } from '@remix-run/server-runtime'
@@ -9,8 +9,9 @@ import { parseFormAny } from 'react-zorm'
 
 import type { Transcript } from '@prisma/client'
 import { TranscriptUploader } from '~/components/TranscriptUploader'
+import { useUser } from '~/components/UserContext'
 import { db } from '~/database'
-import { APP_ROUTES } from '~/lib/constants'
+import { APP_ROUTES, FREE_TRANSCRIPT_LIMIT } from '~/lib/constants'
 import { response } from '~/lib/http.server'
 import { assertPost, parseData, tw } from '~/lib/utils'
 import { requireAuthSession } from '~/services/auth'
@@ -61,6 +62,14 @@ export default function HomePage() {
 
   const [activeTab, setActiveTab] = useState<'transcripts' | 'upload'>('upload')
 
+  const { status } = useUser()
+
+  const [transcriptCount, setTranscriptCount] = useState<number>(0)
+
+  useEffect(() => {
+    data.transcripts.then((t) => setTranscriptCount(t.length))
+  }, [data.transcripts])
+
   return (
     <div className="gap-4 lg:gap-8">
       <div className="tabs block md:hidden">
@@ -98,7 +107,9 @@ export default function HomePage() {
         <TranscriptUploader
           userId={data.userId}
           fetcher={fetcher}
+          plan={status}
           className={tw(activeTab !== 'upload' && 'hidden md:block')}
+          isLocked={status === 'free' && transcriptCount > FREE_TRANSCRIPT_LIMIT - 1}
         />
       </div>
 
@@ -136,7 +147,7 @@ const TranscriptHistory = ({ transcripts, activeTranscriptId }: Props) => (
                   {t.name}
                   {t.neverGenerated && (
                     // eslint-disable-next-line tailwindcss/classnames-order
-                    <span className="justify-ender badge badge-secondary badge-sm ml-2">NEW</span>
+                    <span className="justify-ender badge-secondary badge badge-sm ml-2">NEW</span>
                   )}
                 </h3>
               </span>

@@ -27,7 +27,7 @@ export const TweetCard = ({ tweet, isAuthed, isBlurred }: Props) => (
       isBlurred && 'blur'
     )}
   >
-    <TwitterAccountHeader tweet={tweet} />
+    <TwitterAccountHeader isBlurred={isBlurred} tweet={tweet} />
 
     {/* Tweet content */}
     <p className={tw(isBlurred && 'select-none', 'w-full p-4')}>
@@ -36,7 +36,7 @@ export const TweetCard = ({ tweet, isAuthed, isBlurred }: Props) => (
 
     <div className="divider divider-vertical mt-auto mb-0" />
     <div className="flex px-4">
-      <TweetActionBar isAuthed={isAuthed} tweet={tweet} />
+      <TweetActionBar isBlurred={isBlurred} isAuthed={isAuthed} tweet={tweet} />
     </div>
   </li>
 )
@@ -47,7 +47,7 @@ const defaultAvatar = (
 const defaultName = 'birdfeed'
 const defaultHandle = 'birdfeed.ai'
 
-const TwitterAccountHeader = ({ tweet }: { tweet: GeneratedTweet }) => {
+const TwitterAccountHeader = ({ tweet, isBlurred }: { isBlurred?: boolean; tweet: GeneratedTweet }) => {
   const match = useMatches().find((match) => match.id === 'routes/_app+/_layout')
   const activeUser = (match?.data as SerializeFrom<typeof loader>).activeUser ?? {}
   const avatar = activeUser.avatarUrl ? (
@@ -65,7 +65,7 @@ const TwitterAccountHeader = ({ tweet }: { tweet: GeneratedTweet }) => {
           <h2 className="font-bold">{name}</h2>
           <h3 className="text-sm font-semibold opacity-60">@{activeUser.twitterHandle ?? defaultHandle}</h3>
         </div>
-        <CopyToClipboardButton content={tweet.drafts[0]} />
+        {!isBlurred && <CopyToClipboardButton content={tweet.drafts[0]} />}
       </div>
       <div className="divider divider-vertical my-0" />
     </>

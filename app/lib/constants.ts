@@ -39,6 +39,8 @@ export const CLEANUP_WORDS = [
 
 export const TWEET_CHAR_LIMIT = 280
 
+export const FREE_TRANSCRIPT_LIMIT = 3
+
 export const UPLOAD_BUCKET_ID = 'birdfeed-transcription-files'
 
 export const LOADING_TWEET_TOAST_ID = 'loading-tweet'

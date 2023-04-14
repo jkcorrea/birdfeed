@@ -14,10 +14,11 @@ import { SendTweetButton } from './SendTweetButton'
 interface Props {
   tweet: GeneratedTweet
   onDelete?: () => void
+  isBlurred?: boolean
   isAuthed?: boolean
 }
 
-export function TweetActionBar({ tweet, isAuthed, onDelete }: Props) {
+export function TweetActionBar({ tweet, isAuthed, isBlurred, onDelete }: Props) {
   const fetcher = useFetcher()
   const zoDelete = useZorm('delete', DeleteTweetSchema, {
     onValidSubmit() {
@@ -39,13 +40,13 @@ export function TweetActionBar({ tweet, isAuthed, onDelete }: Props) {
             <button
               className={tw('btn-link btn-sm btn lowercase text-error', isDeleting && 'loading')}
               data-tip="Delete"
-              disabled={isDeleting}
+              disabled={isDeleting || isBlurred}
             >
               Delete
             </button>
           </fetcher.Form>
 
-          {tweet.transcriptId && (
+          {tweet.transcriptId && !isBlurred && (
             <Link
               prefetch="intent"
               className="btn-outline btn-info btn-sm btn lowercase"
@@ -58,7 +59,7 @@ export function TweetActionBar({ tweet, isAuthed, onDelete }: Props) {
         </>
       )}
 
-      <SendTweetButton isAuthed={isAuthed} body={tweet.drafts[0]} tweetId={tweet.id} />
+      {!isBlurred && <SendTweetButton isAuthed={isAuthed} body={tweet.drafts[0]} tweetId={tweet.id} />}
     </div>
   )
 }

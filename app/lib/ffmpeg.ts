@@ -3,7 +3,7 @@ import { createFFmpeg, fetchFile } from '@ffmpeg/ffmpeg'
 import { UPLOAD_LIMIT_FREE_DURATION, UPLOAD_LIMIT_PRO_DURATION } from './constants'
 import { NODE_ENV } from './env'
 
-export async function convertToAudio(inputFile: File, isAuthed: boolean, onProgress?: (progress: number) => void) {
+export async function convertToAudio(inputFile: File, isFree: boolean, onProgress?: (progress: number) => void) {
   // Create an FFmpeg instance
   const ffmpeg = createFFmpeg({ log: true })
 
@@ -25,7 +25,7 @@ export async function convertToAudio(inputFile: File, isAuthed: boolean, onProgr
     '-i',
     inputFile.name,
     '-t',
-    (isAuthed ? UPLOAD_LIMIT_PRO_DURATION : UPLOAD_LIMIT_FREE_DURATION).toString(),
+    (isFree ? UPLOAD_LIMIT_FREE_DURATION : UPLOAD_LIMIT_PRO_DURATION).toString(),
     '-codec:a',
     'libmp3lame',
     '-qscale:a',
