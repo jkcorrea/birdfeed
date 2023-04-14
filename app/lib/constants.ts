@@ -71,3 +71,5 @@ export enum TweetOutlet {
 }
 
 export const FEATURE_FLAGS = {}
+
+export const MAX_FREE_TWEET = 10

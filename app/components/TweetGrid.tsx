@@ -1,5 +1,6 @@
 import { useMemo } from 'react'
 
+import { MAX_FREE_TWEET } from '~/lib/constants'
 import { tw } from '~/lib/utils'
 import type { GeneratedTweet } from '~/services/openai'
 
@@ -44,7 +45,8 @@ function TweetColumn({ tweets, isAuthed, isFree }: Props) {
         <TweetCard
           key={tweet.id}
           isAuthed={isAuthed}
-          isBlurred={(!isAuthed && ix > 1) || (isFree && ix > 2)}
+          // this allows us to blur the tweets for fremium if we want to try that
+          isBlurred={(!isAuthed && ix > 1) || (isFree && ix > Math.round(MAX_FREE_TWEET / 2) - 1)}
           tweet={tweet}
         />
       ))}
