@@ -1,6 +1,8 @@
 import { useMatches } from '@remix-run/react'
+import type { SerializeFrom } from '@remix-run/server-runtime'
 
 import { tw } from '~/lib/utils'
+import type { loader } from '~/routes/_app+/_layout'
 import type { GeneratedTweet } from '~/services/openai'
 
 import { CopyToClipboardButton } from '../CopyToClipboardButton'
@@ -47,25 +49,21 @@ const defaultHandle = 'birdfeed.ai'
 
 const TwitterAccountHeader = ({ tweet, isBlurred }: { isBlurred?: boolean; tweet: GeneratedTweet }) => {
   const match = useMatches().find((match) => match.id === 'routes/_app+/_layout')
-  //Todo: This throws an error when the user is not logged in
-  // const activeUser = (match?.data as SerializeFrom<typeof loader>).activeUser ?? {}
-  // const avatar = activeUser.avatarUrl ? (
-  //   <img crossOrigin="anonymous" className="h-10 w-10 rounded-full" src={activeUser.avatarUrl} alt="avatar" />
-  // ) : (
-  //   defaultAvatar
-  // )
-  // const name = activeUser.email.split('@')[0] ?? defaultName
+  const activeUser = (match?.data as SerializeFrom<typeof loader>).activeUser ?? {}
+  const avatar = activeUser.avatarUrl ? (
+    <img crossOrigin="anonymous" className="h-10 w-10 rounded-full" src={activeUser.avatarUrl} alt="avatar" />
+  ) : (
+    defaultAvatar
+  )
+  const name = activeUser.email.split('@')[0] ?? defaultName
 
   return (
     <>
       <div className="flex gap-3 p-2">
-        {/* {avatar} */}
-        {defaultAvatar}
+        {avatar}
         <div className="grow leading-tight">
-          {/* <h2 className="font-bold">{name}</h2>
-          <h3 className="text-sm font-semibold opacity-60">@{activeUser.twitterHandle ?? defaultHandle}</h3> */}
-          <h2 className="font-bold">{defaultName}</h2>
-          <h3 className="text-sm font-semibold opacity-60">@{defaultHandle}</h3>
+          <h2 className="font-bold">{name}</h2>
+          <h3 className="text-sm font-semibold opacity-60">@{activeUser.twitterHandle ?? defaultHandle}</h3>
         </div>
         {!isBlurred && <CopyToClipboardButton content={tweet.drafts[0]} />}
       </div>

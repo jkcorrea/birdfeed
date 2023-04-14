@@ -21,7 +21,6 @@ import { createTranscript, CreateTranscriptSchema } from '~/services/transcripti
 
 import birdfeedIcon from '~/assets/birdfeed-icon.png'
 import animalsHooray from 'public/animals_hooray.png'
-// import generatedTweets from 'test/fixtures/generatedTweets.json'
 
 const scripts: ExternalScriptsFunction = () =>
   // NOTE rendering this in dev causes hydration mismatch issues, luckily it's only cosmetic & we don't need it in dev
@@ -164,7 +163,6 @@ export default function Home() {
             </p>
           </ContentCardWrapper>
         </div>
-        {/* <TweetGridWrapper isDemo={false} tweets={generatedTweets} /> */}
         {fetcher.data &&
           (fetcher.data?.error ? (
             fetcher.data.error.message
