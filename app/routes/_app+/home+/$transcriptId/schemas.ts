@@ -29,7 +29,7 @@ export type IDeleteTranscript = z.infer<typeof DeleteTranscriptSchema>
 export const UpdateTranscriptSchema = z.object({
   intent: z.literal('update-transcript'),
   transcriptId: z.string(),
-  name: z.string().max(300),
+  name: z.string().max(10_000),
 })
 export type IUpdateTranscript = z.infer<typeof UpdateTranscriptSchema>
 

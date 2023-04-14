@@ -54,7 +54,8 @@ export function TweetDetailModal({ tweet, onClose: _onClose }: Props) {
   const onClose = () => {
     try {
       const res = zoUpdate.validate()
-      if (res.success && res.data.draft !== tweet?.drafts[0]) {
+      if (!res.success) return
+      if (res.data.draft !== tweet?.drafts[0]) {
         toast.loading('Saving...')
         zoUpdate.form?.submit()
       }
