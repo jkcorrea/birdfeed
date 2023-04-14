@@ -49,13 +49,14 @@ const defaultHandle = 'birdfeed.ai'
 
 const TwitterAccountHeader = ({ tweet, isBlurred }: { isBlurred?: boolean; tweet: GeneratedTweet }) => {
   const match = useMatches().find((match) => match.id === 'routes/_app+/_layout')
-  const activeUser = (match?.data as SerializeFrom<typeof loader>).activeUser ?? {}
-  const avatar = activeUser.avatarUrl ? (
+  const activeUser = (match?.data as SerializeFrom<typeof loader> | undefined)?.activeUser
+  const avatar = activeUser?.avatarUrl ? (
     <img crossOrigin="anonymous" className="h-10 w-10 rounded-full" src={activeUser.avatarUrl} alt="avatar" />
   ) : (
     defaultAvatar
   )
-  const name = activeUser.email.split('@')[0] ?? defaultName
+  const name = activeUser?.email.split('@')[0] ?? defaultName
+  const handle = `@${activeUser?.twitterHandle ?? defaultHandle}`
 
   return (
     <>
@@ -63,7 +64,7 @@ const TwitterAccountHeader = ({ tweet, isBlurred }: { isBlurred?: boolean; tweet
         {avatar}
         <div className="grow leading-tight">
           <h2 className="font-bold">{name}</h2>
-          <h3 className="text-sm font-semibold opacity-60">@{activeUser.twitterHandle ?? defaultHandle}</h3>
+          <h3 className="text-sm font-semibold opacity-60">{handle}</h3>
         </div>
         {!isBlurred && <CopyToClipboardButton content={tweet.drafts[0]} />}
       </div>
