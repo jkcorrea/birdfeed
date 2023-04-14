@@ -57,7 +57,7 @@ const FullscreenModal = ({
             >
               {/* Topbar */}
               <div className="navbar mb-4 min-h-0">
-                <div className="navbar-start gap-10">
+                <div className="navbar-start grow gap-10">
                   {leftAction || (
                     <button className="btn-ghost btn-xs btn-circle btn border-none" onClick={onClose}>
                       <XMarkIcon className="h-5 w-5" />
@@ -71,11 +71,8 @@ const FullscreenModal = ({
                   )}
                 </div>
 
-                {/* Title */}
-                <div className="navbar-center"></div>
-
                 {/* Action Bar */}
-                <div className="navbar-end">{rightAction}</div>
+                {rightAction && <div className="navbar-end">{rightAction}</div>}
               </div>
 
               {/* Body */}
