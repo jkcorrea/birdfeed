@@ -20,6 +20,8 @@ import type { GeneratedTweet } from '~/services/openai'
 
 dayjs.extend(relativeTime)
 
+const TOAST_SAVING_ID = 'saving'
+
 interface Props {
   tweet: GeneratedTweet | null
   onClose: () => void
@@ -51,17 +53,25 @@ export function TweetDetailModal({ tweet, onClose: _onClose }: Props) {
   }
   useEffect(expandTextArea, [tweet, showHistory])
 
-  const onClose = () => {
+  const onClose = async () => {
     try {
       const res = zoUpdate.validate()
       if (!res.success) return
       if (res.data.draft !== tweet?.drafts[0]) {
-        toast.loading('Saving...')
-        zoUpdate.form?.submit()
+        toast.loading('Saving...', { id: TOAST_SAVING_ID })
+        await fetch(action, {
+          method: 'POST',
+          body: new FormData(zoUpdate.form),
+        })
+          .catch((err) => {
+            toast.error(err.message)
+          })
+          .finally(() => {
+            toast.dismiss(TOAST_SAVING_ID)
+          })
       }
     } catch {}
 
-    setShowHistory(false)
     _onClose()
   }
 
@@ -112,7 +122,7 @@ export function TweetDetailModal({ tweet, onClose: _onClose }: Props) {
         </ul>
       ) : (
         <div className="mx-auto flex w-full max-w-md flex-col">
-          <fetcher.Form action={action} id={updateFormId} method="post" ref={zoUpdate.ref}>
+          <fetcher.Form id={updateFormId} ref={zoUpdate.ref}>
             <IntentField<ITweetAction> value="update-tweet" />
             <input name={zoUpdate.fields.tweetId()} type="hidden" value={tweet.id} />
             <TextAreaField

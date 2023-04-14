@@ -10,7 +10,7 @@ export type IRestoreDraft = z.infer<typeof RestoreDraftSchema>
 export const UpdateTweetSchema = z.object({
   intent: z.literal('update-tweet'),
   tweetId: z.string(),
-  draft: z.string().max(300).optional(),
+  draft: z.string().max(10_000).optional(),
   archived: z.boolean().optional(),
   rating: z.number().min(0).max(5).optional(),
 })
