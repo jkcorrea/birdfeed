@@ -26,7 +26,7 @@ export const TweetCard = ({ tweet, isAuthed, isBlurred }: Props) => (
     <TwitterAccountHeader tweet={tweet} />
 
     {/* Tweet content */}
-    <p className="w-full p-4">{isBlurred ? BLURRED_TWEET_CONTENT : tweet.drafts[0]}</p>
+    <p className="w-full whitespace-pre-wrap p-4">{isBlurred ? BLURRED_TWEET_CONTENT : tweet.drafts[0]}</p>
 
     <div className="divider divider-vertical mt-auto mb-0" />
     <div className="flex px-4">
