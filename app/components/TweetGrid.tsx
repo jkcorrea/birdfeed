@@ -1,6 +1,6 @@
 import { useMemo } from 'react'
 
-import { MAX_FREE_TWEET } from '~/lib/constants'
+import { useTailwindBreakpointMax } from '~/lib/hooks/use-breakpoints'
 import { tw } from '~/lib/utils'
 import type { GeneratedTweet } from '~/services/openai'
 
@@ -12,16 +12,15 @@ const columnClassName = 'grid h-fit gap-4 py-4'
 interface Props {
   tweets: GeneratedTweet[]
   isAuthed?: boolean
-  isFree?: boolean
   className?: string
 }
 
-export function TweetGrid({ tweets, isAuthed, isFree, className }: Props) {
-  const [odd, even] = useMemo(
+export function TweetGrid({ tweets, isAuthed, className }: Props) {
+  const [even, odd] = useMemo(
     () =>
       tweets.reduce<[GeneratedTweet[], GeneratedTweet[]]>(
-        (acc, tweet, i) => {
-          if (i % 2 === 1) acc[0].push(tweet)
+        (acc, tweet, index) => {
+          if (index % 2 === 0) acc[0].push(tweet)
           else acc[1].push(tweet)
           return acc
         },
@@ -32,22 +31,27 @@ export function TweetGrid({ tweets, isAuthed, isFree, className }: Props) {
 
   return (
     <div className={tw(wrapperClassName, className)}>
-      <TweetColumn isAuthed={isAuthed} isFree={isFree} tweets={even} />
-      <TweetColumn isAuthed={isAuthed} isFree={isFree} tweets={odd} />
+      <TweetColumn isAuthed={isAuthed} tweets={even} />
+      <TweetColumn isAuthed={isAuthed} tweets={odd} isLast />
     </div>
   )
 }
 
-function TweetColumn({ tweets, isAuthed, isFree }: Props) {
+function TweetColumn({
+  tweets,
+  isAuthed,
+  isLast,
+}: Omit<Props, 'tweets'> & { tweets: GeneratedTweet[]; isLast?: boolean }) {
+  const isSingleCol = useTailwindBreakpointMax('md')
+
   return (
     <div className={columnClassName}>
       {tweets.map((tweet, ix) => (
         <TweetCard
           key={tweet.id}
           isAuthed={isAuthed}
-          // this allows us to blur the tweets for fremium if we want to try that
-          isBlurred={(!isAuthed && ix > 1) || (isFree && ix > Math.round(MAX_FREE_TWEET / 2) - 1)}
           tweet={tweet}
+          isBlurred={!isAuthed && (isSingleCol ? isLast || ix > 3 : ix > 1)}
         />
       ))}
     </div>

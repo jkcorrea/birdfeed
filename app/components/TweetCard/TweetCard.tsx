@@ -21,22 +21,16 @@ interface Props {
 }
 
 export const TweetCard = ({ tweet, isAuthed, isBlurred }: Props) => (
-  <li
-    className={tw(
-      'flex h-fit min-w-[300px] flex-col rounded-lg bg-base-100 py-2 px-4 shadow transition',
-      isBlurred && 'blur'
-    )}
-  >
-    <TwitterAccountHeader isBlurred={isBlurred} tweet={tweet} />
+  <li className={tw('relative flex h-fit min-w-[300px] flex-col rounded-lg bg-base-100 py-2 px-4 shadow transition')}>
+    {isBlurred && <div className="absolute inset-0 z-10 backdrop-blur-sm" />}
+    <TwitterAccountHeader tweet={tweet} />
 
     {/* Tweet content */}
-    <p className={tw(isBlurred && 'select-none', 'w-full p-4')}>
-      {isBlurred ? BLURRED_TWEET_CONTENT : tweet.drafts[0]}
-    </p>
+    <p className="w-full p-4">{isBlurred ? BLURRED_TWEET_CONTENT : tweet.drafts[0]}</p>
 
     <div className="divider divider-vertical mt-auto mb-0" />
     <div className="flex px-4">
-      <TweetActionBar isBlurred={isBlurred} isAuthed={isAuthed} tweet={tweet} />
+      <TweetActionBar isAuthed={isAuthed} tweet={tweet} />
     </div>
   </li>
 )
@@ -47,7 +41,7 @@ const defaultAvatar = (
 const defaultName = 'birdfeed'
 const defaultHandle = 'birdfeed.ai'
 
-const TwitterAccountHeader = ({ tweet, isBlurred }: { isBlurred?: boolean; tweet: GeneratedTweet }) => {
+const TwitterAccountHeader = ({ tweet }: { tweet: GeneratedTweet }) => {
   const match = useMatches().find((match) => match.id === 'routes/_app+/_layout')
   const activeUser = (match?.data as SerializeFrom<typeof loader> | undefined)?.activeUser
   const avatar = activeUser?.avatarUrl ? (
@@ -66,7 +60,7 @@ const TwitterAccountHeader = ({ tweet, isBlurred }: { isBlurred?: boolean; tweet
           <h2 className="font-bold">{name}</h2>
           <h3 className="text-sm font-semibold opacity-60">{handle}</h3>
         </div>
-        {!isBlurred && <CopyToClipboardButton content={tweet.drafts[0]} />}
+        <CopyToClipboardButton content={tweet.drafts[0]} />
       </div>
       <div className="divider divider-vertical my-0" />
     </>

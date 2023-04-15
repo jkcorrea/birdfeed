@@ -1,4 +1,4 @@
-import { Fragment, useRef, useState } from 'react'
+import { Fragment, useRef } from 'react'
 import { ArrowRightIcon } from '@heroicons/react/20/solid'
 import type { ActionArgs, HeadersFunction, LoaderArgs } from '@remix-run/node'
 import { Link, useFetcher } from '@remix-run/react'
@@ -59,7 +59,7 @@ export async function action({ request }: ActionArgs) {
 
 export default function Home() {
   const fetcher = useFetcher<typeof action>()
-  const [isLoggedIn, _setIsLoggedIn] = useState<boolean>(false)
+  // const [isLoggedIn, _setIsLoggedIn] = useState<boolean>(false)
 
   // useEffect(() => {
   //   fetch('/api/is-logged-in').then(async (res) => {
@@ -84,7 +84,13 @@ export default function Home() {
         </Link>
 
         <div className="inline-flex items-center gap-2">
-          {isLoggedIn ? (
+          <Link to={APP_ROUTES.LOGIN.href} className="btn-ghost btn-xs btn md:btn-md">
+            Login
+          </Link>
+          <Link to={APP_ROUTES.JOIN(1).href} className="btn-outline btn-primary btn-xs btn md:btn-md">
+            Get Started Free
+          </Link>
+          {/* {isLoggedIn ? (
             <Link to={APP_ROUTES.HOME.href} className="btn-outline btn-secondary btn-xs btn md:btn-md">
               Go to app →
             </Link>
@@ -97,7 +103,7 @@ export default function Home() {
                 Get Started Free
               </Link>
             </>
-          )}
+          )} */}
         </div>
       </nav>
       <main className="flex flex-col">
@@ -163,6 +169,10 @@ export default function Home() {
             </p>
           </ContentCardWrapper>
         </div>
+
+        {/* NOTE: used in dev to work on the tweet grid component */}
+        {/* {NODE_ENV !== 'production' && <TweetGridWrapper tweets={require('../../../test/fixtures/generatedTweets.json')} />} */}
+
         {fetcher.data &&
           (fetcher.data?.error ? (
             fetcher.data.error.message
@@ -175,7 +185,7 @@ export default function Home() {
   )
 }
 
-function TweetGridWrapper({ tweets, isDemo }: { tweets: GeneratedTweet[]; isDemo: boolean }) {
+function TweetGridWrapper({ tweets, isDemo }: { tweets: GeneratedTweet[]; isDemo?: boolean }) {
   const subtitle = isDemo ? (
     <>
       The following tweets were generated from{' '}
@@ -211,12 +221,12 @@ function TweetGridWrapper({ tweets, isDemo }: { tweets: GeneratedTweet[]; isDemo
       </div>
 
       <div className="relative">
-        <div className="absolute top-2/3 right-1/2 z-10 translate-x-1/2">
+        <div className="absolute top-1/2 z-20 flex w-full items-center justify-center md:top-2/3">
           <Link
             to={APP_ROUTES.JOIN(1).href}
-            className="btn-secondary btn-lg btn pointer-events-auto px-6 font-bold shadow-xl"
+            className="btn-secondary btn-lg btn pointer-events-auto font-black shadow-xl"
           >
-            Get Started to see the rest! <ArrowRightIcon className="ml-2 w-6" />
+            Get Started to see the rest! <ArrowRightIcon className="ml-2 inline w-6" />
           </Link>
         </div>
 

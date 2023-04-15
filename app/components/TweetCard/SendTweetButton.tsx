@@ -61,45 +61,34 @@ interface Props {
   isAuthed?: boolean
 }
 
-const SendTweetButtonElement = ({ body, tweetId, isAuthed }: Props) => {
-  const { lastUsedOutlet } = useUiStore()
-  const outlet = outletMeta[lastUsedOutlet]
-
-  return (
-    <button
-      type="button"
-      className={tw(
-        'btn-info btn-sm btn flex items-center gap-2 lowercase text-white',
-        !isAuthed && 'cursor-not-allowed'
-      )}
-      onClick={(e) => {
-        if (!isAuthed) return
-        e.preventDefault()
-        posthog.capture('tweet_send', { tweetId: tweetId, outlet: lastUsedOutlet })
-        outlet.action(body, isAuthed)
-      }}
-    >
-      {lastUsedOutlet}
-      {outlet.icon}
-    </button>
-  )
-}
-
 // TODO delete tweet after sending off
 // TODO track in db with a 5-star rating
 
 export const SendTweetButton = ({ body, tweetId, isAuthed }: Props) => {
-  const { setLastUsedOutlet } = useUiStore()
+  const { lastUsedOutlet, setLastUsedOutlet } = useUiStore(({ lastUsedOutlet, setLastUsedOutlet }) => ({
+    lastUsedOutlet,
+    setLastUsedOutlet,
+  }))
+  const outlet = outletMeta[lastUsedOutlet]
 
   return (
     <div className="btn-group flex items-center rounded-full bg-info">
-      {isAuthed ? (
-        <SendTweetButtonElement body={body} tweetId={tweetId} isAuthed={isAuthed} />
-      ) : (
-        <div className="tooltip" data-tip="These buttons are for logged in users. 😔">
-          <SendTweetButtonElement body={body} tweetId={tweetId} isAuthed={isAuthed} />
-        </div>
-      )}
+      <button
+        type="button"
+        className={tw(
+          'btn-info btn-sm btn flex items-center gap-2 lowercase text-white',
+          !isAuthed && 'cursor-not-allowed'
+        )}
+        onClick={(e) => {
+          if (!isAuthed) return
+          e.preventDefault()
+          posthog.capture('tweet_send', { tweetId: tweetId, outlet: lastUsedOutlet })
+          outlet.action(body, isAuthed)
+        }}
+      >
+        {lastUsedOutlet}
+        {outlet.icon}
+      </button>
 
       <div className="h-[68%] w-[2px] rounded-full bg-white/30" />
 
