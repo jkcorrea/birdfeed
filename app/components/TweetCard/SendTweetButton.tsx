@@ -46,7 +46,7 @@ const outletMeta: Record<TweetOutlet, TweetOutletMeta> = {
   [TweetOutlet.TWITTER]: {
     icon: <TwitterIcon className="h-4 w-4" />,
     label: 'Send to Twitter',
-    action: (content, isAuthed) => window.open(buildSendTweetUrl(content, isAuthed), '_blank', 'noopener,noreferrer'),
+    action: (content, isAuthed) => window.open(buildSendTweetUrl(content, !isAuthed), '_blank', 'noopener,noreferrer'),
   },
   [TweetOutlet.HYPEFURY]: {
     icon: <HypefuryIcon className="h-5 w-5" />,
