@@ -26,7 +26,7 @@ const FullscreenModal = ({
   rightAction,
 }: Props) => (
   <Transition appear show={isOpen} as={Fragment}>
-    <Dialog as="div" initialFocus={initialFocus} className="reltaive z-10" onClose={onClose}>
+    <Dialog as="div" initialFocus={initialFocus} className="reltaive z-90" onClose={onClose}>
       <Transition.Child
         as={Fragment}
         enter="ease-out duration-300"

@@ -72,4 +72,7 @@ export enum TweetOutlet {
 
 export const FEATURE_FLAGS = {}
 
-export const MAX_FREE_TWEET = 10
+export const MAX_FREEIUM_TWEETS = 12
+export const MAX_MARKETING_PAGE_TWEETS = 4
+
+export const BLURRED_TWEET_CONTENT = `Feathered whispers dance, Skyward melodies take flight, Nature's symphony. - GPT`

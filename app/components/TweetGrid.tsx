@@ -1,5 +1,6 @@
 import { useMemo } from 'react'
 
+import { MAX_FREEIUM_TWEETS, MAX_MARKETING_PAGE_TWEETS } from '~/lib/constants'
 import { useTailwindBreakpointMax } from '~/lib/hooks/use-breakpoints'
 import { tw } from '~/lib/utils'
 import type { GeneratedTweet } from '~/services/openai'
@@ -12,10 +13,11 @@ const columnClassName = 'grid h-fit gap-4 py-4'
 interface Props {
   tweets: GeneratedTweet[]
   isAuthed?: boolean
+  isFree?: boolean
   className?: string
 }
 
-export function TweetGrid({ tweets, isAuthed, className }: Props) {
+export function TweetGrid({ tweets, isAuthed, isFree, className }: Props) {
   const [even, odd] = useMemo(
     () =>
       tweets.reduce<[GeneratedTweet[], GeneratedTweet[]]>(
@@ -31,8 +33,8 @@ export function TweetGrid({ tweets, isAuthed, className }: Props) {
 
   return (
     <div className={tw(wrapperClassName, className)}>
-      <TweetColumn isAuthed={isAuthed} tweets={even} />
-      <TweetColumn isAuthed={isAuthed} tweets={odd} isLast />
+      <TweetColumn isAuthed={isAuthed} isFree={isFree} tweets={even} />
+      <TweetColumn isAuthed={isAuthed} isFree={isFree} tweets={odd} isLast />
     </div>
   )
 }
@@ -41,8 +43,9 @@ function TweetColumn({
   tweets,
   isAuthed,
   isLast,
+  isFree,
 }: Omit<Props, 'tweets'> & { tweets: GeneratedTweet[]; isLast?: boolean }) {
-  const isSingleCol = useTailwindBreakpointMax('md')
+  const isSingleCol = useTailwindBreakpointMax('sm')
 
   return (
     <div className={columnClassName}>
@@ -51,7 +54,16 @@ function TweetColumn({
           key={tweet.id}
           isAuthed={isAuthed}
           tweet={tweet}
-          isBlurred={!isAuthed && (isSingleCol ? isLast || ix > 3 : ix > 1)}
+          isBlurred={
+            (!isAuthed &&
+              (isSingleCol
+                ? isLast || ix > MAX_MARKETING_PAGE_TWEETS - 1
+                : ix > Math.round(MAX_MARKETING_PAGE_TWEETS / 2) - 1)) ||
+            // allows us to show limited number of tweets in free mode
+            // does the same thing as line above, but for free logged in free users
+            (isFree &&
+              (isSingleCol ? isLast || ix > MAX_FREEIUM_TWEETS - 1 : ix > Math.round(MAX_FREEIUM_TWEETS / 2) - 1))
+          }
         />
       ))}
     </div>

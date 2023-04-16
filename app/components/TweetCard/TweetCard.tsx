@@ -1,18 +1,13 @@
 import { useMatches } from '@remix-run/react'
 import type { SerializeFrom } from '@remix-run/server-runtime'
 
+import { BLURRED_TWEET_CONTENT } from '~/lib/constants'
 import { tw } from '~/lib/utils'
 import type { loader } from '~/routes/_app+/_layout'
 import type { GeneratedTweet } from '~/services/openai'
 
 import { CopyToClipboardButton } from '../CopyToClipboardButton'
 import { TweetActionBar } from './TweetActionBar'
-
-const BLURRED_TWEET_CONTENT = `
-Feathered whispers dance,
-Skyward melodies take flight,
-Nature's symphony.
-- GPT`
 
 interface Props {
   tweet: GeneratedTweet

@@ -55,40 +55,55 @@ const outletMeta: Record<TweetOutlet, TweetOutletMeta> = {
   },
 }
 
+const SendTweetButtonElement = ({
+  body,
+  tweetId,
+  isAuthed,
+  lastUsedOutlet,
+}: Props & { lastUsedOutlet: TweetOutlet }) => {
+  const outlet = outletMeta[lastUsedOutlet]
+
+  return (
+    <button
+      type="button"
+      className={tw(
+        'btn-info btn-sm btn flex items-center gap-2 lowercase text-white',
+        !isAuthed && 'cursor-not-allowed'
+      )}
+      onClick={(e) => {
+        if (!isAuthed) return
+        e.preventDefault()
+        posthog.capture('tweet_send', { tweetId: tweetId, outlet: lastUsedOutlet })
+        outlet.action(body, isAuthed)
+      }}
+    >
+      {lastUsedOutlet}
+      {outlet.icon}
+    </button>
+  )
+}
+
 interface Props {
   body: string
   tweetId: string
   isAuthed?: boolean
 }
 
-// TODO delete tweet after sending off
-// TODO track in db with a 5-star rating
-
 export const SendTweetButton = ({ body, tweetId, isAuthed }: Props) => {
   const { lastUsedOutlet, setLastUsedOutlet } = useUiStore(({ lastUsedOutlet, setLastUsedOutlet }) => ({
     lastUsedOutlet,
     setLastUsedOutlet,
   }))
-  const outlet = outletMeta[lastUsedOutlet]
 
   return (
     <div className="btn-group flex items-center rounded-full bg-info">
-      <button
-        type="button"
-        className={tw(
-          'btn-info btn-sm btn flex items-center gap-2 lowercase text-white',
-          !isAuthed && 'cursor-not-allowed'
-        )}
-        onClick={(e) => {
-          if (!isAuthed) return
-          e.preventDefault()
-          posthog.capture('tweet_send', { tweetId: tweetId, outlet: lastUsedOutlet })
-          outlet.action(body, isAuthed)
-        }}
-      >
-        {lastUsedOutlet}
-        {outlet.icon}
-      </button>
+      {isAuthed ? (
+        <SendTweetButtonElement lastUsedOutlet={lastUsedOutlet} body={body} tweetId={tweetId} isAuthed={isAuthed} />
+      ) : (
+        <div className="tooltip" data-tip="These buttons are for logged in users. 😔">
+          <SendTweetButtonElement lastUsedOutlet={lastUsedOutlet} body={body} tweetId={tweetId} isAuthed={isAuthed} />
+        </div>
+      )}
 
       <div className="h-[68%] w-[2px] rounded-full bg-white/30" />
 

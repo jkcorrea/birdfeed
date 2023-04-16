@@ -1,5 +1,6 @@
 import { Fragment, useRef } from 'react'
 import { ArrowRightIcon } from '@heroicons/react/20/solid'
+import { createId } from '@paralleldrive/cuid2'
 import type { ActionArgs, HeadersFunction, LoaderArgs } from '@remix-run/node'
 import { Link, useFetcher } from '@remix-run/react'
 import type { HTMLAttributes, ReactNode } from 'react'
@@ -11,7 +12,7 @@ import { PublicFooter } from '~/components/PublicFooter'
 import type { TranscriptUploaderHandle } from '~/components/TranscriptUploader'
 import { TranscriptUploader } from '~/components/TranscriptUploader'
 import { TweetGrid } from '~/components/TweetGrid'
-import { APP_ROUTES, UPSELL_FEATURES } from '~/lib/constants'
+import { APP_ROUTES, BLURRED_TWEET_CONTENT, UPSELL_FEATURES } from '~/lib/constants'
 import { NODE_ENV } from '~/lib/env'
 import { response } from '~/lib/http.server'
 import { parseData, tw } from '~/lib/utils'
@@ -171,13 +172,29 @@ export default function Home() {
         </div>
 
         {/* NOTE: used in dev to work on the tweet grid component */}
-        {/* {NODE_ENV !== 'production' && <TweetGridWrapper tweets={require('../../../test/fixtures/generatedTweets.json')} />} */}
+        {/* {NODE_ENV !== 'production' && (
+          <TweetGridWrapper tweets={require('../../../test/fixtures/generatedTweets.json')} />
+        )} */}
 
         {fetcher.data &&
           (fetcher.data?.error ? (
             fetcher.data.error.message
           ) : (
-            <TweetGridWrapper isDemo={fetcher.data.isDemo} tweets={fetcher.data.tweets} />
+            <TweetGridWrapper
+              isDemo={fetcher.data.isDemo}
+              // This is a temp hack to make sure we always show 10 tweets
+              tweets={Array(10)
+                .fill(null)
+                .map((_, idx) =>
+                  fetcher.data && !fetcher.data?.error && fetcher.data?.tweets[idx]
+                    ? fetcher.data.tweets[idx]
+                    : {
+                        id: createId(),
+                        drafts: [BLURRED_TWEET_CONTENT],
+                        document: '',
+                      }
+                )}
+            />
           ))}
       </main>
       <PublicFooter />
@@ -221,7 +238,7 @@ function TweetGridWrapper({ tweets, isDemo }: { tweets: GeneratedTweet[]; isDemo
       </div>
 
       <div className="relative">
-        <div className="absolute top-1/2 z-20 flex w-full items-center justify-center md:top-2/3">
+        <div className="absolute top-1/2 z-20 flex w-full items-center justify-center sm:top-2/3">
           <Link
             to={APP_ROUTES.JOIN(1).href}
             className="btn-secondary btn-lg btn pointer-events-auto font-black shadow-xl"
