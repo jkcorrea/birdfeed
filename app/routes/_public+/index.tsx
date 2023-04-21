@@ -68,13 +68,7 @@ export default function Home() {
         <Link to="/" className="-m-1.5 flex items-center whitespace-nowrap p-1.5 text-lg font-black md:text-2xl">
           <img src={birdfeedIcon} alt="Birdfeed AI" className="inline h-10 w-10" /> Birdfeed
         </Link>
-        <button
-          onClick={() => {
-            throw new Error('test sentry')
-          }}
-        >
-          Break the world
-        </button>
+
         <div className="inline-flex items-center gap-2">
           <Link to={APP_ROUTES.LOGIN.href} className="btn-ghost btn-xs btn md:btn-md">
             Login
