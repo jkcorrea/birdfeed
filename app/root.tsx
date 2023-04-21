@@ -12,6 +12,7 @@ import {
   useFetchers,
   useLoaderData,
 } from '@remix-run/react'
+import { withSentry } from '@sentry/remix'
 import { toast, Toaster } from 'react-hot-toast'
 import { ExternalScripts } from 'remix-utils'
 
@@ -51,7 +52,7 @@ export async function loader() {
   return json({ env: getBrowserEnv() })
 }
 
-export default function App() {
+function App() {
   const { env } = useLoaderData<typeof loader>()
 
   useEffect(initAnalytics, [])
@@ -99,6 +100,8 @@ export default function App() {
     </html>
   )
 }
+
+export default withSentry(App)
 
 const ErrorBody = ({ error }: { error: CatchResponse['error'] }) => (
   <>

@@ -1,4 +1,5 @@
 import { createId } from '@paralleldrive/cuid2'
+import * as Sentry from '@sentry/remix'
 import { OpenAIChat } from 'langchain/llms'
 import { RecursiveCharacterTextSplitter } from 'langchain/text_splitter'
 
@@ -34,6 +35,15 @@ const model = new OpenAIChat({
 })
 
 export async function generateTweetsFromContent(content: string, settings?: PromptSettings): Promise<GeneratedTweet[]> {
+  const tx = Sentry.startTransaction({
+    name: 'Generate Tweets',
+    sampled: true,
+    data: {
+      contentLength: content.length,
+      promptSettings: settings,
+    },
+  })
+
   const { maxTweets = 5, tone = '', topics = [], __skip_openai = false } = { ...defaultSettings, ...settings }
   const splitter = new RecursiveCharacterTextSplitter({
     chunkSize: CHUNK_SIZE,
@@ -87,6 +97,8 @@ export async function generateTweetsFromContent(content: string, settings?: Prom
       return ts
     })
     .flat()
+
+  tx.finish()
 
   return tweets
 }

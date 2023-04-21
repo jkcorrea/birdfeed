@@ -1,3 +1,5 @@
+import * as Sentry from '@sentry/remix'
+
 import { db } from '~/database'
 import { AppError } from '~/lib/utils'
 
@@ -15,6 +17,17 @@ export async function createTranscript(
   if (mimetype.includes('image')) throw new AppError('Image files are not supported')
   let content: string
 
+  // Track this in Sentry
+  const tx = Sentry.startTransaction({
+    name: 'Create Transcript',
+    sampled: true,
+    data: {
+      mimetype,
+      userId,
+      pathInBucket,
+    },
+  })
+
   if (mimetype === 'text/plain') {
     // Text is easy! Just download & read it into content
     const file = await downloadFile(pathInBucket)
@@ -25,9 +38,13 @@ export async function createTranscript(
     content = await transcribeMedia({ url, mimetype })
   }
 
-  const tweets: GeneratedTweet[] = generateTweets ? await generateTweetsFromContent(content, { maxTweets: 10 }) : []
+  let tweets: GeneratedTweet[] = []
 
-  return db.transcript.create({
+  if (generateTweets) {
+    tweets = await generateTweetsFromContent(content, { maxTweets: 10 })
+  }
+
+  const res = await db.transcript.create({
     data: {
       name,
       pathInBucket,
@@ -37,4 +54,8 @@ export async function createTranscript(
     },
     include: { tweets: true },
   })
+
+  tx.finish()
+
+  return res
 }

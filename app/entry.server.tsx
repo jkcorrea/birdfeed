@@ -1,3 +1,5 @@
+import '~/lib/sentry.server'
+
 import { PassThrough } from 'stream'
 
 import type { HandleDataRequestFunction, HandleDocumentRequestFunction } from '@remix-run/node'
