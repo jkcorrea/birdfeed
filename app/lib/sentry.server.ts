@@ -7,3 +7,4 @@ Sentry.init({
   integrations: [new Sentry.Integrations.Prisma({ client: db })],
   tracesSampleRate: 0.01,
 })
+Sentry.addTracingExtensions()
