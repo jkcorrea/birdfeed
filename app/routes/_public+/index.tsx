@@ -5,7 +5,6 @@ import type { ActionArgs, HeadersFunction, LoaderArgs } from '@remix-run/node'
 import { Link, useFetcher } from '@remix-run/react'
 import type { HTMLAttributes, ReactNode } from 'react'
 import { parseFormAny } from 'react-zorm'
-import type { ExternalScriptsFunction } from 'remix-utils'
 
 import { AnimatedWord } from '~/components/AnimatedWord'
 import { PublicFooter } from '~/components/PublicFooter'
@@ -13,7 +12,6 @@ import type { TranscriptUploaderHandle } from '~/components/TranscriptUploader'
 import { TranscriptUploader } from '~/components/TranscriptUploader'
 import { TweetGrid } from '~/components/TweetGrid'
 import { APP_ROUTES, BLURRED_TWEET_CONTENT, UPSELL_FEATURES } from '~/lib/constants'
-import { NODE_ENV } from '~/lib/env'
 import { response } from '~/lib/http.server'
 import { parseData, tw } from '~/lib/utils'
 import { safeAuthSession } from '~/services/auth'
@@ -22,19 +20,6 @@ import { createTranscript, CreateTranscriptSchema } from '~/services/transcripti
 
 import birdfeedIcon from '~/assets/birdfeed-icon.png'
 import animalsHooray from 'public/animals_hooray.png'
-
-const scripts: ExternalScriptsFunction = () =>
-  // NOTE rendering this in dev causes hydration mismatch issues, luckily it's only cosmetic & we don't need it in dev
-  NODE_ENV === 'development'
-    ? []
-    : [
-        {
-          async: true,
-          src: 'https://platform.twitter.com/widgets.js',
-        },
-      ]
-
-export const handle = { scripts }
 
 export const headers: HeadersFunction = () => ({
   'cache-control': 'public, max-age=60, s-maxage=3600, stale-while-revalidate=59',
@@ -83,7 +68,13 @@ export default function Home() {
         <Link to="/" className="-m-1.5 flex items-center whitespace-nowrap p-1.5 text-lg font-black md:text-2xl">
           <img src={birdfeedIcon} alt="Birdfeed AI" className="inline h-10 w-10" /> Birdfeed
         </Link>
-
+        <button
+          onClick={() => {
+            throw new Error('test sentry')
+          }}
+        >
+          Break the world
+        </button>
         <div className="inline-flex items-center gap-2">
           <Link to={APP_ROUTES.LOGIN.href} className="btn-ghost btn-xs btn md:btn-md">
             Login
