@@ -12,7 +12,7 @@ import {
   useFetchers,
   useLoaderData,
 } from '@remix-run/react'
-import { withSentry } from '@sentry/remix'
+// import { withSentry } from '@sentry/remix'
 import { toast, Toaster } from 'react-hot-toast'
 import { ExternalScripts } from 'remix-utils'
 
@@ -101,7 +101,8 @@ function App() {
   )
 }
 
-export default withSentry(App)
+// export default withSentry(App)
+export default App
 
 const ErrorBody = ({ error }: { error: CatchResponse['error'] }) => (
   <>

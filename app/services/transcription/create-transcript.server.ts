@@ -1,5 +1,3 @@
-import * as Sentry from '@sentry/remix'
-
 import { db } from '~/database'
 import { AppError } from '~/lib/utils'
 
@@ -18,15 +16,15 @@ export async function createTranscript(
   let content: string
 
   // Track this in Sentry
-  const tx = Sentry.startTransaction({
-    name: 'Create Transcript',
-    sampled: true,
-    data: {
-      mimetype,
-      userId,
-      pathInBucket,
-    },
-  })
+  // const tx = Sentry.startTransaction({
+  //   name: 'Create Transcript',
+  //   sampled: true,
+  //   data: {
+  //     mimetype,
+  //     userId,
+  //     pathInBucket,
+  //   },
+  // })
 
   if (mimetype === 'text/plain') {
     // Text is easy! Just download & read it into content
@@ -55,7 +53,7 @@ export async function createTranscript(
     include: { tweets: true },
   })
 
-  tx.finish()
+  // tx.finish()
 
   return res
 }

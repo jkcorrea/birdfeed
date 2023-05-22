@@ -3,13 +3,11 @@ import { PassThrough } from 'stream'
 import type { HandleDataRequestFunction, HandleDocumentRequestFunction } from '@remix-run/node'
 import { Response } from '@remix-run/node'
 import { RemixServer } from '@remix-run/react'
-import * as Sentry from '@sentry/remix'
+// import * as Sentry from '@sentry/remix'
 import etag from 'etag'
 import isbot from 'isbot'
 import { renderToPipeableStream } from 'react-dom/server'
 import { getClientLocales } from 'remix-utils'
-
-import { db } from '~/database'
 
 import { NODE_ENV } from './lib/env'
 import { LocaleProvider } from './lib/locale-provider'
@@ -17,11 +15,11 @@ import { getCookie, Logger } from './lib/utils'
 
 const ABORT_DELAY = 5000
 
-Sentry.init({
-  dsn: 'https://f8dfe328b8794fb69f532de9a09d1d03:706b1268f8e748f18717ee5dde8e978c@o4505052725313536.ingest.sentry.io/4505052727410688',
-  integrations: [new Sentry.Integrations.Prisma({ client: db })],
-  tracesSampleRate: 0.01,
-})
+// Sentry.init({
+//   dsn: 'https://f8dfe328b8794fb69f532de9a09d1d03:706b1268f8e748f18717ee5dde8e978c@o4505052725313536.ingest.sentry.io/4505052727410688',
+//   integrations: [new Sentry.Integrations.Prisma({ client: db })],
+//   tracesSampleRate: 0.01,
+// })
 
 const handleRequest: HandleDocumentRequestFunction = (request, responseStatusCode, responseHeaders, remixContext) => {
   const locales = getClientLocales(request)
