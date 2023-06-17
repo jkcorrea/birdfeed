@@ -95,7 +95,7 @@ export default function Home() {
       <main className="flex flex-col">
         <div className="mb-4 md:mb-8">
           <h1 className="text-4xl font-black tracking-tight sm:text-center sm:text-6xl">
-            Turn your <AnimatedWord words={['blog posts', 'podcasts', 'meetings', 'content']} /> into tweets.
+            Turn your <AnimatedWord words={['youtubes', 'podcasts', 'blog posts', 'content']} /> into tweets.
           </h1>
           <p className="mx-auto mt-4 text-lg leading-snug text-gray-600 sm:text-center md:mt-8 md:text-2xl">
             Birdfeed listens to hours of content and crafts tweets in your words.
@@ -254,13 +254,3 @@ const ContentCardWrapper = ({
     {children}
   </div>
 )
-
-function _LoadingColumn() {
-  return (
-    <div className="grid gap-4">
-      {[...Array(5)].map((_, ix) => (
-        <div key={ix} className="h-20 w-full min-w-[300px] animate-pulse-slow rounded-lg bg-base-content/10" />
-      ))}
-    </div>
-  )
-}
