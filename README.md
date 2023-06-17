@@ -28,10 +28,6 @@ npx create-remix --template rphlmr/supa-stripe-stack
 ### Features
 
 - Authentication (email/password) with [Supabase](https://supabase.com/)
-- Subscriptions (default: `free`, `tier_1`, `tier_2`) with [Stripe](https://stripe.com/)
-  - Multi-currency (default: `usd` and `eur`)
-  - Interval (default: `month` and `year`)
-- A taking notes app demo with tier limits on the max number of notes (default: `free` = 2, `tier_1` = 4, `tier_2` = infinite)
 
 ### Tools
 
@@ -52,9 +48,6 @@ npx create-remix --template rphlmr/supa-stripe-stack
 - E2E Testing 😶 (will try to add it with [Playwright](https://playwright.dev/)))
 - GitHub Actions
 
-## Why Supabase?
-
-I love it.
 
 # Requirements
 
@@ -90,6 +83,7 @@ I love it.
 > This CLI gives you the ability to listen Stripe webhook events and forward them to your local server.
 
 - Create a [Stripe account](https://dashboard.stripe.com/register)
+- Login to the stripe CLI `stripe login`
 - Go to https://dashboard.stripe.com/test/apikeys
 
   ![stripe_secrets](https://user-images.githubusercontent.com/20722140/216101036-1e94b7fe-29e6-4f34-85eb-9e0f7c0002a4.png)
