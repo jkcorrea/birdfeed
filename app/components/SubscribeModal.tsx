@@ -114,7 +114,7 @@ const SubscribeModal = ({ mode, referer, onClose }: SubscribeModalProps) => {
             {mode === 'resubscribe'
               ? `Resubscribe`
               : TRIAL_DAYS && TRIAL_DAYS > 0
-              ? `Try ${TRIAL_DAYS} days for free`
+              ? `Try Pro ${TRIAL_DAYS} days for free`
               : 'Upgrade now'}
           </button>
         </fetcher.Form>

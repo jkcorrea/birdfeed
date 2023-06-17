@@ -1,6 +1,6 @@
 import { useMemo } from 'react'
 
-import { MAX_MARKETING_PAGE_TWEETS } from '~/lib/constants'
+import { MAX_FREEIUM_TWEETS, MAX_MARKETING_PAGE_TWEETS } from '~/lib/constants'
 import { useTailwindBreakpointMax } from '~/lib/hooks/use-breakpoints'
 import { tw } from '~/lib/utils'
 import type { GeneratedTweet } from '~/services/openai'
@@ -55,15 +55,15 @@ function TweetColumn({
           isAuthed={isAuthed}
           tweet={tweet}
           isBlurred={
-            !isAuthed &&
-            (isSingleCol
-              ? isLast || ix > MAX_MARKETING_PAGE_TWEETS - 1
-              : ix > Math.round(MAX_MARKETING_PAGE_TWEETS / 2) - 1)
+            (!isAuthed &&
+              (isSingleCol
+                ? isLast || ix > MAX_MARKETING_PAGE_TWEETS - 1
+                : ix > Math.round(MAX_MARKETING_PAGE_TWEETS / 2) - 1)) ||
             // allows us to show limited number of tweets in free mode
             // does the same thing as line above, but for free logged in free users
             // removing for now, but keeping in case we want to test this as a upsell
-            // (isFree &&
-            //   (isSingleCol ? isLast || ix > MAX_FREEIUM_TWEETS - 1 : ix > Math.round(MAX_FREEIUM_TWEETS / 2) - 1))
+            (isFree &&
+              (isSingleCol ? isLast || ix > MAX_FREEIUM_TWEETS - 1 : ix > Math.round(MAX_FREEIUM_TWEETS / 2) - 1))
           }
         />
       ))}
