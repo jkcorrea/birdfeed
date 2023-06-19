@@ -44,7 +44,8 @@ export const meta: MetaFunction = () => ({
   charset: 'utf-8',
   title: 'Birdfeed',
   viewport: 'width=device-width,initial-scale=1',
-  description: 'Turn hours of content into tweets in seconds',
+  description:
+    'Double your content output with Birdfeed.ai! Our innovative AI transforms your videos and podcasts into engaging tweets, amplifying your reach. Start growing your follower count today!',
   'og:image': '/og-image.png',
 })
 
@@ -77,7 +78,7 @@ function App() {
       <head>
         <Meta />
         <Links />
-        {process.env.NODE_ENV === 'production' && (
+        {NODE_ENV === 'production' && (
           <>
             <script async src="https://www.googletagmanager.com/gtag/js?id=G-BP0SDXDZHF" />
             <script
