@@ -167,8 +167,8 @@ export default function Home() {
           ) : (
             <TweetGridWrapper
               isDemo={fetcher.data.isDemo}
-              // This is a temp hack to make sure we always show 10 tweets
-              tweets={Array(10)
+              // This is a temp hack to make sure we always show 10 or fewer tweets
+              tweets={Array(Math.min(10, fetcher.data.tweets.length))
                 .fill(null)
                 .map((_, idx) =>
                   fetcher.data && !fetcher.data?.error && fetcher.data?.tweets[idx]
