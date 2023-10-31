@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react'
+import { useCallback, useMemo, useState } from 'react'
 import { CloudArrowUpIcon } from '@heroicons/react/24/outline'
 
 import { getYoutubeVideoId, tw } from '~/lib/utils'
@@ -13,6 +13,10 @@ interface Props {
 export function YoutubeLinkInput({ onSubmit }: Props) {
   const [value, setValue] = useState('')
   const videoId = useMemo(() => getYoutubeVideoId(value), [value])
+  const handleSumbit = useCallback(() => {
+    if (videoId) onSubmit(videoId)
+    setValue('')
+  }, [onSubmit, videoId])
 
   return (
     <div className="relative w-full">
@@ -20,6 +24,9 @@ export function YoutubeLinkInput({ onSubmit }: Props) {
         placeholder="Paste a YouTube link"
         className="input-ghost text-center !text-gray-500"
         onChange={(e) => setValue(e.currentTarget.value)}
+        onKeyDown={(e) => {
+          if (e.key === 'Enter') handleSumbit()
+        }}
         value={value}
       />
 
@@ -30,10 +37,7 @@ export function YoutubeLinkInput({ onSubmit }: Props) {
             videoId ? 'opacity-100' : 'opacity-50'
           )}
           disabled={!videoId}
-          onClick={() => {
-            if (videoId) onSubmit(videoId)
-            setValue('')
-          }}
+          onClick={handleSumbit}
         >
           Submit
           <CloudArrowUpIcon className="h-5 w-5" />
